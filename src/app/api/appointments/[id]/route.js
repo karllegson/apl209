@@ -1,0 +1,177 @@
+import { createAdminClient } from '@/lib/supabase/admin'
+import { NextResponse } from 'next/server'
+import { isAdminAuthenticated } from '@/lib/auth/admin'
+
+// GET — Get a single submission by ID (admin only)
+export async function GET(request, { params }) {
+  const devMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+  
+  if (!devMode && !isAdminAuthenticated(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { id } = await params
+  let admin
+  try {
+    admin = createAdminClient()
+  } catch (err) {
+    console.error('Supabase client error:', err.message)
+    return NextResponse.json(
+      {
+        error: 'Server configuration error. Please check Supabase credentials.',
+        details: process.env.NODE_ENV === 'development' ? err.message : undefined,
+      },
+      { status: 500 }
+    )
+  }
+
+  const { data, error } = await admin
+    .from('appointments')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error) {
+    return NextResponse.json(
+      { error: 'Submission not found' },
+      { status: 404 }
+    )
+  }
+
+  return NextResponse.json({ appointment: data })
+}
+
+// PATCH — Update a submission (admin only)
+export async function PATCH(request, { params }) {
+  const devMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+  
+  if (!devMode && !isAdminAuthenticated(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { id } = await params
+  let admin
+  try {
+    admin = createAdminClient()
+  } catch (err) {
+    console.error('Supabase client error:', err.message)
+    return NextResponse.json(
+      {
+        error: 'Server configuration error. Please check Supabase credentials.',
+        details: process.env.NODE_ENV === 'development' ? err.message : undefined,
+      },
+      { status: 500 }
+    )
+  }
+
+  let body
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+
+  const allowedFields = [
+    'status',
+    'admin_notes',
+    'owner_name',
+    'owner_phone',
+    'owner_email',
+    'emergency_contact_name',
+    'emergency_contact_phone',
+    'preferred_contact',
+    'city',
+    'zip_code',
+    'how_heard',
+    'num_pets',
+    'pets',
+    'wants_microchip',
+    'wants_nail_trim',
+    'wants_flea_treatment',
+    'is_returning_customer',
+  ]
+  const updates = {}
+
+  for (const field of allowedFields) {
+    if (body[field] !== undefined) {
+      if (typeof body[field] === 'string') {
+        updates[field] = body[field].trim()
+      } else {
+        updates[field] = body[field]
+      }
+    }
+  }
+
+  if (updates.owner_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updates.owner_email)) {
+    return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
+  }
+  if (updates.pets !== undefined && !Array.isArray(updates.pets)) {
+    return NextResponse.json({ error: 'pets must be an array' }, { status: 400 })
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return NextResponse.json(
+      { error: 'No valid fields to update' },
+      { status: 400 }
+    )
+  }
+
+  const validStatuses = [
+    'pending',
+    'confirmed',
+    'completed',
+    'cancelled',
+    'no-show',
+  ]
+  if (updates.status && !validStatuses.includes(updates.status)) {
+    return NextResponse.json(
+      { error: 'Invalid status value' },
+      { status: 400 }
+    )
+  }
+
+  const { data, error } = await admin
+    .from('appointments')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ appointment: data })
+}
+
+// DELETE — Delete a submission (admin only)
+export async function DELETE(request, { params }) {
+  const devMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+  
+  if (!devMode && !isAdminAuthenticated(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { id } = await params
+  let admin
+  try {
+    admin = createAdminClient()
+  } catch (err) {
+    console.error('Supabase client error:', err.message)
+    return NextResponse.json(
+      {
+        error: 'Server configuration error. Please check Supabase credentials.',
+        details: process.env.NODE_ENV === 'development' ? err.message : undefined,
+      },
+      { status: 500 }
+    )
+  }
+
+  const { error } = await admin.from('appointments').delete().eq('id', id)
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ success: true })
+}
