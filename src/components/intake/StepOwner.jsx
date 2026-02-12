@@ -17,7 +17,7 @@ export default function StepOwner({ form, errors, updateField }) {
             onClick={() => updateField('is_returning_customer', false)}
             className={`flex items-center gap-1.5 md:gap-2 px-4 py-2.5 md:px-6 md:py-3 rounded-lg text-sm md:text-base font-medium transition-all cursor-pointer border ${
               form.is_returning_customer === false
-                ? 'bg-apl-blue text-white border-apl-blue'
+                ? 'bg-apl-primary text-white border-apl-primary'
                 : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
             }`}
           >
@@ -29,7 +29,7 @@ export default function StepOwner({ form, errors, updateField }) {
             onClick={() => updateField('is_returning_customer', true)}
             className={`flex items-center gap-1.5 md:gap-2 px-4 py-2.5 md:px-6 md:py-3 rounded-lg text-sm md:text-base font-medium transition-all cursor-pointer border ${
               form.is_returning_customer === true
-                ? 'bg-apl-blue text-white border-apl-blue'
+                ? 'bg-apl-primary text-white border-apl-primary'
                 : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
             }`}
           >

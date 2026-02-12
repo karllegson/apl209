@@ -24,7 +24,7 @@ export default function StepPets({
               onClick={() => handleNumPetsChange(n)}
               className={`w-14 h-14 md:w-16 md:h-16 rounded-lg text-lg md:text-xl font-semibold transition-all cursor-pointer border ${
                 form.num_pets === n
-                  ? 'bg-apl-blue text-white border-apl-blue'
+                  ? 'bg-apl-primary text-white border-apl-primary'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
               }`}
             >
@@ -65,7 +65,7 @@ export default function StepPets({
                   onClick={() => updatePet(i, 'type', 'dog')}
                   className={`w-20 h-20 md:w-24 md:h-24 rounded-lg border-2 flex flex-col items-center justify-center gap-1 md:gap-1.5 transition-all cursor-pointer ${
                     pet.type === 'dog'
-                      ? 'bg-apl-blue text-white border-apl-blue'
+                      ? 'bg-apl-primary text-white border-apl-primary'
                       : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
                   }`}
                 >
@@ -77,7 +77,7 @@ export default function StepPets({
                   onClick={() => updatePet(i, 'type', 'cat')}
                   className={`w-20 h-20 md:w-24 md:h-24 rounded-lg border-2 flex flex-col items-center justify-center gap-1 md:gap-1.5 transition-all cursor-pointer ${
                     pet.type === 'cat'
-                      ? 'bg-apl-blue text-white border-apl-blue'
+                      ? 'bg-apl-primary text-white border-apl-primary'
                       : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
                   }`}
                 >

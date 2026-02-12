@@ -2,24 +2,31 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, MapPin, Phone, Mail } from 'lucide-react'
+import { useLanguage, LanguageToggle } from './LanguageContext'
 
 /**
  * First screen on /book: logo, services clarification, and "Request an Appointment" button.
  * Only this screen shows "Go back to homepage"; later screens show normal "Back".
  */
 export default function AppointmentIntro({ onRequestAppointment }) {
+  const { language, setLanguage } = useLanguage()
+  const isSpanish = language === 'es'
+
   return (
     <div className="space-y-8">
-      <Link
-        href="https://apl209.org"
-        className="inline-flex items-center gap-2 text-sm md:text-base text-gray-600 hover:text-apl-blue mb-2 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Go back to homepage
-      </Link>
+      <div className="flex items-center justify-between mb-2">
+        <Link
+          href="https://apl209.org"
+          className="inline-flex items-center gap-2 text-sm md:text-base text-gray-600 hover:text-apl-blue transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          {isSpanish ? 'Volver a la página principal' : 'Go back to homepage'}
+        </Link>
+        <LanguageToggle />
+      </div>
 
-      <div className="flex justify-center">
+      <div className="flex justify-center mb-4">
         <Image
           src="/logo.png"
           alt="Animal Protection League — The Pawsitive Fix"
@@ -31,50 +38,79 @@ export default function AppointmentIntro({ onRequestAppointment }) {
 
       <div className="text-center">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-          Animal Protection League
+          {isSpanish ? 'Animal Protection League' : 'Animal Protection League'}
         </h1>
-        <p className="text-apl-blue font-semibold text-lg md:text-xl mb-3">
-          Spay & Neuter Clinic — Stockton, CA
+        <p className="text-apl-blue-light font-semibold text-lg md:text-xl mb-3">
+          {isSpanish
+            ? 'Clínica y Centro de Bienestar de Bajo Costo — Stockton, CA'
+            : 'Free/Low-Cost Clinic & Wellness Center — Stockton, CA'}
         </p>
-        <p className="text-gray-600 text-sm md:text-base mb-6">
-          We provide low-cost spay and neuter services for cats and dogs.
-          We are located in Stockton, CA.
+        <p className="text-gray-600 text-sm md:text-base mb-4">
+          {isSpanish
+            ? 'Apoyamos a los perros y gatos de nuestra comunidad en Stockton, CA con atención accesible para que puedan mantenerse sanos y permanecer con sus familias.'
+            : 'We support the dogs and cats of our community in Stockton, CA with accessible care so pets can stay healthy and remain with their families.'}
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-2">
           <button
             type="button"
             onClick={onRequestAppointment}
-            className="w-full sm:w-auto px-8 py-4 bg-apl-blue hover:bg-apl-blue-dark text-white font-semibold rounded-lg transition-colors text-base md:text-lg shadow-sm cursor-pointer"
+            className="w-full sm:w-auto px-8 py-4 bg-apl-primary hover:bg-apl-blue-dark text-white font-semibold rounded-lg transition-colors text-base md:text-lg shadow-sm cursor-pointer"
           >
-            Request an Appointment
+            {isSpanish ? 'Solicitar una cita' : 'Request an Appointment'}
           </button>
           <Link
             href="/pricing"
             className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:border-apl-blue hover:text-apl-blue hover:bg-apl-blue-50 transition-colors text-sm md:text-base"
           >
-            View price list
+            {isSpanish ? 'Ver lista de precios' : 'View price list'}
           </Link>
         </div>
       </div>
 
-      {/* Services clarification */}
+      {/* Services overview */}
       <section className="text-left bg-gray-50 rounded-xl border border-gray-200 p-4 md:p-5">
         <h2 className="form-section-heading border-0 p-0 mb-2">
-          What we offer
+          {isSpanish ? 'Servicios de la clínica' : 'Our clinic services'}
         </h2>
         <p className="text-gray-600 text-sm leading-relaxed">
-          We <strong>only offer spay and neuter</strong> surgery. We do not provide
-          general veterinary care, vaccinations (except as part of surgery),
-          emergency services, or other procedures. If you&apos;re looking for
-          spay or neuter for your cat or dog, you&apos;re in the right place.
+          {isSpanish
+            ? 'Nuestro equipo ofrece cirugías de esterilización y castración, vacunas básicas, microchip, prevención de pulgas, desparasitantes, estudios de laboratorio básicos y más para mantener a las mascotas sanas y con sus familias.'
+            : 'Our team provides spay and neuter surgery, core vaccines, microchipping, flea prevention, dewormer, basic lab work and more to keep pets healthy and with their families.'}
         </p>
         <p className="text-gray-600 text-sm leading-relaxed mt-3">
-          <strong>Don&apos;t own the pet?</strong> (e.g. outdoor or community cat) We offer{' '}
-          <strong>Trap and Release (TNR)</strong>. The animal must be brought in a trap —
-          you can rent one from us for $5. Outdoor animals behave differently, so we
-          require traps for everyone&apos;s safety.
+          {isSpanish
+            ? 'Al completar este formulario usted está solicitando una cita. Nuestro equipo revisará su información y se comunicará con usted para programar y confirmar la fecha y la hora.'
+            : (
+              <>
+                Filling out this form <strong>requests</strong> an appointment.
+                Our team will review your information and contact you to
+                schedule and confirm a date and time.
+              </>
+              )}
         </p>
+
+        <div className="mt-4 pt-4 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-start gap-2 sm:gap-4 text-xs md:text-sm text-gray-500">
+          <div className="inline-flex items-center justify-start gap-1.5">
+            <MapPin className="w-3 h-3 md:w-4 md:h-4 text-apl-blue" />
+            <span>1409 West Oak St., Stockton 95203</span>
+          </div>
+          <div className="inline-flex items-center justify-start gap-1.5">
+            <Phone className="w-3 h-3 md:w-4 md:h-4 text-apl-blue" />
+            <a href="tel:+12094204776" className="hover:underline">
+              (209) 420-4776
+            </a>
+          </div>
+          <div className="inline-flex items-center justify-start gap-1.5">
+            <Mail className="w-3 h-3 md:w-4 md:h-4 text-apl-blue" />
+            <a
+              href="mailto:aplclinic@apl209.org"
+              className="hover:underline"
+            >
+              aplclinic@apl209.org
+            </a>
+          </div>
+        </div>
       </section>
     </div>
   )

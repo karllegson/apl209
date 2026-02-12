@@ -23,7 +23,7 @@ import {
 
 const statusActions = [
   { value: 'pending', label: 'Pending', color: 'bg-amber-600 hover:bg-amber-700' },
-  { value: 'confirmed', label: 'Confirm', color: 'bg-apl-blue hover:bg-apl-blue-dark' },
+  { value: 'confirmed', label: 'Confirm', color: 'bg-apl-primary hover:bg-apl-blue-dark' },
   { value: 'completed', label: 'Complete', color: 'bg-teal-600 hover:bg-teal-700' },
   { value: 'cancelled', label: 'Cancel', color: 'bg-stone-500 hover:bg-stone-600' },
   { value: 'no-show', label: 'No Show', color: 'bg-stone-500 hover:bg-stone-600' },
@@ -767,7 +767,7 @@ export default function AppointmentDetail({
               <button
                 onClick={handleSaveDetails}
                 disabled={savingDetails}
-                className="px-6 py-2.5 bg-apl-blue hover:bg-apl-blue-dark text-white font-semibold rounded-xl transition-colors disabled:opacity-50 cursor-pointer flex items-center gap-2"
+                className="px-6 py-2.5 bg-apl-primary hover:bg-apl-blue-dark text-white font-semibold rounded-xl transition-colors disabled:opacity-50 cursor-pointer flex items-center gap-2"
               >
                 {savingDetails ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                 {savingDetails ? 'Saving...' : 'Save Changes'}

@@ -1,16 +1,28 @@
 import AppointmentPageClient from './AppointmentPageClient'
 
 export const metadata = {
-  title: 'Spay & Neuter Intake Form — Animal Protection League',
+  title: 'Clinic &amp; Wellness Intake Form — Animal Protection League',
   description:
-    'Submit a spay/neuter intake form for the Animal Protection League Clinic in Stockton, CA.',
+    'Submit an intake form for free and low-cost veterinary surgery and wellness services at the Animal Protection League Clinic in Stockton, CA.',
 }
 
 export default function AppointmentPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen relative">
+      {/* Blurry clinic background (Stanley photo) */}
+      <div
+        className="fixed inset-0 -z-10 bg-gray-900"
+        style={{
+          backgroundImage: 'url(/clinic-waiting-bg.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'blur(14px)',
+        }}
+      />
+      <div className="fixed inset-0 -z-10 bg-black/60" aria-hidden />
+
       {/* Form: compact on mobile so it fits; scrolls if needed */}
-      <main className="max-w-3xl mx-auto px-3 py-6 md:px-4 md:py-12">
+      <main className="relative max-w-3xl mx-auto px-3 py-6 md:px-4 md:py-12">
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-10 min-h-0">
           <AppointmentPageClient />
         </div>

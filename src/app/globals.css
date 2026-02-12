@@ -6,7 +6,8 @@
   /* APL Brand Colors */
   --apl-blue: #2b6cb0;
   --apl-blue-dark: #1e4f8a;
-  --apl-blue-light: #3b82c4;
+  --apl-blue-light: #2a78ab;
+  --apl-primary: #2a78ab;
   --apl-orange: #e8a317;
   --apl-orange-dark: #c88c0f;
 }
@@ -18,7 +19,8 @@
   /* APL custom colors */
   --color-apl-blue: #2b6cb0;
   --color-apl-blue-dark: #1e4f8a;
-  --color-apl-blue-light: #3b82c4;
+  --color-apl-blue-light: #2a78ab;
+  --color-apl-primary: #2a78ab;
   --color-apl-blue-50: #eff6ff;
   --color-apl-blue-100: #dbeafe;
   --color-apl-orange: #e8a317;

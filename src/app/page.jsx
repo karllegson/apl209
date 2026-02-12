@@ -1,9 +1,9 @@
 import { redirect } from 'next/navigation'
 
 export const metadata = {
-  title: 'Animal Protection League — Spay & Neuter Clinic',
+  title: 'Animal Protection League — Clinic &amp; Wellness Center',
   description:
-    'Low-cost spay and neuter services in Stockton, CA. Request an appointment or view our price list.',
+    'Free and low-cost veterinary wellness and surgery services for dogs and cats in San Joaquin County. Request an appointment or view our price list.',
 }
 
 export default function HomePage() {

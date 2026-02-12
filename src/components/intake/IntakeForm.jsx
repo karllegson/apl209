@@ -1,6 +1,8 @@
-'use client'
+ 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight, Loader2, Save } from 'lucide-react'
 import StepOwner from './StepOwner'
@@ -8,8 +10,7 @@ import StepPets from './StepPets'
 import StepHealth from './StepHealth'
 import StepVaccination from './StepVaccination'
 import StepSubmit from './StepSubmit'
-
-const STEPS = ['Preferences', 'Pet Info', 'Medical History', 'Vaccination', 'Review']
+import { useLanguage, LanguageToggle } from './LanguageContext'
 
 function createEmptyPet() {
   return {
@@ -70,6 +71,12 @@ function mergeForm(initial) {
 
 export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome }) {
   const router = useRouter()
+  const { language } = useLanguage()
+  const isSpanish = language === 'es'
+
+  const STEPS = isSpanish
+    ? ['Preferencias', 'Información de la mascota', 'Historial médico', 'Vacunación', 'Revisión']
+    : ['Preferences', 'Pet Info', 'Medical History', 'Vaccination', 'Review']
   const [step, setStep] = useState(initialStep >= 1 && initialStep <= 5 ? initialStep : 1)
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -224,11 +231,32 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome 
 
   return (
     <div>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-5 md:mb-6">
+        <Link
+          href="https://apl209.org"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-xs md:text-sm text-gray-500 hover:text-apl-blue transition-colors"
+        >
+          <Image
+            src="/logo.png"
+            alt="Animal Protection League"
+            width={32}
+            height={32}
+            className="h-8 w-auto object-contain"
+          />
+          <span className="hidden sm:inline font-semibold">
+            Animal Protection League
+          </span>
+        </Link>
+        <LanguageToggle />
+      </div>
+
       {/* ── Progress Bar ── */}
       <div className="relative flex items-center justify-between mb-6 md:mb-10 px-1 md:px-2">
         <div className="absolute top-4 left-8 right-8 h-[2px] bg-gray-200" />
         <div 
-          className="absolute top-4 left-8 h-[2px] bg-apl-blue transition-all duration-300"
+          className="absolute top-4 left-8 h-[2px] bg-apl-primary transition-all duration-300"
           style={{ 
             width: `${((step - 1) / (STEPS.length - 1)) * 100}%`,
             maxWidth: 'calc(100% - 64px)',
@@ -251,7 +279,7 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome 
             >
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
-                  isActive ? 'bg-apl-blue text-white' : 'bg-white text-gray-400 border-2 border-gray-300 group-hover:border-apl-blue group-hover:text-apl-blue'
+                  isActive ? 'bg-apl-primary text-white' : 'bg-white text-gray-400 border-2 border-gray-300 group-hover:border-apl-blue group-hover:text-apl-blue'
                 }`}
               >
                 {stepNum}
@@ -324,7 +352,7 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome 
               <button
                 type="button"
                 onClick={handleNext}
-                className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 md:py-3 bg-apl-blue hover:bg-apl-blue-dark text-white font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer text-base order-1 md:order-none"
+                className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 md:py-3 bg-apl-primary hover:bg-apl-blue-dark text-white font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer text-base order-1 md:order-none"
               >
                 Next
                 <ChevronRight className="w-5 h-5 shrink-0" />
@@ -334,7 +362,7 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome 
                 type="button"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 md:py-3 bg-apl-blue hover:bg-apl-blue-dark disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer text-base order-1 md:order-none"
+                className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 md:py-3 bg-apl-primary hover:bg-apl-blue-dark disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer text-base order-1 md:order-none"
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Form'}
                 <ChevronRight className="w-5 h-5 shrink-0" />
@@ -367,7 +395,7 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome 
               type="button"
               onClick={handleSave}
               disabled={isSaving}
-              className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 md:py-2.5 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer text-sm md:text-base order-3 md:order-none"
+              className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 md:py-2.5 rounded-xl border-2 border-apl-primary/70 text-apl-primary font-semibold bg-white hover:bg-apl-primary/5 hover:border-apl-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer text-sm md:text-base order-3 md:order-none shadow-xs"
             >
               {isSaving ? (
                 <Loader2 className="w-4 h-4 animate-spin shrink-0" />

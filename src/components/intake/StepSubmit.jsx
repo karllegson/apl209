@@ -44,7 +44,7 @@ export default function StepSubmit({ form, errors, updateField }) {
               <div
                 className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
                   form[field]
-                    ? 'bg-apl-blue border-apl-blue'
+                  ? 'bg-apl-primary border-apl-primary'
                     : 'bg-white border-gray-300'
                 }`}
               >
@@ -106,7 +106,7 @@ export default function StepSubmit({ form, errors, updateField }) {
           <div
             className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
               form.legal_acknowledged
-                ? 'bg-apl-blue border-apl-blue'
+                ? 'bg-apl-primary border-apl-primary'
                 : 'bg-white border-gray-300'
             }`}
           >

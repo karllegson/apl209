@@ -65,7 +65,7 @@ function ConfirmationContent() {
 
         <Link
           href="/book"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-apl-blue hover:bg-apl-blue-dark text-white font-semibold rounded-xl transition-colors shadow-lg shadow-blue-600/20"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-apl-primary hover:bg-apl-blue-dark text-white font-semibold rounded-xl transition-colors shadow-lg shadow-blue-600/20"
         >
           <ArrowLeft className="w-4 h-4" />
           Submit Another Form

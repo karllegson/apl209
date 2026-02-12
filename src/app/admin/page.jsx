@@ -89,7 +89,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-6 w-full py-2.5 px-4 bg-apl-blue hover:bg-apl-blue-dark active:bg-apl-blue-dark disabled:opacity-50 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer"
+            className="mt-6 w-full py-2.5 px-4 bg-apl-primary hover:bg-apl-blue-dark active:bg-apl-blue-dark disabled:opacity-50 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer"
           >
             {loading ? (
               <>

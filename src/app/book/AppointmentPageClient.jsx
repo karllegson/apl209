@@ -1,11 +1,13 @@
+/* eslint-disable react/jsx-key */
 'use client'
 
 import { useState } from 'react'
 import IntakeForm from '@/components/intake/IntakeForm'
 import AppointmentHome from '@/components/intake/AppointmentHome'
 import AppointmentIntro from '@/components/intake/AppointmentIntro'
+import { LanguageProvider } from '@/components/intake/LanguageContext'
 
-export default function AppointmentPageClient() {
+function AppointmentFlow() {
   const [showIntro, setShowIntro] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [initialForm, setInitialForm] = useState(null)
@@ -37,9 +39,7 @@ export default function AppointmentPageClient() {
   }
 
   if (showIntro) {
-    return (
-      <AppointmentIntro onRequestAppointment={handleRequestAppointment} />
-    )
+    return <AppointmentIntro onRequestAppointment={handleRequestAppointment} />
   }
 
   if (!showForm) {
@@ -58,5 +58,13 @@ export default function AppointmentPageClient() {
       initialStep={initialStep}
       onBackToHome={handleBackToHome}
     />
+  )
+}
+
+export default function AppointmentPageClient() {
+  return (
+    <LanguageProvider>
+      <AppointmentFlow />
+    </LanguageProvider>
   )
 }

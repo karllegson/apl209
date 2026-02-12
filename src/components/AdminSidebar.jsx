@@ -56,7 +56,7 @@ export default function AdminSidebar() {
               onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 isActive
-                  ? 'bg-apl-blue text-white'
+                  ? 'bg-apl-primary text-white'
                   : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
               }`}
             >

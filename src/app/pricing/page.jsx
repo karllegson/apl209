@@ -6,7 +6,7 @@ import PricingAccordion from './PricingAccordion'
 export const metadata = {
   title: 'Price List — Animal Protection League Clinic',
   description:
-    'Low-cost spay and neuter pricing, vaccines, and wellness services at APL Clinic in Stockton, CA.',
+    'Free and low-cost pricing for surgery, vaccines, and other wellness services at APL Clinic in Stockton, CA.',
 }
 
 const PRICING_SECTIONS = [
@@ -103,34 +103,49 @@ const PRICING_SECTIONS = [
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="max-w-3xl mx-auto px-4 py-8 md:py-12">
-        <Link
-          href="/book"
-          className="inline-flex items-center gap-2 text-sm md:text-base text-gray-600 hover:text-apl-blue mb-6 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to home
-        </Link>
+    <div className="min-h-screen relative">
+      {/* Blurry clinic background (Stanley photo) */}
+      <div
+        className="fixed inset-0 -z-10 bg-gray-900"
+        style={{
+          backgroundImage: 'url(/clinic-waiting-bg.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'blur(14px)',
+        }}
+      />
+      <div className="fixed inset-0 -z-10 bg-black/60" aria-hidden />
 
-        <div className="flex justify-center mb-6">
-          <Image
-            src="/logo.png"
-            alt="Animal Protection League"
-            width={220}
-            height={110}
-            className="w-36 md:w-52 h-auto object-contain"
-          />
-        </div>
+      <main className="relative max-w-3xl mx-auto px-3 py-6 md:px-4 md:py-12">
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-8">
+          <Link
+            href="/book"
+            className="inline-flex items-center gap-2 text-sm md:text-base text-gray-600 hover:text-apl-blue mb-6 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to home
+          </Link>
 
-        <div className="text-center mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
-            Low-Cost Price List
-          </h1>
-          <p className="text-apl-blue font-medium">Evaluations for free services available</p>
-        </div>
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/logo.png"
+              alt="Animal Protection League"
+              width={220}
+              height={110}
+              className="w-36 md:w-52 h-auto object-contain"
+            />
+          </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-4 md:p-5 mb-8 shadow-sm">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
+              Low-Cost Price List
+            </h1>
+            <p className="text-apl-blue-light font-medium">
+              Evaluations for free services available
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-gray-200 bg-white p-4 md:p-5 mb-8 shadow-sm">
           <div className="flex flex-col gap-2 text-sm text-gray-700">
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 shrink-0 text-apl-blue" />
@@ -168,30 +183,31 @@ export default function PricingPage() {
           </ul>
         </section>
 
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link
-            href="/book"
-            className="inline-flex justify-center px-6 py-3 bg-apl-blue hover:bg-apl-blue-dark text-white font-semibold rounded-lg transition-colors"
-          >
-            Request an Appointment
-          </Link>
-          <Link
-            href="/book"
-            className="inline-flex justify-center px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Back to home
-          </Link>
-        </div>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/book"
+              className="inline-flex justify-center px-6 py-3 bg-apl-primary hover:bg-apl-blue-dark text-white font-semibold rounded-lg transition-colors"
+            >
+              Request an Appointment
+            </Link>
+            <Link
+              href="/book"
+              className="inline-flex justify-center px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Back to home
+            </Link>
+          </div>
 
-        <footer className="mt-10 text-center text-xs text-slate-400 space-y-1">
-          <p>Animal Protection League — 1409 West Oak St., Stockton 95203</p>
-          <p>Phone: (209) 420-4776</p>
-          <p>
-            <a href="https://apl209.org" target="_blank" rel="noopener noreferrer" className="text-apl-blue hover:underline">
-              apl209.org
-            </a>
-          </p>
-        </footer>
+          <footer className="mt-10 text-center text-xs text-slate-400 space-y-1">
+            <p>Animal Protection League — 1409 West Oak St., Stockton 95203</p>
+            <p>Phone: (209) 420-4776</p>
+            <p>
+              <a href="https://apl209.org" target="_blank" rel="noopener noreferrer" className="text-apl-blue hover:underline">
+                apl209.org
+              </a>
+            </p>
+          </footer>
+        </div>
       </main>
     </div>
   )
