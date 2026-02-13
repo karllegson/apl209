@@ -43,11 +43,12 @@ function AppointmentFlow() {
   }
 
   if (!showForm) {
-    return (
-      <AppointmentHome
+  return (
+    <AppointmentHome
         onStartNew={handleStartNew}
         onResume={handleResume}
         onBack={handleBackToStart}
+        onLogoClick={handleBackToStart}
       />
     )
   }
@@ -57,6 +58,7 @@ function AppointmentFlow() {
       initialForm={initialForm}
       initialStep={initialStep}
       onBackToHome={handleBackToHome}
+      onLogoClick={handleBackToStart}
     />
   )
 }

@@ -39,7 +39,7 @@ export async function GET(request) {
 
   if (search) {
     query = query.or(
-      `owner_name.ilike.%${search}%,owner_email.ilike.%${search}%,owner_phone.ilike.%${search}%,city.ilike.%${search}%`
+      `owner_name.ilike.%${search}%,owner_first_name.ilike.%${search}%,owner_last_name.ilike.%${search}%,owner_email.ilike.%${search}%,owner_phone.ilike.%${search}%,city.ilike.%${search}%,street_address.ilike.%${search}%,state.ilike.%${search}%,zip_code.ilike.%${search}%`
     )
   }
 
@@ -87,8 +87,11 @@ export async function POST(request) {
   // Validate required fields (skipped in dev mode)
   const devMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
   if (!devMode) {
-    if (!body.owner_name?.trim()) {
-      return NextResponse.json({ error: 'Owner name is required' }, { status: 400 })
+    if (!body.owner_first_name?.trim()) {
+      return NextResponse.json({ error: 'First name is required' }, { status: 400 })
+    }
+    if (!body.owner_last_name?.trim()) {
+      return NextResponse.json({ error: 'Last name is required' }, { status: 400 })
     }
     if (!body.owner_phone?.trim()) {
       return NextResponse.json({ error: 'Phone number is required' }, { status: 400 })
@@ -98,6 +101,18 @@ export async function POST(request) {
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.owner_email)) {
       return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
+    }
+    if (!body.street_address?.trim()) {
+      return NextResponse.json({ error: 'Street address is required' }, { status: 400 })
+    }
+    if (!body.city?.trim()) {
+      return NextResponse.json({ error: 'City is required' }, { status: 400 })
+    }
+    if (!body.state?.trim()) {
+      return NextResponse.json({ error: 'State is required' }, { status: 400 })
+    }
+    if (!body.zip_code?.trim()) {
+      return NextResponse.json({ error: 'ZIP code is required' }, { status: 400 })
     }
     if (!body.pets || !Array.isArray(body.pets) || body.pets.length === 0) {
       return NextResponse.json({ error: 'At least one pet is required' }, { status: 400 })
@@ -115,13 +130,17 @@ export async function POST(request) {
       .from('appointments')
       .insert({
         is_returning_customer: body.is_returning_customer || false,
-        owner_name: body.owner_name?.trim() || '',
+        owner_name: [body.owner_first_name, body.owner_last_name].map((s) => s?.trim()).filter(Boolean).join(' ') || body.owner_name?.trim() || '',
+        owner_first_name: body.owner_first_name?.trim() || '',
+        owner_last_name: body.owner_last_name?.trim() || '',
         owner_phone: body.owner_phone?.trim() || '',
         owner_email: body.owner_email?.trim().toLowerCase() || '',
         emergency_contact_name: body.emergency_contact_name?.trim() || '',
         emergency_contact_phone: body.emergency_contact_phone?.trim() || '',
         preferred_contact: body.preferred_contact || 'call',
+        street_address: body.street_address?.trim() || '',
         city: body.city?.trim() || '',
+        state: body.state?.trim() || '',
         zip_code: body.zip_code?.trim() || '',
         how_heard: body.how_heard?.trim() || '',
         num_pets: body.num_pets || (body.pets?.length || 0),

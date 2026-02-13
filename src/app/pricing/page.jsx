@@ -39,7 +39,6 @@ const PRICING_SECTIONS = [
       { service: '76–99 lbs', price: '$250' },
       { service: 'Undescended testicle (1)', price: 'Additional $50–$200' },
       { service: 'Undescended testicles (2)', price: 'Additional $100–$400' },
-      { service: 'Umbilical hernia repair', price: 'Additional $20' },
       { service: 'Obese charge 1–50 lbs', price: 'Additional $50' },
       { service: 'Obese charge 51–99 lbs', price: 'Additional $100' },
     ],
@@ -143,6 +142,7 @@ export default function PricingPage() {
             <p className="text-apl-blue-light font-medium">
               Evaluations for free services available
             </p>
+            <p className="mt-1 text-sm text-gray-500">Fees may apply. Not a quote.</p>
           </div>
 
           <div className="rounded-xl border border-gray-200 bg-white p-4 md:p-5 mb-8 shadow-sm">
@@ -160,26 +160,22 @@ export default function PricingPage() {
               <a href="mailto:aplclinic@apl209.org" className="text-apl-blue hover:underline">aplclinic@apl209.org</a>
             </div>
           </div>
-          <p className="mt-3 text-sm text-gray-600">
-            All services are by appointment only. APL is 100% donation-based — please consider donating to support these critical services.
-          </p>
-          <p className="mt-2 text-sm text-gray-600">
-            Fill out our evaluation form to see if you qualify for <strong>free services</strong>. Walk-in evaluations 9–11 a.m. Tuesdays–Thursdays, or call us.
-          </p>
+          <p className="mt-3 text-sm text-gray-600">By appointment only. Donation-based.</p>
+          <p className="mt-2 text-sm text-gray-600">Free evaluations 9–11 a.m. Tue–Thu, or call.</p>
         </div>
 
         <div className="mb-8">
-          <p className="text-sm text-gray-600 mb-3">Click a section to expand or collapse.</p>
+          <p className="text-sm text-gray-600 mb-3">Click to expand.</p>
           <PricingAccordion sections={PRICING_SECTIONS} />
         </div>
 
         <section className="rounded-xl border border-gray-200 bg-white p-4 md:p-5 shadow-sm mb-8">
           <h2 className="font-semibold text-gray-900 mb-3">More information</h2>
           <ul className="space-y-2 text-sm text-gray-700 list-disc list-inside">
-            <li>All pets must have proof of rabies vaccination or receive a rabies vaccination at the time of alter surgery.</li>
-            <li>Nonrefundable deposits: $50 for dogs, $25 for pet cats, $50 for TNR.</li>
-            <li>3% fee for credit card payments.</li>
-            <li>Deposit is forfeited if you no-show or reschedule less than 48 hours before your appointment.</li>
+            <li>Rabies proof or vaccination required at alter surgery.</li>
+            <li>Deposits: $50 dogs, $25 cats, $50 TNR (nonrefundable).</li>
+            <li>3% credit card fee.</li>
+            <li>No-show or &lt;48 hr reschedule: deposit forfeited.</li>
           </ul>
         </section>
 

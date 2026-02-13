@@ -73,20 +73,12 @@ export default function StepSubmit({ form, errors, updateField }) {
         </div>
 
         <div className="space-y-2 text-sm text-amber-900 mb-5">
-          <p>By signing below, I acknowledge and agree to the following:</p>
-          <ul className="list-disc pl-5 space-y-1.5">
-            <li>I confirm the information provided is accurate and complete</li>
-            <li>I understand there are risks associated with surgery and anesthesia</li>
-            <li>
-              I understand pricing may change due to:
-              <ul className="list-disc pl-5 mt-1 space-y-0.5">
-                <li>Pregnancy</li>
-                <li>Females in heat</li>
-                <li>Undescended testicles</li>
-                <li>Weight discrepancies</li>
-              </ul>
-            </li>
-            <li>I authorize APL to provide emergency medical care if needed</li>
+          <p>I agree:</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Information is accurate and complete</li>
+            <li>I understand surgery and anesthesia risks</li>
+            <li>Pricing may vary (pregnancy, in heat, weight, etc.)</li>
+            <li>APL may provide emergency care if needed</li>
           </ul>
         </div>
 
@@ -146,12 +138,8 @@ export default function StepSubmit({ form, errors, updateField }) {
 
       {/* Disclaimer */}
       <div className="bg-gray-50 border border-gray-200 rounded-md p-4 text-center">
-        <p className="text-base font-medium text-gray-700">
-          ⚠️ Submitting this form does not schedule an appointment.
-        </p>
-        <p className="text-sm text-gray-500 mt-1">
-          Our team will review your submission and contact you to confirm a date.
-        </p>
+        <p className="text-base font-medium text-gray-700">⚠️ This does not schedule an appointment.</p>
+        <p className="text-sm text-gray-500 mt-1">We&apos;ll contact you to confirm.</p>
       </div>
     </div>
   )

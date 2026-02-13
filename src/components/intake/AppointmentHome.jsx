@@ -1,11 +1,12 @@
  'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import Image from 'next/image'
 import { FileText, RotateCcw } from 'lucide-react'
 import { useLanguage, LanguageToggle } from './LanguageContext'
 
-export default function AppointmentHome({ onStartNew, onResume, onBack }) {
+export default function AppointmentHome({ onStartNew, onResume, onBack, onLogoClick }) {
   const { language } = useLanguage()
   const isSpanish = language === 'es'
   const [resumeValue, setResumeValue] = useState('')
@@ -62,24 +63,22 @@ export default function AppointmentHome({ onStartNew, onResume, onBack }) {
         <LanguageToggle />
       </div>
 
-      <div className="flex justify-center mb-4">
-        <Image
-          src="/logo.png"
-          alt="Animal Protection League"
-          width={140}
-          height={140}
-          className="h-16 w-auto object-contain"
-        />
-      </div>
+      {onLogoClick ? (
+        <button type="button" onClick={onLogoClick} className="flex justify-center mb-4 w-full cursor-pointer">
+          <Image src="/logo.png" alt="Animal Protection League" width={140} height={140} className="h-16 w-auto object-contain" />
+        </button>
+      ) : (
+        <Link href="/book" className="flex justify-center mb-4 block">
+          <Image src="/logo.png" alt="Animal Protection League" width={140} height={140} className="h-16 w-auto object-contain" />
+        </Link>
+      )}
 
       <div className="text-center space-y-2">
         <h1 className="form-page-title text-xl md:text-2xl">
           {isSpanish ? 'Formulario de ingreso a la clínica' : 'Clinic & Wellness Intake'}
         </h1>
         <p className="text-gray-600 text-sm md:text-base">
-          {isSpanish
-            ? 'Empiece un nuevo formulario o continúe donde lo dejó.'
-            : 'Start a new intake form or continue where you left off.'}
+          {isSpanish ? 'Nuevo formulario o continuar guardado.' : 'New form or continue saved.'}
         </p>
       </div>
 
@@ -98,9 +97,7 @@ export default function AppointmentHome({ onStartNew, onResume, onBack }) {
                 {isSpanish ? 'Empezar nuevo formulario' : 'Start new form'}
               </p>
               <p className="text-sm text-gray-500">
-                {isSpanish
-                  ? 'Comience un nuevo ingreso a la clínica desde el principio.'
-                  : 'Start a new clinic intake from the beginning.'}
+                {isSpanish ? 'Empezar desde el principio.' : 'Start from the beginning.'}
               </p>
             </div>
           </div>
@@ -119,9 +116,7 @@ export default function AppointmentHome({ onStartNew, onResume, onBack }) {
                 {isSpanish ? 'Reanudar formulario' : 'Resume saved form'}
               </p>
               <p className="text-sm text-gray-500">
-                {isSpanish
-                  ? 'Use el mismo correo electrónico o teléfono que utilizó para guardar su progreso.'
-                  : 'Use the same email or phone you used when you saved your progress.'}
+                {isSpanish ? 'Correo o teléfono con el que guardó.' : 'Email or phone you used to save.'}
               </p>
             </div>
           </div>

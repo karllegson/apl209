@@ -41,13 +41,16 @@ function createEmptyPet() {
 
 const defaultForm = {
   is_returning_customer: null,
-  owner_name: '',
+  owner_first_name: '',
+  owner_last_name: '',
   owner_phone: '',
   owner_email: '',
   emergency_contact_name: '',
   emergency_contact_phone: '',
   preferred_contact: '',
+  street_address: '',
   city: '',
+  state: '',
   zip_code: '',
   how_heard: '',
   num_pets: 1,
@@ -62,6 +65,11 @@ const defaultForm = {
 function mergeForm(initial) {
   if (!initial || typeof initial !== 'object') return defaultForm
   const merged = { ...defaultForm, ...initial }
+  if (initial.owner_name && !initial.owner_first_name && !initial.owner_last_name) {
+    const parts = String(initial.owner_name).trim().split(/\s+/)
+    merged.owner_first_name = parts[0] || ''
+    merged.owner_last_name = parts.slice(1).join(' ') || ''
+  }
   if (Array.isArray(initial.pets) && initial.pets.length > 0) {
     merged.pets = initial.pets.map((p) => ({ ...createEmptyPet(), ...p }))
     merged.num_pets = Math.max(1, merged.pets.length)
@@ -69,7 +77,7 @@ function mergeForm(initial) {
   return merged
 }
 
-export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome }) {
+export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome, onLogoClick }) {
   const router = useRouter()
   const { language } = useLanguage()
   const isSpanish = language === 'es'
@@ -119,12 +127,16 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome 
     if (stepNum === 1) {
       if (form.is_returning_customer === null)
         e.is_returning_customer = 'Please select'
-      if (!form.owner_name.trim()) e.owner_name = 'Required'
+      if (!form.owner_first_name?.trim()) e.owner_first_name = 'Required'
+      if (!form.owner_last_name?.trim()) e.owner_last_name = 'Required'
       if (!form.owner_phone.trim()) e.owner_phone = 'Required'
       if (!form.owner_email.trim()) e.owner_email = 'Required'
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.owner_email))
         e.owner_email = 'Invalid email'
+      if (!form.street_address?.trim()) e.street_address = 'Required'
       if (!form.city.trim()) e.city = 'Required'
+      if (!form.state?.trim()) e.state = 'Required'
+      if (!form.zip_code?.trim()) e.zip_code = 'Required'
     }
 
     if (stepNum === 2) {
@@ -132,7 +144,8 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome 
         if (!pet.type) e[`pet_${i}_type`] = 'Select dog or cat'
         if (!pet.breed.trim()) e[`pet_${i}_breed`] = 'Required'
         if (!pet.age.trim()) e[`pet_${i}_age`] = 'Required'
-        if (!pet.weight.trim()) e[`pet_${i}_weight`] = 'Required'
+        const weightOk = pet.weight === 'unsure' || (pet.weight && String(pet.weight).trim())
+        if (!weightOk) e[`pet_${i}_weight`] = 'Required'
         if (!pet.pet_ownership) e[`pet_${i}_pet_ownership`] = 'Required'
         if (!pet.sex) e[`pet_${i}_sex`] = 'Required'
         if (pet.sex === 'male' && !pet.testicles_descended)
@@ -185,10 +198,14 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome 
     if (!validateStep(5)) return
     setIsSubmitting(true)
     try {
+      const payload = {
+        ...form,
+        owner_name: [form.owner_first_name, form.owner_last_name].map((s) => s?.trim()).filter(Boolean).join(' ') || '',
+      }
       const res = await fetch('/api/appointments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       })
       if (!res.ok) {
         const data = await res.json()
@@ -232,23 +249,17 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome 
   return (
     <div>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-5 md:mb-6">
-        <Link
-          href="https://apl209.org"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-xs md:text-sm text-gray-500 hover:text-apl-blue transition-colors"
-        >
-          <Image
-            src="/logo.png"
-            alt="Animal Protection League"
-            width={32}
-            height={32}
-            className="h-8 w-auto object-contain"
-          />
-          <span className="hidden sm:inline font-semibold">
-            Animal Protection League
-          </span>
-        </Link>
+        {onLogoClick ? (
+          <button type="button" onClick={onLogoClick} className="inline-flex items-center gap-2 text-xs md:text-sm text-gray-500 hover:text-apl-blue transition-colors">
+            <Image src="/logo.png" alt="Animal Protection League" width={32} height={32} className="h-8 w-auto object-contain" />
+            <span className="hidden sm:inline font-semibold">Animal Protection League</span>
+          </button>
+        ) : (
+          <Link href="/book" className="inline-flex items-center gap-2 text-xs md:text-sm text-gray-500 hover:text-apl-blue transition-colors">
+            <Image src="/logo.png" alt="Animal Protection League" width={32} height={32} className="h-8 w-auto object-contain" />
+            <span className="hidden sm:inline font-semibold">Animal Protection League</span>
+          </Link>
+        )}
         <LanguageToggle />
       </div>
 

@@ -1,7 +1,12 @@
+import Image from 'next/image'
 import AppointmentPageClient from './AppointmentPageClient'
 
+/* ─── SAVED FORM CARD DECOR SETTINGS (restore from here if needed) ───
+ * Peeking pets: desktop only (hidden md:flex), left-[82%] right-[-40%], max-h-[65%] max-w-[55%], opacity-[0.20], object-left, -translate-y-[22%]. Mobile: hidden for full-width aligned form.
+ */
+
 export const metadata = {
-  title: 'Clinic &amp; Wellness Intake Form — Animal Protection League',
+  title: 'APL Form',
   description:
     'Submit an intake form for free and low-cost veterinary surgery and wellness services at the Animal Protection League Clinic in Stockton, CA.',
 }
@@ -22,9 +27,23 @@ export default function AppointmentPage() {
       <div className="fixed inset-0 -z-10 bg-black/60" aria-hidden />
 
       {/* Form: compact on mobile so it fits; scrolls if needed */}
-      <main className="relative max-w-3xl mx-auto px-3 py-6 md:px-4 md:py-12">
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-10 min-h-0">
-          <AppointmentPageClient />
+      <main className="relative max-w-3xl mx-auto px-3 py-6 md:px-4 md:py-12 overflow-x-hidden">
+        <div className="relative overflow-hidden rounded-lg border border-gray-200 shadow-sm p-4 md:p-10 min-h-0 bg-white">
+          {/* Peeking pets — desktop only so mobile form is full-width and aligned */}
+          <div className="absolute inset-y-0 left-[82%] right-[-40%] z-[1] pointer-events-none flex items-center hidden md:flex" aria-hidden>
+            <div className="relative w-full h-full max-h-[65%] max-w-[55%] opacity-[0.20] origin-left -translate-y-[22%]">
+              <Image
+                src="/peeking-pets.png"
+                alt=""
+                fill
+                className="object-contain object-left"
+                sizes="40vw"
+              />
+            </div>
+          </div>
+          <div className="relative z-10">
+            <AppointmentPageClient />
+          </div>
         </div>
 
         {/* Footer */}

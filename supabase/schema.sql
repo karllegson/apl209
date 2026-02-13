@@ -16,7 +16,9 @@ CREATE TABLE IF NOT EXISTS appointments (
   is_returning_customer BOOLEAN DEFAULT FALSE,
 
   -- Owner info
-  owner_name TEXT NOT NULL,
+  owner_name TEXT DEFAULT '',
+  owner_first_name TEXT DEFAULT '',
+  owner_last_name TEXT DEFAULT '',
   owner_phone TEXT NOT NULL,
   owner_email TEXT NOT NULL,
 
@@ -27,7 +29,9 @@ CREATE TABLE IF NOT EXISTS appointments (
   -- Contact preferences
   preferred_contact TEXT DEFAULT 'call'
     CHECK (preferred_contact IN ('call', 'text', 'email')),
+  street_address TEXT DEFAULT '',
   city TEXT DEFAULT '',
+  state TEXT DEFAULT '',
   zip_code TEXT DEFAULT '',
   how_heard TEXT DEFAULT '',
 
@@ -143,3 +147,12 @@ CREATE TRIGGER update_intake_drafts_updated_at
   BEFORE UPDATE ON intake_drafts
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================
+-- MIGRATION: Full address + first/last name (run if appointments already exists)
+-- ============================================================
+-- ALTER TABLE appointments ADD COLUMN IF NOT EXISTS street_address TEXT DEFAULT '';
+-- ALTER TABLE appointments ADD COLUMN IF NOT EXISTS state TEXT DEFAULT '';
+-- ALTER TABLE appointments ADD COLUMN IF NOT EXISTS owner_first_name TEXT DEFAULT '';
+-- ALTER TABLE appointments ADD COLUMN IF NOT EXISTS owner_last_name TEXT DEFAULT '';
+-- ALTER TABLE appointments ALTER COLUMN owner_name DROP NOT NULL;

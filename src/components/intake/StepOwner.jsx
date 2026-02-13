@@ -51,13 +51,21 @@ export default function StepOwner({ form, errors, updateField }) {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField
-            label="Name"
+            label="First name"
             required
             icon={User}
-            value={form.owner_name}
-            onChange={(v) => updateField('owner_name', v)}
-            placeholder="John Doe"
-            error={errors.owner_name}
+            value={form.owner_first_name}
+            onChange={(v) => updateField('owner_first_name', v)}
+            placeholder="John"
+            error={errors.owner_first_name}
+          />
+          <InputField
+            label="Last name"
+            required
+            value={form.owner_last_name}
+            onChange={(v) => updateField('owner_last_name', v)}
+            placeholder="Doe"
+            error={errors.owner_last_name}
           />
           <InputField
             label="Phone"
@@ -68,6 +76,7 @@ export default function StepOwner({ form, errors, updateField }) {
             onChange={(v) => updateField('owner_phone', v)}
             placeholder="(209) 555-1234"
             error={errors.owner_phone}
+            className="md:col-span-2"
           />
           <InputField
             label="Email"
@@ -84,20 +93,49 @@ export default function StepOwner({ form, errors, updateField }) {
       </div>
 
 
-      {/* Location */}
+      {/* Full address */}
       <div>
-        <InputField
-          label="City"
-          required
-          icon={MapPin}
-          value={form.city}
-          onChange={(v) => updateField('city', v)}
-          placeholder="Stockton"
-          error={errors.city}
-        />
-        <p className="text-xs text-gray-500 mt-1.5 ml-1">
-          We are located in Stockton, CA
-        </p>
+        <h3 className="form-section-heading mb-3">
+          Address
+        </h3>
+        <div className="space-y-4">
+          <InputField
+            label="Street address"
+            required
+            icon={MapPin}
+            value={form.street_address}
+            onChange={(v) => updateField('street_address', v)}
+            placeholder="123 Main St., Apt 4"
+            error={errors.street_address}
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <InputField
+              label="City"
+              required
+              value={form.city}
+              onChange={(v) => updateField('city', v)}
+              placeholder="Stockton"
+              error={errors.city}
+            />
+            <InputField
+              label="State"
+              required
+              value={form.state}
+              onChange={(v) => updateField('state', v)}
+              placeholder="CA"
+              error={errors.state}
+            />
+            <InputField
+              label="ZIP code"
+              required
+              value={form.zip_code}
+              onChange={(v) => updateField('zip_code', v)}
+              placeholder="95203"
+              error={errors.zip_code}
+            />
+          </div>
+        </div>
+        <p className="text-xs text-gray-500 mt-1.5 ml-1">Stockton, CA</p>
       </div>
     </div>
   )

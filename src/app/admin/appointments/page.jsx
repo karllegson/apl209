@@ -108,7 +108,7 @@ export default function AppointmentsPage() {
     ]
 
     const rows = appointments.map((apt) => [
-      apt.owner_name,
+      [apt.owner_first_name, apt.owner_last_name].filter(Boolean).join(' ') || apt.owner_name || '',
       apt.owner_email,
       apt.owner_phone,
       apt.pet_name,

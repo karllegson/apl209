@@ -26,7 +26,7 @@ export default function AppointmentIntro({ onRequestAppointment }) {
         <LanguageToggle />
       </div>
 
-      <div className="flex justify-center mb-4">
+      <Link href="/book" className="flex justify-center mb-4 cursor-pointer block">
         <Image
           src="/logo.png"
           alt="Animal Protection League — The Pawsitive Fix"
@@ -34,7 +34,7 @@ export default function AppointmentIntro({ onRequestAppointment }) {
           height={120}
           className="w-40 md:w-52 h-auto object-contain"
         />
-      </div>
+      </Link>
 
       <div className="text-center">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
@@ -46,9 +46,7 @@ export default function AppointmentIntro({ onRequestAppointment }) {
             : 'Free/Low-Cost Clinic & Wellness Center — Stockton, CA'}
         </p>
         <p className="text-gray-600 text-sm md:text-base mb-4">
-          {isSpanish
-            ? 'Apoyamos a los perros y gatos de nuestra comunidad en Stockton, CA con atención accesible para que puedan mantenerse sanos y permanecer con sus familias.'
-            : 'We support the dogs and cats of our community in Stockton, CA with accessible care so pets can stay healthy and remain with their families.'}
+          {isSpanish ? 'Atención accesible para perros y gatos en Stockton.' : 'Accessible care for dogs and cats in Stockton.'}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-2">
@@ -81,13 +79,7 @@ export default function AppointmentIntro({ onRequestAppointment }) {
         <p className="text-gray-600 text-sm leading-relaxed mt-3">
           {isSpanish
             ? 'Al completar este formulario usted está solicitando una cita. Nuestro equipo revisará su información y se comunicará con usted para programar y confirmar la fecha y la hora.'
-            : (
-              <>
-                Filling out this form <strong>requests</strong> an appointment.
-                Our team will review your information and contact you to
-                schedule and confirm a date and time.
-              </>
-              )}
+            : 'Filling out this form requests an appointment. Our team will review your information and contact you to schedule and confirm a date and time.'}
         </p>
 
         <div className="mt-4 pt-4 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-start gap-2 sm:gap-4 text-xs md:text-sm text-gray-500">

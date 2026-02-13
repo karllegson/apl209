@@ -46,10 +46,13 @@ export default function AppointmentDetail({
   const [isEditing, setIsEditing] = useState(false)
   const [adminNotes, setAdminNotes] = useState(appointment?.admin_notes || '')
   const [owner, setOwner] = useState({
-    owner_name: '',
+    owner_first_name: '',
+    owner_last_name: '',
     owner_phone: '',
     owner_email: '',
+    street_address: '',
     city: '',
+    state: '',
     zip_code: '',
     preferred_contact: 'call',
     how_heard: '',
@@ -67,11 +70,17 @@ export default function AppointmentDetail({
   useEffect(() => {
     if (!appointment) return
     setAdminNotes(appointment.admin_notes || '')
+    const first = appointment.owner_first_name ?? ''
+    const last = appointment.owner_last_name ?? ''
+    const fromName = (appointment.owner_name || '').trim().split(/\s+/)
     setOwner({
-      owner_name: appointment.owner_name || '',
+      owner_first_name: first || fromName[0] || '',
+      owner_last_name: last || fromName.slice(1).join(' ') || '',
       owner_phone: appointment.owner_phone || '',
       owner_email: appointment.owner_email || '',
+      street_address: appointment.street_address || '',
       city: appointment.city || '',
+      state: appointment.state || '',
       zip_code: appointment.zip_code || '',
       preferred_contact: appointment.preferred_contact || 'call',
       how_heard: appointment.how_heard || '',
@@ -134,6 +143,7 @@ export default function AppointmentDetail({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...owner,
+          owner_name: [owner.owner_first_name, owner.owner_last_name].map((s) => s?.trim()).filter(Boolean).join(' ') || '',
           ...services,
           num_pets: pets.length,
           pets,
@@ -160,11 +170,17 @@ export default function AppointmentDetail({
 
   const handleCancelEdit = () => {
     if (!appointment) return
+    const first = appointment.owner_first_name ?? ''
+    const last = appointment.owner_last_name ?? ''
+    const fromName = (appointment.owner_name || '').trim().split(/\s+/)
     setOwner({
-      owner_name: appointment.owner_name || '',
+      owner_first_name: first || fromName[0] || '',
+      owner_last_name: last || fromName.slice(1).join(' ') || '',
       owner_phone: appointment.owner_phone || '',
       owner_email: appointment.owner_email || '',
+      street_address: appointment.street_address || '',
       city: appointment.city || '',
+      state: appointment.state || '',
       zip_code: appointment.zip_code || '',
       preferred_contact: appointment.preferred_contact || 'call',
       how_heard: appointment.how_heard || '',
@@ -263,7 +279,9 @@ export default function AppointmentDetail({
                 <>
                   <div className="flex items-center gap-2 text-base">
                     <User className="w-4 h-4 text-slate-400" />
-                    <span className="text-slate-700 font-medium">{owner.owner_name || '—'}</span>
+                    <span className="text-slate-700 font-medium">
+                      {[owner.owner_first_name, owner.owner_last_name].filter(Boolean).join(' ') || '—'}
+                    </span>
                     {owner.is_returning_customer && (
                       <span className="text-xs bg-apl-blue/15 text-apl-blue-dark px-2 py-1 rounded font-semibold">Returning</span>
                     )}
@@ -278,7 +296,9 @@ export default function AppointmentDetail({
                   </div>
                   <div className="flex items-center gap-2 text-base">
                     <MapPin className="w-4 h-4 text-slate-400" />
-                    <span className="text-slate-600">{[owner.city, owner.zip_code].filter(Boolean).join(', ') || '—'}</span>
+                    <span className="text-slate-600">
+                      {[owner.street_address, [owner.city, owner.state].filter(Boolean).join(', '), owner.zip_code].filter(Boolean).join(' ') || '—'}
+                    </span>
                   </div>
                   <p className="text-sm text-slate-400">
                     Preferred: {owner.preferred_contact || '—'}
@@ -292,13 +312,23 @@ export default function AppointmentDetail({
                 </>
               ) : (
                 <>
-              <div>
-                <label className="block text-xs text-slate-500 mb-1">Name</label>
-                <input
-                  value={owner.owner_name}
-                  onChange={(e) => setOwner((o) => ({ ...o, owner_name: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">First name</label>
+                  <input
+                    value={owner.owner_first_name}
+                    onChange={(e) => setOwner((o) => ({ ...o, owner_first_name: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">Last name</label>
+                  <input
+                    value={owner.owner_last_name}
+                    onChange={(e) => setOwner((o) => ({ ...o, owner_last_name: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
+                  />
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -327,7 +357,15 @@ export default function AppointmentDetail({
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">Street address</label>
+                <input
+                  value={owner.street_address}
+                  onChange={(e) => setOwner((o) => ({ ...o, street_address: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs text-slate-500 mb-1">City</label>
                   <input
@@ -337,7 +375,16 @@ export default function AppointmentDetail({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-500 mb-1">Zip</label>
+                  <label className="block text-xs text-slate-500 mb-1">State</label>
+                  <input
+                    value={owner.state}
+                    onChange={(e) => setOwner((o) => ({ ...o, state: e.target.value }))}
+                    placeholder="CA"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">ZIP code</label>
                   <input
                     value={owner.zip_code}
                     onChange={(e) => setOwner((o) => ({ ...o, zip_code: e.target.value }))}
@@ -498,7 +545,7 @@ export default function AppointmentDetail({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-500 mb-1">How long owned</label>
+                    <label className="block text-xs text-slate-500 mb-1">How long have you had this pet?</label>
                     <input
                       value={pet.how_long_owned || ''}
                       onChange={(e) => updatePet(i, 'how_long_owned', e.target.value)}

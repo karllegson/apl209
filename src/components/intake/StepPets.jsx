@@ -1,6 +1,7 @@
 'use client'
 
-import { Dog, Cat } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 import { InputField, RadioGroup, SectionTitle } from './FormWidgets'
 
 export default function StepPets({
@@ -45,7 +46,7 @@ export default function StepPets({
             {pet.pet_name ? ` — ${pet.pet_name}` : ''}
           </h3>
 
-          <div className="space-y-5">
+          <div className="space-y-6">
             {/* Pet name */}
             <InputField
               label="Pet Name"
@@ -63,26 +64,38 @@ export default function StepPets({
                 <button
                   type="button"
                   onClick={() => updatePet(i, 'type', 'dog')}
-                  className={`w-20 h-20 md:w-24 md:h-24 rounded-lg border-2 flex flex-col items-center justify-center gap-1 md:gap-1.5 transition-all cursor-pointer ${
+                  className={`w-[72px] h-[72px] md:w-20 md:h-20 rounded-lg border-2 flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
                     pet.type === 'dog'
                       ? 'bg-apl-primary text-white border-apl-primary'
                       : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
                   }`}
                 >
-                  <Dog className="w-6 h-6 md:w-7 md:h-7" />
-                  <span className="text-xs md:text-sm font-medium">Dog</span>
+                  <Image
+                    src="/dog-icon.png"
+                    alt=""
+                    width={40}
+                    height={40}
+                    className="object-contain flex-shrink-0"
+                  />
+                  <span className="text-xs font-medium">Dog</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => updatePet(i, 'type', 'cat')}
-                  className={`w-20 h-20 md:w-24 md:h-24 rounded-lg border-2 flex flex-col items-center justify-center gap-1 md:gap-1.5 transition-all cursor-pointer ${
+                  className={`w-[72px] h-[72px] md:w-20 md:h-20 rounded-lg border-2 flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
                     pet.type === 'cat'
                       ? 'bg-apl-primary text-white border-apl-primary'
                       : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
                   }`}
                 >
-                  <Cat className="w-6 h-6 md:w-7 md:h-7" />
-                  <span className="text-xs md:text-sm font-medium">Cat</span>
+                  <Image
+                    src="/cat-icon.png"
+                    alt=""
+                    width={40}
+                    height={40}
+                    className="object-contain flex-shrink-0"
+                  />
+                  <span className="text-xs font-medium">Cat</span>
                 </button>
               </div>
               {errors[`pet_${i}_type`] && (
@@ -110,49 +123,79 @@ export default function StepPets({
                 placeholder="2 years"
                 error={errors[`pet_${i}_age`]}
               />
+              <div className="sm:col-span-2">
+                <label className="form-field-label block mb-1.5 md:mb-2 text-gray-700">
+                  Weight <span className="text-red-500">*</span>
+                </label>
+                <div className="flex flex-wrap items-center gap-2">
+                  {pet.weight === 'unsure' ? (
+                    <>
+                      <span className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-lg">Unsure — we&apos;ll weigh at clinic</span>
+                      <button
+                        type="button"
+                        onClick={() => updatePet(i, 'weight', '')}
+                        className="text-sm text-apl-primary hover:underline font-medium"
+                      >
+                        Enter weight
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <input
+                        type="text"
+                        value={pet.weight}
+                        onChange={(e) => updatePet(i, 'weight', e.target.value)}
+                        placeholder="25 lbs"
+                        className={`flex-1 min-w-[120px] intake-input px-3 md:px-4 py-2 md:py-3 rounded-lg border text-base transition-all ${
+                          errors[`pet_${i}_weight`] ? 'border-red-400 bg-red-50' : 'border-gray-300'
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => updatePet(i, 'weight', 'unsure')}
+                        className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 whitespace-nowrap"
+                      >
+                        Unsure
+                      </button>
+                    </>
+                  )}
+                </div>
+                {errors[`pet_${i}_weight`] && (
+                  <p className="text-red-500 text-xs mt-1">{errors[`pet_${i}_weight`]}</p>
+                )}
+              </div>
               <InputField
-                label="Weight"
-                required
-                value={pet.weight}
-                onChange={(v) => updatePet(i, 'weight', v)}
-                placeholder="25 lbs"
-                error={errors[`pet_${i}_weight`]}
-              />
-              <InputField
-                label="How long owned?"
+                label="How long have you had this pet?"
                 value={pet.how_long_owned}
                 onChange={(v) => updatePet(i, 'how_long_owned', v)}
                 placeholder="6 months"
               />
             </div>
 
-            {/* Indoor vs outdoor — outdoor is always TNR (trap required) */}
+            {/* House pet vs outdoor/TNR — No = TNR (trap required) */}
             <RadioGroup
-              label="Indoor or outdoor?"
+              label="Is this a house pet?"
               required
               options={[
-                { value: 'indoor', label: 'Indoor pet' },
-                { value: 'tnr', label: 'Outdoor or community (TNR — trap required)' },
+                { value: 'indoor', label: 'Yes' },
+                { value: 'tnr', label: 'No' },
               ]}
               value={pet.pet_ownership}
               onChange={(v) => updatePet(i, 'pet_ownership', v)}
               error={errors[`pet_${i}_pet_ownership`]}
             />
 
-            {/* TNR: only when they select outdoor */}
+            {/* TNR: info text when No (outdoor) selected */}
             {pet.pet_ownership === 'tnr' && (
-              <div className="text-sm text-gray-700 bg-apl-blue-50 border border-apl-blue-200 rounded-lg p-3 space-y-1">
-                <p className="font-medium text-gray-900">Outdoor or community animal (TNR)</p>
-                <p>
-                  The animal must be brought in a trap (you can rent one from us for <strong>$5</strong>).
-                  Outdoor animals behave differently, so we require traps for everyone&apos;s safety.
+              <div className="mt-2 p-3 rounded-lg border border-gray-200 bg-gray-100 text-xs text-gray-600">
+                <p className="font-medium text-gray-700 mb-1.5">TNR — Trap-Neuter-Return (outdoor/community cats)</p>
+                <p className="mb-1.5">
+                  Outdoor cats behave differently than house pets. For everyone&apos;s safety (yours, our staff, and others at the clinic) and to meet legal requirements, cats must arrive in a humane trap with weight noted. Traps can be rented from us. You must come in person to sign a waiver.
                 </p>
-                <p className="text-gray-800 font-medium mt-2">TNR pricing:</p>
-                <ul className="list-disc list-inside text-gray-700 space-y-0.5">
-                  <li>TNR (base): <strong>$85</strong></li>
-                  <li>No weight on trap: <strong>$25</strong></li>
-                  <li>TNR pregnant: additional <strong>$25</strong></li>
-                </ul>
+                <p className="mb-1.5">TNR includes: ear tip, pain injection, antibiotic injection, HCP, and rabies.</p>
+                <p>
+                  TNR pricing is different from house-pet pricing. <Link href="/pricing" target="_blank" rel="noopener noreferrer" className="text-apl-primary hover:underline font-medium">See our pricing page</Link> for current rates. This is for your information only.
+                </p>
               </div>
             )}
 
@@ -169,40 +212,42 @@ export default function StepPets({
               error={errors[`pet_${i}_sex`]}
             />
 
-            {/* Base price reference */}
+            {/* Base price: info text when species + sex selected */}
             {pet.type && pet.sex && (
-              <div className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-3 py-3">
-                <p className="font-medium text-gray-900 mb-1.5">Base price</p>
+              <div className="text-xs text-gray-600 bg-gray-50/80 border border-gray-100 rounded-lg px-3 py-2.5">
+                <p className="font-medium text-gray-700 mb-1">Price reference</p>
+                <p className="text-[11px] text-gray-500 mb-1">Varies by species, sex, weight. Reference only.</p>
                 {pet.type === 'dog' && pet.sex === 'male' && (
-                  <ul className="list-disc list-inside space-y-0.5">
+                  <ul className="list-disc list-inside space-y-0.5 text-xs">
                     <li>1–25 lbs: <strong>$160</strong></li>
                     <li>26–50 lbs: <strong>$180</strong></li>
                     <li>51–75 lbs: <strong>$225</strong></li>
                     <li>76–99 lbs: <strong>$250</strong></li>
-                    <li className="text-gray-600 mt-1">Includes cone and pain meds.</li>
+                    <li className="text-gray-500 mt-0.5">Includes cone and pain meds.</li>
                   </ul>
                 )}
                 {pet.type === 'dog' && pet.sex === 'female' && (
-                  <ul className="list-disc list-inside space-y-0.5">
+                  <ul className="list-disc list-inside space-y-0.5 text-xs">
                     <li>1–25 lbs: <strong>$185</strong></li>
                     <li>26–50 lbs: <strong>$210</strong></li>
                     <li>51–75 lbs: <strong>$275</strong></li>
                     <li>76–99 lbs: <strong>$350</strong></li>
-                    <li className="text-gray-600 mt-1">Includes cone and pain meds.</li>
+                    <li className="text-gray-500 mt-0.5">Includes cone and pain meds.</li>
                   </ul>
                 )}
                 {pet.type === 'cat' && pet.sex === 'male' && (
-                  <ul className="list-disc list-inside space-y-0.5">
+                  <ul className="list-disc list-inside space-y-0.5 text-xs">
                     <li>Neuter: <strong>$75</strong></li>
-                    <li className="text-gray-600">Includes exam, pain and antibiotic injection.</li>
+                    <li className="text-gray-500">Includes exam, pain and antibiotic injection.</li>
                   </ul>
                 )}
                 {pet.type === 'cat' && pet.sex === 'female' && (
-                  <ul className="list-disc list-inside space-y-0.5">
+                  <ul className="list-disc list-inside space-y-0.5 text-xs">
                     <li>Spay: <strong>$95</strong></li>
-                    <li className="text-gray-600">Includes exam, pain and antibiotic injection.</li>
+                    <li className="text-gray-500">Includes exam, pain and antibiotic injection.</li>
                   </ul>
                 )}
+                <p className="text-[11px] text-gray-400 mt-1.5 pt-1.5 border-t border-gray-100">Fees may apply. Not a quote.</p>
               </div>
             )}
 
@@ -222,15 +267,13 @@ export default function StepPets({
                   error={errors[`pet_${i}_testicles_descended`]}
                 />
                 {(pet.testicles_descended === 'no' || pet.testicles_descended === 'unsure') && (
-                  <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
-                    <p className="font-medium">⚠️ Cryptorchid surgery may be required.</p>
-                    <p>Undescended testicles require a more involved procedure.</p>
-                    <p className="font-medium text-amber-800 mt-1.5">Additional pricing:</p>
-                    <ul className="list-disc list-inside space-y-0.5 text-amber-800">
+                  <div className="text-xs text-amber-800 bg-amber-50/70 border border-amber-100 rounded-lg p-2.5 mt-2">
+                    <p className="font-medium">Cryptorchid surgery may be required (undescended testicles). Estimated add-ons:</p>
+                    <ul className="list-disc list-inside space-y-0.5 text-amber-700 mt-0.5 text-xs">
                       <li>1 undescended testicle: <strong>$50–$200</strong></li>
                       <li>2 undescended testicles: <strong>$100–$400</strong></li>
-                      <li>Umbilical hernia repair: <strong>+$20</strong></li>
                     </ul>
+                    <p className="text-[11px] text-amber-600 mt-0.5">Reference only; not a quote.</p>
                   </div>
                 )}
               </div>
@@ -261,20 +304,21 @@ export default function StepPets({
                 />
                 {(pet.in_heat_or_pregnant === 'yes' ||
                   pet.in_heat_or_pregnant === 'unsure') && (
-                  <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
-                    <p className="font-medium">Additional fees may apply:</p>
+                  <div className="text-xs text-amber-800 bg-amber-50/70 border border-amber-100 rounded-lg p-2.5 mt-2">
+                    <p className="font-medium">Estimated add-ons (reference only):</p>
                     {pet.type === 'cat' ? (
-                      <ul className="list-disc list-inside space-y-0.5 text-amber-800">
+                      <ul className="list-disc list-inside space-y-0.5 text-amber-700 mt-0.5 text-xs">
                         <li>In heat: <strong>+$25</strong></li>
                         <li>Pregnant: <strong>+$50</strong></li>
                       </ul>
                     ) : (
-                      <ul className="list-disc list-inside space-y-0.5 text-amber-800">
+                      <ul className="list-disc list-inside space-y-0.5 text-amber-700 mt-0.5 text-xs">
                         <li>Heat (0–50 lbs): <strong>+$50</strong></li>
                         <li>Heat (51–99 lbs): <strong>+$100</strong></li>
                         <li>Pregnancy: <strong>+$125</strong></li>
                       </ul>
                     )}
+                    <p className="text-[11px] text-amber-600 mt-0.5">Not a quote.</p>
                   </div>
                 )}
               </div>

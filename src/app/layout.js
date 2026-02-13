@@ -8,8 +8,12 @@ const dmSans = DM_Sans({
 });
 
 export const metadata = {
-  title: "Animal Protection League — Appointment Booking",
+  title: "APL Form",
   description: "Request an appointment at the Animal Protection League Clinic in Stockton, CA.",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({ children }) {

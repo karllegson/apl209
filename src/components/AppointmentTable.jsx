@@ -88,7 +88,7 @@ export default function AppointmentTable({
               >
                 <td className="px-4 py-3">
                   <p className="text-sm font-semibold text-slate-800">
-                    {apt.owner_name}
+                    {[apt.owner_first_name, apt.owner_last_name].filter(Boolean).join(' ') || apt.owner_name || '—'}
                     {hasSickPet(apt.pets) && (
                       <AlertTriangle className="inline w-3.5 h-3.5 text-red-500 ml-1.5" />
                     )}
@@ -104,8 +104,9 @@ export default function AppointmentTable({
                   </p>
                 </td>
                 <td className="px-4 py-3">
-                  <p className="text-sm text-slate-700">{apt.city || '—'}</p>
-                  <p className="text-xs text-slate-400">{apt.zip_code}</p>
+                  <p className="text-sm text-slate-700">
+                    {[apt.street_address, [apt.city, apt.state].filter(Boolean).join(', '), apt.zip_code].filter(Boolean).join(' ') || '—'}
+                  </p>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1">
