@@ -18,6 +18,7 @@ function createEmptyPet() {
     pet_name: '',
     type: '',
     breed: '',
+    color: '',
     age: '',
     weight: '',
     sex: '',
@@ -196,7 +197,7 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
       if (!form.deposit_acknowledged)
         e.deposit_acknowledged = 'You must acknowledge the deposit requirement'
       const cardDigits = (form.deposit_card_number || '').replace(/\D/g, '')
-      if (cardDigits.length < 4) e.deposit_card_number = 'Enter at least the last 4 digits of your card'
+      if (cardDigits.length < 13 || cardDigits.length > 19) e.deposit_card_number = 'Enter your full card number (13–19 digits)'
       if (!(form.deposit_card_expiry || '').trim()) e.deposit_card_expiry = 'Expiry is required'
       if (!(form.deposit_billing_zip || '').trim()) e.deposit_billing_zip = 'Billing ZIP is required'
       if (!form.legal_acknowledged)

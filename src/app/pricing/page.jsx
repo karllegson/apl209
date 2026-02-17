@@ -173,9 +173,9 @@ export default function PricingPage() {
           <h2 className="font-semibold text-gray-900 mb-3">More information</h2>
           <ul className="space-y-2 text-sm text-gray-700 list-disc list-inside">
             <li>Rabies proof or vaccination required at alter surgery.</li>
-            <li>Deposits: $50 dogs, $25 cats, $50 TNR (nonrefundable).</li>
+            <li>Deposits: $50 dogs, $25 cats (nonrefundable). Your deposit is applied to the cost of your visit.</li>
             <li>3% credit card fee.</li>
-            <li>No-show or &lt;48 hr reschedule: deposit forfeited.</li>
+            <li>Cancel or reschedule with less than 48 hours&apos; notice: deposit forfeited.</li>
           </ul>
         </section>
 

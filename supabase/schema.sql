@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS appointments (
   requested_service TEXT DEFAULT '',
 
   -- Pet data (stored as JSONB array — one object per pet)
-  -- Each pet: { pet_name, type, breed, age, weight, sex, pet_ownership,
+  -- Each pet: { pet_name, type, breed, color, age, weight, sex, pet_ownership,
   --   how_long_owned, testicles_descended, in_heat_or_pregnant, last_heat_pregnancy_date,
   --   currently_sick_injured, medical_conditions, medical_conditions_other,
   --   previous_surgeries, previous_surgeries_details,

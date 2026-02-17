@@ -3,13 +3,12 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Scissors, Syringe, Cat, Heart, Loader2, ShieldCheck } from 'lucide-react'
+import { Scissors, Syringe, Heart, Loader2, ShieldCheck } from 'lucide-react'
 import { useLanguage, LanguageToggle } from './LanguageContext'
 
 export const SERVICE_OPTIONS = [
   { id: 'spay_neuter', labelEn: 'Spay & Neuter', labelEs: 'Esterilización y castración', descEn: 'Surgery for dogs and cats', descEs: 'Cirugía para perros y gatos', icon: Scissors },
   { id: 'vaccines', labelEn: 'Vaccines only', labelEs: 'Solo vacunas', descEn: 'Rabies, DAPP, and other vaccines', descEs: 'Rabia, DAPP y otras vacunas', icon: Syringe },
-  { id: 'tnr', labelEn: 'TNR (Trap-Neuter-Return)', labelEs: 'TNR (Capturar-Esterilizar-Soltar)', descEn: 'Community cats', descEs: 'Gatos comunitarios', icon: Cat },
   { id: 'wellness_other', labelEn: 'Wellness / Other', labelEs: 'Bienestar / Otros', descEn: 'Microchip, flea prevention, dewormer, etc.', descEs: 'Microchip, prevención de pulgas, desparasitante, etc.', icon: Heart },
 ]
 
@@ -129,22 +128,6 @@ export default function SelectService({ onSelect, onBack, onLogoClick }) {
                           </>
                         )}
                       </div>
-                    </div>
-                  ) : opt.id === 'tnr' ? (
-                    <div className="text-xs md:text-sm text-gray-600 space-y-2 mb-3">
-                      {isSpanish ? (
-                        <>
-                          <p className="font-medium text-gray-700 text-xs md:text-sm">TNR (Capturar-Esterilizar-Soltar)</p>
-                          <p className="leading-snug">Es para gatos comunitarios o callejeros que no viven en casa. El gato es capturado, esterilizado o castrado en la clínica y luego devuelto al mismo lugar.</p>
-                          <p className="leading-snug">Debe completar este proceso en persona y firmar una exención de responsabilidad en la clínica. Los animales que no viven en interiores pueden comportarse de forma distinta a las mascotas de casa.</p>
-                        </>
-                      ) : (
-                        <>
-                          <p className="font-medium text-gray-700 text-xs md:text-sm">TNR (Trap-Neuter-Release)</p>
-                          <p className="leading-snug">TNR is for community or outdoor cats that don&apos;t live indoors. The cat is trapped, spayed or neutered at the clinic, then returned to the same location.</p>
-                          <p className="leading-snug">You must complete this process in person and sign a waiver at the clinic. Animals that don&apos;t live indoors may behave differently than house pets.</p>
-                        </>
-                      )}
                     </div>
                   ) : (
                     <p className="text-xs md:text-sm text-gray-600 leading-snug mb-3">

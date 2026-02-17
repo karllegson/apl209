@@ -115,6 +115,12 @@ export default function StepPets({
                 error={errors[`pet_${i}_breed`]}
               />
               <InputField
+                label="Color"
+                value={pet.color}
+                onChange={(v) => updatePet(i, 'color', v)}
+                placeholder={pet.type === 'cat' ? 'Orange tabby' : 'Black'}
+              />
+              <InputField
                 label="Age"
                 required
                 value={pet.age}

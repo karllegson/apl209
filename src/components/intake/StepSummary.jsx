@@ -5,7 +5,6 @@ import { SectionTitle } from './FormWidgets'
 const SERVICE_LABELS = {
   spay_neuter: 'Spay & Neuter',
   vaccines: 'Vaccines only',
-  tnr: 'TNR (Trap-Neuter-Return)',
   wellness_other: 'Wellness / Other',
 }
 
@@ -86,6 +85,7 @@ export default function StepSummary({ form }) {
             {line('Name', pet.pet_name)}
             {line('Species', pet.type === 'dog' ? 'Dog' : pet.type === 'cat' ? 'Cat' : pet.type)}
             {line('Breed', pet.breed)}
+            {line('Color', pet.color)}
             {line('Age', pet.age)}
             {line('Weight', pet.weight)}
             {line('Sex', pet.sex)}
@@ -100,7 +100,7 @@ export default function StepSummary({ form }) {
             {line('Current medications?', pet.current_medications === true && pet.current_medications_details ? `Yes — ${pet.current_medications_details}` : boolVal(pet.current_medications))}
             {line('Rabies current?', pet.rabies_vaccinated === 'yes' ? 'Yes' : pet.rabies_vaccinated === 'no' ? 'No' : pet.rabies_vaccinated === 'unknown' ? 'Unknown' : '—')}
             {line('Fleas/ticks?', boolVal(pet.has_fleas_ticks))}
-            {line('Temperament at vet', pet.vet_behavior ? String(pet.vet_behavior).replace(/_/g, ' ') : '—')}
+            {line('Pet temperament', pet.vet_behavior ? String(pet.vet_behavior).replace(/_/g, ' ') : '—')}
           </div>
         </div>
       ))}

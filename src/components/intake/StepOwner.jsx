@@ -7,7 +7,7 @@ export default function StepOwner({ form, errors, updateField }) {
   return (
     <div className="space-y-5 md:space-y-6">
       <div className="rounded-lg border border-apl-primary/30 bg-apl-blue/5 px-4 py-3 text-sm text-gray-700">
-        <strong className="text-apl-primary">Nonrefundable deposit required.</strong> Low-cost appointments: $50 dogs, $25 pet cats; TNR: $50. You&apos;ll enter payment details on the Review &amp; Sign step before submitting.
+        <strong className="text-apl-primary">Nonrefundable deposit required.</strong> $50 dogs, $25 pet cats. Your deposit is applied to the cost of your visit. Cancel or reschedule with less than 48 hours&apos; notice and you will lose your deposit. You&apos;ll enter payment details on the Review &amp; Sign step before submitting.
       </div>
 
       {/* Client status */}

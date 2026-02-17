@@ -455,6 +455,7 @@ export default function AppointmentDetail({
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                   <div className="col-span-2"><span className="text-slate-400">Name:</span> <EmptyHighlight value={pet.pet_name}><span className="text-slate-700">{pet.pet_name || '—'}</span></EmptyHighlight></div>
                   <div><span className="text-slate-400">Breed:</span> <EmptyHighlight value={pet.breed}><span className="text-slate-700">{pet.breed || '—'}</span></EmptyHighlight></div>
+                  <div><span className="text-slate-400">Color:</span> <EmptyHighlight value={pet.color}><span className="text-slate-700">{pet.color || '—'}</span></EmptyHighlight></div>
                   <div><span className="text-slate-400">Age:</span> <EmptyHighlight value={pet.age}><span className="text-slate-700">{pet.age || '—'}</span></EmptyHighlight></div>
                   <div><span className="text-slate-400">Weight:</span> <EmptyHighlight value={pet.weight}><span className="text-slate-700">{pet.weight || '—'}</span></EmptyHighlight></div>
                   <div><span className="text-slate-400">Sex:</span> <EmptyHighlight value={pet.sex}><span className="text-slate-700 capitalize">{pet.sex || '—'}</span></EmptyHighlight></div>
@@ -501,7 +502,7 @@ export default function AppointmentDetail({
                   </div>
                 </div>
                 <div className="border-t border-slate-200 pt-2">
-                  <div className="flex items-center gap-1.5 mb-1"><Stethoscope className="w-4 h-4 text-apl-blue" /><span className="text-sm font-semibold text-slate-500">Behavior</span></div>
+                  <div className="flex items-center gap-1.5 mb-1"><Stethoscope className="w-4 h-4 text-apl-blue" /><span className="text-sm font-semibold text-slate-500">Pet temperament</span></div>
                   <p className="text-sm capitalize text-slate-700"><EmptyHighlight value={pet.vet_behavior}>{pet.vet_behavior || '—'}</EmptyHighlight></p>
                 </div>
                   </>
@@ -522,6 +523,15 @@ export default function AppointmentDetail({
                     <input
                       value={pet.breed || ''}
                       onChange={(e) => updatePet(i, 'breed', e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1">Color</label>
+                    <input
+                      value={pet.color || ''}
+                      onChange={(e) => updatePet(i, 'color', e.target.value)}
+                      placeholder="e.g. Black, Orange tabby"
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
                     />
                   </div>
@@ -768,11 +778,11 @@ export default function AppointmentDetail({
                   </div>
                 </div>
 
-                {/* Behavior */}
+                {/* Temperament */}
                 <div className="border-t border-slate-200 pt-2">
                   <div className="flex items-center gap-1.5 mb-1">
                     <Stethoscope className="w-4 h-4 text-apl-blue" />
-                    <span className="text-sm font-semibold text-slate-500">Behavior at vet</span>
+                    <span className="text-sm font-semibold text-slate-500">Pet temperament</span>
                   </div>
                   <input
                     value={pet.vet_behavior || ''}

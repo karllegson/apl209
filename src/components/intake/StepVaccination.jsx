@@ -56,7 +56,7 @@ export default function StepVaccination({ form, errors, updatePet }) {
             />
 
             <RadioGroup
-              label="What is your pet's temperament at the vet? (e.g. friendly, nervous, may bite)"
+              label="What's your pet's temperament? (e.g. friendly, nervous, may bite)"
               required
               options={[
                 { value: 'friendly', label: 'Friendly' },
