@@ -1,0 +1,181 @@
+'use client'
+
+import { useState } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { Scissors, Syringe, Cat, Heart, Loader2, ShieldCheck } from 'lucide-react'
+import { useLanguage, LanguageToggle } from './LanguageContext'
+
+export const SERVICE_OPTIONS = [
+  { id: 'spay_neuter', labelEn: 'Spay & Neuter', labelEs: 'Esterilización y castración', descEn: 'Surgery for dogs and cats', descEs: 'Cirugía para perros y gatos', icon: Scissors },
+  { id: 'vaccines', labelEn: 'Vaccines only', labelEs: 'Solo vacunas', descEn: 'Rabies, DAPP, and other vaccines', descEs: 'Rabia, DAPP y otras vacunas', icon: Syringe },
+  { id: 'tnr', labelEn: 'TNR (Trap-Neuter-Return)', labelEs: 'TNR (Capturar-Esterilizar-Soltar)', descEn: 'Community cats', descEs: 'Gatos comunitarios', icon: Cat },
+  { id: 'wellness_other', labelEn: 'Wellness / Other', labelEs: 'Bienestar / Otros', descEn: 'Microchip, flea prevention, dewormer, etc.', descEs: 'Microchip, prevención de pulgas, desparasitante, etc.', icon: Heart },
+]
+
+const LOADING_DURATION_MS = 1500
+
+const OTHER_SERVICES_NOTE_EN = "If you want other services (e.g. vaccines, microchip), you'll have a chance to select them in the form."
+const OTHER_SERVICES_NOTE_ES = 'Si desea otros servicios (p. ej. vacunas, microchip), podrá seleccionarlos en el formulario.'
+
+export default function SelectService({ onSelect, onBack, onLogoClick }) {
+  const { language } = useLanguage()
+  const isSpanish = language === 'es'
+  const [expandedId, setExpandedId] = useState(null)
+  const [creatingForLabel, setCreatingForLabel] = useState(null)
+
+  const getServiceLabel = (serviceId) => {
+    const opt = SERVICE_OPTIONS.find((o) => o.id === serviceId)
+    if (!opt) return serviceId
+    return isSpanish ? opt.labelEs : opt.labelEn
+  }
+
+  const goToForm = (serviceId) => {
+    setCreatingForLabel(getServiceLabel(serviceId))
+    setTimeout(() => {
+      onSelect(serviceId)
+      setCreatingForLabel(null)
+    }, LOADING_DURATION_MS)
+  }
+
+  const handleServiceClick = (id) => {
+    setExpandedId(id)
+  }
+
+  return (
+    <div className="space-y-5 md:space-y-8 relative">
+      {/* Loading popup when transitioning to form */}
+      {creatingForLabel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" aria-live="polite" aria-busy="true">
+          <div className="bg-white rounded-xl shadow-xl px-6 py-5 flex flex-col items-center gap-4 min-w-[200px]">
+            <Loader2 className="w-10 h-10 text-apl-primary animate-spin shrink-0" aria-hidden />
+            <p className="text-sm font-medium text-gray-800 text-center">
+              {isSpanish ? 'Creando formulario para ' : 'Creating form for '}
+              <span className="text-apl-primary">{creatingForLabel}</span>
+              …
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-sm text-gray-600 hover:text-apl-blue transition-colors cursor-pointer"
+        >
+          ← Back
+        </button>
+        <LanguageToggle />
+      </div>
+
+      {onLogoClick ? (
+        <button type="button" onClick={onLogoClick} className="flex justify-center mb-2 w-full cursor-pointer">
+          <Image src="/logo.png" alt="Animal Protection League" width={140} height={140} className="h-14 md:h-16 w-auto object-contain" />
+        </button>
+      ) : (
+        <Link href="/book" className="flex justify-center mb-2 block">
+          <Image src="/logo.png" alt="Animal Protection League" width={140} height={140} className="h-14 md:h-16 w-auto object-contain" />
+        </Link>
+      )}
+
+      <div className="text-center space-y-2">
+        <h1 className="form-page-title text-xl md:text-2xl">
+          {isSpanish ? '¿Qué servicio necesita?' : 'What service do you need?'}
+        </h1>
+        <p className="text-gray-600 text-sm md:text-base">
+          {isSpanish ? 'Seleccione uno para continuar con el formulario.' : 'Select one to continue with the intake form.'}
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        {SERVICE_OPTIONS.map((opt) => {
+          const Icon = opt.icon
+          const label = isSpanish ? opt.labelEs : opt.labelEn
+          const desc = isSpanish ? opt.descEs : opt.descEn
+          const isExpanded = expandedId === opt.id
+          return (
+            <div key={opt.id} className={`rounded-xl border-2 overflow-hidden bg-white shadow-sm ${isExpanded ? 'border-apl-primary' : 'border-gray-200 hover:border-apl-primary'}`}>
+              <button
+                type="button"
+                onClick={() => handleServiceClick(opt.id)}
+                className={`w-full text-left flex items-center gap-4 p-4 md:p-5 transition-all cursor-pointer hover:bg-apl-primary/5 ${isExpanded ? 'border-b border-gray-200 bg-apl-primary/5' : ''}`}
+              >
+                <span className="flex shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-full bg-apl-primary/10 flex items-center justify-center">
+                  <Icon className="w-6 h-6 md:w-7 md:h-7 text-apl-primary" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-gray-900">{label}</p>
+                  <p className="text-sm text-gray-500 mt-0.5">{desc}</p>
+                </div>
+              </button>
+              {isExpanded && (
+                <div className="px-3 md:px-4 pb-3 md:pb-4 pt-2.5 bg-gray-100/80 border-t border-gray-200">
+                  {opt.id === 'spay_neuter' ? (
+                    <div className="flex items-start gap-2 mb-3">
+                      <ShieldCheck className="w-4 h-4 text-gray-500 shrink-0 mt-0.5" />
+                      <div className="text-xs md:text-sm text-gray-600">
+                        {isSpanish ? (
+                          <>
+                            <p className="font-medium mb-0.5 text-gray-700 text-xs md:text-sm">Requisito de rabia</p>
+                            <p className="leading-snug">Su mascota debe tener la vacuna contra la rabia al día (dentro del último año). Debe traer comprobante o certificado de vacunación a la clínica el día de la cita.</p>
+                            <p className="mt-1.5 text-gray-500">Si no tiene la vacuna contra la rabia al día, puede recibirla en la clínica. <span className="text-gray-400 text-xs">($20)</span></p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="font-medium mb-0.5 text-gray-700 text-xs md:text-sm">Rabies requirement</p>
+                            <p className="leading-snug">Your pet must have a current rabies vaccine (within 1 year). You must bring proof or certificate of vaccination to the clinic on the day of the appointment.</p>
+                            <p className="mt-1.5 text-gray-500">If you don&apos;t have a current rabies vaccine, you can get it at the clinic. <span className="text-gray-400 text-xs">($20)</span></p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ) : opt.id === 'tnr' ? (
+                    <div className="text-xs md:text-sm text-gray-600 space-y-2 mb-3">
+                      {isSpanish ? (
+                        <>
+                          <p className="font-medium text-gray-700 text-xs md:text-sm">TNR (Capturar-Esterilizar-Soltar)</p>
+                          <p className="leading-snug">Es para gatos comunitarios o callejeros que no viven en casa. El gato es capturado, esterilizado o castrado en la clínica y luego devuelto al mismo lugar.</p>
+                          <p className="leading-snug">Debe completar este proceso en persona y firmar una exención de responsabilidad en la clínica. Los animales que no viven en interiores pueden comportarse de forma distinta a las mascotas de casa.</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="font-medium text-gray-700 text-xs md:text-sm">TNR (Trap-Neuter-Release)</p>
+                          <p className="leading-snug">TNR is for community or outdoor cats that don&apos;t live indoors. The cat is trapped, spayed or neutered at the clinic, then returned to the same location.</p>
+                          <p className="leading-snug">You must complete this process in person and sign a waiver at the clinic. Animals that don&apos;t live indoors may behave differently than house pets.</p>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-xs md:text-sm text-gray-600 leading-snug mb-3">
+                      {isSpanish ? 'Continuará al formulario de admisión con esta opción como servicio principal.' : 'You\'ll continue to the intake form with this as your main service.'}
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500 leading-snug mb-3">
+                    {isSpanish ? OTHER_SERVICES_NOTE_ES : OTHER_SERVICES_NOTE_EN}
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setExpandedId(null)}
+                      className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 font-medium text-xs hover:bg-gray-50"
+                    >
+                      {isSpanish ? 'Cerrar' : 'Close'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => goToForm(opt.id)}
+                      className="px-4 py-1.5 rounded-lg bg-apl-primary hover:bg-apl-blue-dark text-white font-semibold text-xs"
+                    >
+                      {isSpanish ? 'Continuar' : 'Proceed'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}

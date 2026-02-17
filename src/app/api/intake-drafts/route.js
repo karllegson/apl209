@@ -1,7 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 
-// GET — resume: find draft by email or phone
+// GET — resume: list drafts by email or phone (typically one)
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -14,24 +14,25 @@ export async function GET(request) {
       )
     }
     const supabase = createAdminClient()
-    let query = supabase.from('intake_drafts').select('id, step, form_data')
+    let query = supabase
+      .from('intake_drafts')
+      .select('id, step, form_data, updated_at, created_at')
+      .order('updated_at', { ascending: false })
     if (email) query = query.eq('owner_email', email)
     else query = query.eq('owner_phone', phone)
-    const { data, error } = await query.maybeSingle()
+    const { data: rows, error } = await query
     if (error) {
       console.error('intake-drafts GET', error)
-      return NextResponse.json({ error: 'Failed to load draft' }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to load drafts' }, { status: 500 })
     }
-    if (!data) {
-      return NextResponse.json({ draft: null }, { status: 200 })
-    }
-    return NextResponse.json({
-      draft: {
-        id: data.id,
-        step: data.step,
-        formData: data.form_data,
-      },
-    })
+    const drafts = (rows || []).map((row) => ({
+      id: row.id,
+      step: row.step,
+      formData: row.form_data,
+      updatedAt: row.updated_at,
+      createdAt: row.created_at,
+    }))
+    return NextResponse.json({ drafts })
   } catch (err) {
     console.error('intake-drafts GET', err)
     return NextResponse.json(

@@ -2,7 +2,7 @@ import Image from 'next/image'
 import AppointmentPageClient from './AppointmentPageClient'
 
 /* ─── SAVED FORM CARD DECOR SETTINGS (restore from here if needed) ───
- * Peeking pets: desktop only (hidden md:flex), left-[82%] right-[-40%], max-h-[65%] max-w-[55%], opacity-[0.20], object-left, -translate-y-[22%]. Mobile: hidden for full-width aligned form.
+ * Peeking pets: mobile left-[65%] right-[-25%], max-h-[50%] max-w-[45%], -translate-y-[15%]; md: left-[82%] right-[-40%], max-h-[65%] max-w-[55%], -translate-y-[22%]; opacity 0.20.
  */
 
 export const metadata = {
@@ -28,10 +28,10 @@ export default function AppointmentPage() {
 
       {/* Form: compact on mobile so it fits; scrolls if needed */}
       <main className="relative max-w-3xl mx-auto px-3 py-6 md:px-4 md:py-12 overflow-x-hidden">
-        <div className="relative overflow-hidden rounded-lg border border-gray-200 shadow-sm p-4 md:p-10 min-h-0 bg-white">
-          {/* Peeking pets — desktop only so mobile form is full-width and aligned */}
-          <div className="absolute inset-y-0 left-[82%] right-[-40%] z-[1] pointer-events-none flex items-center hidden md:flex" aria-hidden>
-            <div className="relative w-full h-full max-h-[65%] max-w-[55%] opacity-[0.20] origin-left -translate-y-[22%]">
+        <div className="relative overflow-hidden rounded-lg border border-gray-200 shadow-sm p-4 md:p-10 min-h-0 min-w-0 bg-white">
+          {/* Peeking pets — MOBILE: left/right = position; w/h = image size (e.g. 42vw) so moving strip doesn't shrink it. DESKTOP: unchanged. */}
+          <div className="absolute inset-y-0 left-[75%] right-[-25%] md:left-[82%] md:right-[-40%] z-[1] pointer-events-none flex items-center" aria-hidden>
+            <div className="relative w-[42vw] h-[36vh] max-h-[55%] md:w-full md:h-full md:max-h-[65%] md:max-w-[55%] opacity-[0.10] origin-left -translate-y-[15%] md:-translate-y-[22%]">
               <Image
                 src="/peeking-pets.png"
                 alt=""
@@ -41,7 +41,7 @@ export default function AppointmentPage() {
               />
             </div>
           </div>
-          <div className="relative z-10">
+          <div className="relative z-10 min-w-0 max-w-full">
             <AppointmentPageClient />
           </div>
         </div>

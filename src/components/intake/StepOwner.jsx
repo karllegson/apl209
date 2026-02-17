@@ -6,6 +6,10 @@ import { InputField, RadioGroup, SectionTitle } from './FormWidgets'
 export default function StepOwner({ form, errors, updateField }) {
   return (
     <div className="space-y-5 md:space-y-6">
+      <div className="rounded-lg border border-apl-primary/30 bg-apl-blue/5 px-4 py-3 text-sm text-gray-700">
+        <strong className="text-apl-primary">Nonrefundable deposit required.</strong> Low-cost appointments: $50 dogs, $25 pet cats; TNR: $50. You&apos;ll enter payment details on the Review &amp; Sign step before submitting.
+      </div>
+
       {/* Client status */}
       <div>
         <label className="form-section-heading block">
@@ -135,7 +139,17 @@ export default function StepOwner({ form, errors, updateField }) {
             />
           </div>
         </div>
-        <p className="text-xs text-gray-500 mt-1.5 ml-1">Stockton, CA</p>
+      </div>
+
+      {/* How did you hear about us — optional, after address */}
+      <div>
+        <InputField
+          label="How did you hear about us? (optional)"
+          value={form.how_heard}
+          onChange={(v) => updateField('how_heard', v)}
+          placeholder="e.g. Google, friend, flyer, social media"
+          error={errors.how_heard}
+        />
       </div>
     </div>
   )

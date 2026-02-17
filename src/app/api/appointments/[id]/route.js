@@ -92,6 +92,12 @@ export async function PATCH(request, { params }) {
     'wants_microchip',
     'wants_nail_trim',
     'wants_flea_treatment',
+    'optional_vaccines',
+    'optional_wellness_services',
+    'deposit_acknowledged',
+    'deposit_card_last4',
+    'deposit_card_expiry',
+    'deposit_billing_zip',
     'is_returning_customer',
   ]
   const updates = {}

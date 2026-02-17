@@ -34,12 +34,15 @@ CREATE TABLE IF NOT EXISTS appointments (
   state TEXT DEFAULT '',
   zip_code TEXT DEFAULT '',
   how_heard TEXT DEFAULT '',
+  requested_service TEXT DEFAULT '',
 
   -- Pet data (stored as JSONB array — one object per pet)
-  -- Each pet: { pet_name, type, breed, age, weight, sex, how_long_owned,
-  --   testicles_descended, in_heat_or_pregnant, last_heat_pregnancy_date,
+  -- Each pet: { pet_name, type, breed, age, weight, sex, pet_ownership,
+  --   how_long_owned, testicles_descended, in_heat_or_pregnant, last_heat_pregnancy_date,
   --   currently_sick_injured, medical_conditions, medical_conditions_other,
-  --   previous_surgeries, drug_vaccine_reactions, current_medications,
+  --   previous_surgeries, previous_surgeries_details,
+  --   drug_vaccine_reactions, drug_vaccine_reactions_details,
+  --   current_medications, current_medications_details,
   --   rabies_vaccinated, rabies_within_1_3_years, exposed_to_diseases,
   --   has_fleas_ticks, vet_behavior }
   num_pets INTEGER DEFAULT 1,
@@ -49,6 +52,14 @@ CREATE TABLE IF NOT EXISTS appointments (
   wants_microchip BOOLEAN DEFAULT FALSE,
   wants_nail_trim BOOLEAN DEFAULT FALSE,
   wants_flea_treatment BOOLEAN DEFAULT FALSE,
+  optional_vaccines JSONB DEFAULT '[]',
+  optional_wellness_services JSONB DEFAULT '[]',
+
+  -- Deposit (we only store last 4 digits of card; never store full number or CVV)
+  deposit_acknowledged BOOLEAN DEFAULT FALSE,
+  deposit_card_last4 TEXT DEFAULT '',
+  deposit_card_expiry TEXT DEFAULT '',
+  deposit_billing_zip TEXT DEFAULT '',
 
   -- Legal
   legal_acknowledged BOOLEAN DEFAULT FALSE,
@@ -68,25 +79,25 @@ CREATE TABLE IF NOT EXISTS appointments (
 -- ============================================================
 ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
 
--- Anyone can submit an intake form (public)
+DROP POLICY IF EXISTS "Allow public inserts" ON appointments;
 CREATE POLICY "Allow public inserts"
   ON appointments FOR INSERT
   TO anon
   WITH CHECK (true);
 
--- Only authenticated users (admins) can view
+DROP POLICY IF EXISTS "Allow authenticated reads" ON appointments;
 CREATE POLICY "Allow authenticated reads"
   ON appointments FOR SELECT
   TO authenticated
   USING (true);
 
--- Only authenticated users (admins) can update
+DROP POLICY IF EXISTS "Allow authenticated updates" ON appointments;
 CREATE POLICY "Allow authenticated updates"
   ON appointments FOR UPDATE
   TO authenticated
   USING (true);
 
--- Only authenticated users (admins) can delete
+DROP POLICY IF EXISTS "Allow authenticated deletes" ON appointments;
 CREATE POLICY "Allow authenticated deletes"
   ON appointments FOR DELETE
   TO authenticated
@@ -103,6 +114,7 @@ BEGIN
 END;
 $$ LANGUAGE 'plpgsql';
 
+DROP TRIGGER IF EXISTS update_appointments_updated_at ON appointments;
 CREATE TRIGGER update_appointments_updated_at
   BEFORE UPDATE ON appointments
   FOR EACH ROW
@@ -111,13 +123,16 @@ CREATE TRIGGER update_appointments_updated_at
 -- ============================================================
 -- INDEXES
 -- ============================================================
-CREATE INDEX idx_appointments_status ON appointments(status);
-CREATE INDEX idx_appointments_created ON appointments(created_at DESC);
-CREATE INDEX idx_appointments_city ON appointments(city);
-CREATE INDEX idx_appointments_email ON appointments(owner_email);
+CREATE INDEX IF NOT EXISTS idx_appointments_status ON appointments(status);
+CREATE INDEX IF NOT EXISTS idx_appointments_created ON appointments(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_appointments_city ON appointments(city);
+CREATE INDEX IF NOT EXISTS idx_appointments_email ON appointments(owner_email);
 
 -- ============================================================
 -- INTAKE DRAFTS (Save & continue later)
+-- form_data: full intake form (owner, pets, requested_service,
+--   optional_vaccines, optional_wellness_services, legal_acknowledged, signature, etc.)
+-- step: 1–6 (Preferences, Pet Info, Medical History, Vaccination, Review & Sign, Summary)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS intake_drafts (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -129,30 +144,43 @@ CREATE TABLE IF NOT EXISTS intake_drafts (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_intake_drafts_email ON intake_drafts(owner_email);
-CREATE INDEX idx_intake_drafts_phone ON intake_drafts(owner_phone);
+CREATE INDEX IF NOT EXISTS idx_intake_drafts_email ON intake_drafts(owner_email);
+CREATE INDEX IF NOT EXISTS idx_intake_drafts_phone ON intake_drafts(owner_phone);
 
 ALTER TABLE intake_drafts ENABLE ROW LEVEL SECURITY;
 
--- Allow anyone to insert/update (upsert by email or phone)
+DROP POLICY IF EXISTS "Allow anon insert drafts" ON intake_drafts;
 CREATE POLICY "Allow anon insert drafts"
   ON intake_drafts FOR INSERT TO anon WITH CHECK (true);
+DROP POLICY IF EXISTS "Allow anon update drafts" ON intake_drafts;
 CREATE POLICY "Allow anon update drafts"
   ON intake_drafts FOR UPDATE TO anon USING (true);
--- Allow anyone to read a draft by email/phone (needed for resume)
+DROP POLICY IF EXISTS "Allow anon read drafts" ON intake_drafts;
 CREATE POLICY "Allow anon read drafts"
   ON intake_drafts FOR SELECT TO anon USING (true);
 
+DROP TRIGGER IF EXISTS update_intake_drafts_updated_at ON intake_drafts;
 CREATE TRIGGER update_intake_drafts_updated_at
   BEFORE UPDATE ON intake_drafts
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================================
--- MIGRATION: Full address + first/last name (run if appointments already exists)
+-- MIGRATION: Add columns (run if appointments table already existed)
+-- Run this block in Supabase SQL Editor if you get "column not found" errors.
+-- Adds: full address, owner first/last name, requested_service,
+--       optional_vaccines, optional_wellness_services.
 -- ============================================================
--- ALTER TABLE appointments ADD COLUMN IF NOT EXISTS street_address TEXT DEFAULT '';
--- ALTER TABLE appointments ADD COLUMN IF NOT EXISTS state TEXT DEFAULT '';
--- ALTER TABLE appointments ADD COLUMN IF NOT EXISTS owner_first_name TEXT DEFAULT '';
--- ALTER TABLE appointments ADD COLUMN IF NOT EXISTS owner_last_name TEXT DEFAULT '';
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS street_address TEXT DEFAULT '';
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS state TEXT DEFAULT '';
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS owner_first_name TEXT DEFAULT '';
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS owner_last_name TEXT DEFAULT '';
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS requested_service TEXT DEFAULT '';
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS optional_vaccines JSONB DEFAULT '[]';
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS optional_wellness_services JSONB DEFAULT '[]';
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS deposit_acknowledged BOOLEAN DEFAULT FALSE;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS deposit_card_last4 TEXT DEFAULT '';
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS deposit_card_expiry TEXT DEFAULT '';
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS deposit_billing_zip TEXT DEFAULT '';
+-- If owner_name is NOT NULL, uncomment next line:
 -- ALTER TABLE appointments ALTER COLUMN owner_name DROP NOT NULL;

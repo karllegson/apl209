@@ -14,7 +14,7 @@ export default function StepVaccination({ form, errors, updatePet }) {
           className="rounded-md p-5 border border-gray-200 bg-white"
         >
           <h3 className="form-section-heading">
-            {pet.pet_name || `Pet ${i + 1}`}
+            Pet {i + 1}{pet.pet_name ? ` (${pet.pet_name})` : ''}
           </h3>
 
           <div className="space-y-4 md:space-y-5">
@@ -30,6 +30,16 @@ export default function StepVaccination({ form, errors, updatePet }) {
               onChange={(v) => updatePet(i, 'rabies_vaccinated', v)}
               error={errors[`pet_${i}_rabies_vaccinated`]}
             />
+            {pet.rabies_vaccinated === 'yes' && (
+              <p className="text-xs text-gray-600 bg-gray-100 border border-gray-200 rounded-lg px-3 py-2">
+                You must bring proof or a certificate of rabies vaccination to the clinic on the day of your appointment.
+              </p>
+            )}
+            {(pet.rabies_vaccinated === 'no' || pet.rabies_vaccinated === 'unknown') && (
+              <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                A current rabies vaccine is required for spay/neuter surgery. If your pet is not current, you can get the vaccine at the clinic on the day of the appointment ($20). Bring your pet and we will help you get them up to date.
+              </p>
+            )}
 
             <YesNoButtons
               label="Has your pet been exposed to parvo, distemper, or panleukopenia in the last 30 days?"
@@ -46,7 +56,7 @@ export default function StepVaccination({ form, errors, updatePet }) {
             />
 
             <RadioGroup
-              label="How does your pet behave at the vet?"
+              label="What is your pet's temperament at the vet? (e.g. friendly, nervous, may bite)"
               required
               options={[
                 { value: 'friendly', label: 'Friendly' },

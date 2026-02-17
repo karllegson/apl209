@@ -5,11 +5,16 @@ import { useState } from 'react'
 import IntakeForm from '@/components/intake/IntakeForm'
 import AppointmentHome from '@/components/intake/AppointmentHome'
 import AppointmentIntro from '@/components/intake/AppointmentIntro'
+import ResumeDraftList from '@/components/intake/ResumeDraftList'
+import SelectService from '@/components/intake/SelectService'
 import { LanguageProvider } from '@/components/intake/LanguageContext'
 
 function AppointmentFlow() {
   const [showIntro, setShowIntro] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [showResumeList, setShowResumeList] = useState(false)
+  const [showSelectService, setShowSelectService] = useState(false)
+  const [resumeDrafts, setResumeDrafts] = useState([])
   const [initialForm, setInitialForm] = useState(null)
   const [initialStep, setInitialStep] = useState(1)
 
@@ -20,21 +25,37 @@ function AppointmentFlow() {
   const handleStartNew = () => {
     setInitialForm(null)
     setInitialStep(1)
+    setShowSelectService(true)
+  }
+
+  const handleServiceSelect = (serviceId) => {
+    setInitialForm({ requested_service: serviceId })
+    setInitialStep(1)
+    setShowSelectService(false)
     setShowForm(true)
   }
 
-  const handleResume = (formData, step) => {
-    setInitialForm(formData ?? null)
-    setInitialStep(typeof step === 'number' && step >= 1 && step <= 5 ? step : 1)
+  const handleShowResumeList = (drafts) => {
+    setResumeDrafts(drafts || [])
+    setShowResumeList(true)
+  }
+
+  const handleResumeSelect = (draft) => {
+    setInitialForm(draft.formData ?? null)
+    setInitialStep(typeof draft.step === 'number' && draft.step >= 1 && draft.step <= 5 ? draft.step : 1)
+    setShowResumeList(false)
     setShowForm(true)
   }
 
   const handleBackToHome = () => {
     setShowForm(false)
+    setShowSelectService(true)
   }
 
   const handleBackToStart = () => {
     setShowForm(false)
+    setShowResumeList(false)
+    setShowSelectService(false)
     setShowIntro(true)
   }
 
@@ -42,11 +63,31 @@ function AppointmentFlow() {
     return <AppointmentIntro onRequestAppointment={handleRequestAppointment} />
   }
 
+  if (showResumeList) {
+    return (
+      <ResumeDraftList
+        drafts={resumeDrafts}
+        onSelect={handleResumeSelect}
+        onBack={handleBackToStart}
+      />
+    )
+  }
+
+  if (showSelectService) {
+    return (
+      <SelectService
+        onSelect={handleServiceSelect}
+        onBack={handleBackToStart}
+        onLogoClick={handleBackToStart}
+      />
+    )
+  }
+
   if (!showForm) {
-  return (
-    <AppointmentHome
+    return (
+      <AppointmentHome
         onStartNew={handleStartNew}
-        onResume={handleResume}
+        onShowResumeList={handleShowResumeList}
         onBack={handleBackToStart}
         onLogoClick={handleBackToStart}
       />

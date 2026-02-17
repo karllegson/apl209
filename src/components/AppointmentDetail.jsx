@@ -32,6 +32,24 @@ const statusActions = [
 const boolLabel = (v) =>
   v === true ? 'Yes' : v === false ? 'No' : v || '—'
 
+const isEmpty = (v) => v == null || (typeof v === 'string' && v.trim() === '')
+
+function EmptyHighlight({ value, children, className = '' }) {
+  const empty = isEmpty(value)
+  return (
+    <span
+      className={
+        empty
+          ? `inline-block bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 text-amber-800 text-sm ${className}`
+          : className
+      }
+      title={empty ? 'Missing' : undefined}
+    >
+      {children}
+    </span>
+  )
+}
+
 export default function AppointmentDetail({
   appointment,
   onClose,
@@ -279,36 +297,40 @@ export default function AppointmentDetail({
                 <>
                   <div className="flex items-center gap-2 text-base">
                     <User className="w-4 h-4 text-slate-400" />
-                    <span className="text-slate-700 font-medium">
-                      {[owner.owner_first_name, owner.owner_last_name].filter(Boolean).join(' ') || '—'}
-                    </span>
+                    <EmptyHighlight value={[owner.owner_first_name, owner.owner_last_name].filter(Boolean).join(' ')}>
+                      <span className="text-slate-700 font-medium">
+                        {[owner.owner_first_name, owner.owner_last_name].filter(Boolean).join(' ') || '—'}
+                      </span>
+                    </EmptyHighlight>
                     {owner.is_returning_customer && (
                       <span className="text-xs bg-apl-blue/15 text-apl-blue-dark px-2 py-1 rounded font-semibold">Returning</span>
                     )}
                   </div>
                   <div className="flex items-center gap-2 text-base">
                     <Phone className="w-4 h-4 text-slate-400" />
-                    <a href={`tel:${owner.owner_phone}`} className="text-apl-blue hover:underline">{owner.owner_phone || '—'}</a>
+                    <EmptyHighlight value={owner.owner_phone}>
+                      <a href={`tel:${owner.owner_phone}`} className="text-apl-blue hover:underline">{owner.owner_phone || '—'}</a>
+                    </EmptyHighlight>
                   </div>
                   <div className="flex items-center gap-2 text-base">
                     <Mail className="w-4 h-4 text-slate-400" />
-                    <a href={`mailto:${owner.owner_email}`} className="text-apl-blue hover:underline">{owner.owner_email || '—'}</a>
+                    <EmptyHighlight value={owner.owner_email}>
+                      <a href={`mailto:${owner.owner_email}`} className="text-apl-blue hover:underline">{owner.owner_email || '—'}</a>
+                    </EmptyHighlight>
                   </div>
                   <div className="flex items-center gap-2 text-base">
                     <MapPin className="w-4 h-4 text-slate-400" />
-                    <span className="text-slate-600">
-                      {[owner.street_address, [owner.city, owner.state].filter(Boolean).join(', '), owner.zip_code].filter(Boolean).join(' ') || '—'}
-                    </span>
+                    <EmptyHighlight value={[owner.street_address, owner.city, owner.state, owner.zip_code].filter(Boolean).join('')}>
+                      <span className="text-slate-600">
+                        {[owner.street_address, [owner.city, owner.state].filter(Boolean).join(', '), owner.zip_code].filter(Boolean).join(' ') || '—'}
+                      </span>
+                    </EmptyHighlight>
                   </div>
                   <p className="text-sm text-slate-400">
-                    Preferred: {owner.preferred_contact || '—'}
-                    {owner.how_heard ? ` · Heard via: ${owner.how_heard}` : ''}
+                    Preferred: <EmptyHighlight value={owner.preferred_contact}>{owner.preferred_contact || '—'}</EmptyHighlight>
+                    {' · '}
+                    Heard via: <EmptyHighlight value={owner.how_heard}>{owner.how_heard || '—'}</EmptyHighlight>
                   </p>
-                  {(owner.emergency_contact_name || owner.emergency_contact_phone) && (
-                    <p className="text-sm text-slate-400">
-                      Emergency: {owner.emergency_contact_name} {owner.emergency_contact_phone}
-                    </p>
-                  )}
                 </>
               ) : (
                 <>
@@ -413,24 +435,6 @@ export default function AppointmentDetail({
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-slate-500 mb-1">Emergency contact name</label>
-                  <input
-                    value={owner.emergency_contact_name}
-                    onChange={(e) => setOwner((o) => ({ ...o, emergency_contact_name: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-slate-500 mb-1">Emergency contact phone</label>
-                  <input
-                    value={owner.emergency_contact_phone}
-                    onChange={(e) => setOwner((o) => ({ ...o, emergency_contact_phone: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
-                  />
-                </div>
-              </div>
                 </>
               )}
             </div>
@@ -449,49 +453,56 @@ export default function AppointmentDetail({
                 {!isEditing ? (
                   <>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                  <div><span className="text-slate-400">Breed:</span> <span className="text-slate-700">{pet.breed || '—'}</span></div>
-                  <div><span className="text-slate-400">Age:</span> <span className="text-slate-700">{pet.age || '—'}</span></div>
-                  <div><span className="text-slate-400">Weight:</span> <span className="text-slate-700">{pet.weight || '—'}</span></div>
-                  <div><span className="text-slate-400">Sex:</span> <span className="text-slate-700 capitalize">{pet.sex || '—'}</span></div>
-                  {pet.how_long_owned && (
-                    <div className="col-span-2"><span className="text-slate-400">Owned:</span> <span className="text-slate-700">{pet.how_long_owned}</span></div>
-                  )}
+                  <div className="col-span-2"><span className="text-slate-400">Name:</span> <EmptyHighlight value={pet.pet_name}><span className="text-slate-700">{pet.pet_name || '—'}</span></EmptyHighlight></div>
+                  <div><span className="text-slate-400">Breed:</span> <EmptyHighlight value={pet.breed}><span className="text-slate-700">{pet.breed || '—'}</span></EmptyHighlight></div>
+                  <div><span className="text-slate-400">Age:</span> <EmptyHighlight value={pet.age}><span className="text-slate-700">{pet.age || '—'}</span></EmptyHighlight></div>
+                  <div><span className="text-slate-400">Weight:</span> <EmptyHighlight value={pet.weight}><span className="text-slate-700">{pet.weight || '—'}</span></EmptyHighlight></div>
+                  <div><span className="text-slate-400">Sex:</span> <EmptyHighlight value={pet.sex}><span className="text-slate-700 capitalize">{pet.sex || '—'}</span></EmptyHighlight></div>
+                  <div className="col-span-2"><span className="text-slate-400">Owned:</span> <EmptyHighlight value={pet.how_long_owned}><span className="text-slate-700">{pet.how_long_owned || '—'}</span></EmptyHighlight></div>
                 </div>
-                {pet.sex === 'male' && pet.testicles_descended && (
+                {pet.sex === 'male' && (
                   <div className="text-sm bg-apl-blue/10 rounded-lg p-3 border border-apl-blue/20">
-                    <span className="text-apl-blue-dark font-medium">Testicles descended:</span> <span className="text-apl-blue-dark capitalize">{pet.testicles_descended}</span>
+                    <span className="text-apl-blue-dark font-medium">Testicles descended:</span>{' '}
+                    <EmptyHighlight value={pet.testicles_descended}>
+                      <span className="text-apl-blue-dark capitalize">{pet.testicles_descended || '—'}</span>
+                    </EmptyHighlight>
                   </div>
                 )}
-                {pet.sex === 'female' && pet.in_heat_or_pregnant && (
+                {pet.sex === 'female' && (
                   <div className="text-sm bg-pink-50 rounded-lg p-3 border border-pink-100">
-                    <span className="text-pink-600 font-medium">In heat/pregnant:</span> <span className="text-pink-800 capitalize">{pet.in_heat_or_pregnant}</span>
-                    {pet.last_heat_pregnancy_date && <span className="text-pink-600"> · Date: {pet.last_heat_pregnancy_date}</span>}
+                    <span className="text-pink-600 font-medium">In heat/pregnant:</span>{' '}
+                    <EmptyHighlight value={pet.in_heat_or_pregnant}>
+                      <span className="text-pink-800 capitalize">{pet.in_heat_or_pregnant || '—'}</span>
+                    </EmptyHighlight>
+                    {pet.last_heat_pregnancy_date ? (
+                      <span className="text-pink-600"> · Date: {pet.last_heat_pregnancy_date}</span>
+                    ) : (
+                      <EmptyHighlight value={pet.last_heat_pregnancy_date}> · Date: —</EmptyHighlight>
+                    )}
                   </div>
                 )}
                 <div className="border-t border-slate-200 pt-2 mt-2">
                   <div className="flex items-center gap-1.5 mb-2"><Heart className="w-4 h-4 text-apl-blue" /><span className="text-sm font-semibold text-slate-500">Medical</span></div>
                   <div className="grid grid-cols-1 gap-1.5 text-sm">
-                    <div>Sick/injured: <strong className={pet.currently_sick_injured ? 'text-red-600' : 'text-slate-700'}>{boolLabel(pet.currently_sick_injured)}</strong></div>
-                    {pet.medical_conditions?.length > 0 && (
-                      <div>Conditions: <strong className="text-slate-700">{pet.medical_conditions.join(', ')}{pet.medical_conditions_other ? ` (${pet.medical_conditions_other})` : ''}</strong></div>
-                    )}
-                    <div>Previous surgeries: <strong className="text-slate-700">{boolLabel(pet.previous_surgeries)}</strong></div>
-                    <div>Drug/vaccine reactions: <strong className="text-slate-700">{boolLabel(pet.drug_vaccine_reactions)}</strong></div>
-                    <div>Current medications: <strong className="text-slate-700">{boolLabel(pet.current_medications)}</strong></div>
+                    <div>Sick/injured: <EmptyHighlight value={pet.currently_sick_injured}><strong className={pet.currently_sick_injured ? 'text-red-600' : 'text-slate-700'}>{boolLabel(pet.currently_sick_injured)}</strong></EmptyHighlight></div>
+                    <div>Conditions: <EmptyHighlight value={pet.medical_conditions?.length ? pet.medical_conditions.join(', ') : ''}><strong className="text-slate-700">{pet.medical_conditions?.length ? `${pet.medical_conditions.join(', ')}${pet.medical_conditions_other ? ` (${pet.medical_conditions_other})` : ''}` : '—'}</strong></EmptyHighlight></div>
+                    <div>Previous surgeries: <EmptyHighlight value={pet.previous_surgeries}><strong className="text-slate-700">{boolLabel(pet.previous_surgeries)}</strong></EmptyHighlight>{pet.previous_surgeries === true && pet.previous_surgeries_details && <span className="text-slate-600"> — {pet.previous_surgeries_details}</span>}</div>
+                    <div>Drug/vaccine reactions: <EmptyHighlight value={pet.drug_vaccine_reactions}><strong className="text-slate-700">{boolLabel(pet.drug_vaccine_reactions)}</strong></EmptyHighlight>{pet.drug_vaccine_reactions === true && pet.drug_vaccine_reactions_details && <span className="text-slate-600"> — {pet.drug_vaccine_reactions_details}</span>}</div>
+                    <div>Current medications: <EmptyHighlight value={pet.current_medications}><strong className="text-slate-700">{boolLabel(pet.current_medications)}</strong></EmptyHighlight>{pet.current_medications === true && pet.current_medications_details && <span className="text-slate-600"> — {pet.current_medications_details}</span>}</div>
                   </div>
                 </div>
                 <div className="border-t border-slate-200 pt-2">
                   <div className="flex items-center gap-1.5 mb-2"><Shield className="w-4 h-4 text-apl-blue" /><span className="text-sm font-semibold text-slate-500">Vaccination</span></div>
                   <div className="grid grid-cols-1 gap-1.5 text-sm">
-                    <div>Rabies vaccinated: <strong className="text-slate-700 capitalize">{pet.rabies_vaccinated || '—'}</strong></div>
-                    <div>Rabies (1–3 yrs): <strong className="text-slate-700 capitalize">{pet.rabies_within_1_3_years || '—'}</strong></div>
-                    <div>Disease exposure (30d): <strong className={pet.exposed_to_diseases ? 'text-red-600' : 'text-slate-700'}>{boolLabel(pet.exposed_to_diseases)}</strong></div>
-                    <div>Fleas/ticks: <strong className={pet.has_fleas_ticks ? 'text-amber-600' : 'text-slate-700'}>{boolLabel(pet.has_fleas_ticks)}</strong></div>
+                    <div>Rabies vaccinated: <EmptyHighlight value={pet.rabies_vaccinated}><strong className="text-slate-700 capitalize">{pet.rabies_vaccinated || '—'}</strong></EmptyHighlight></div>
+                    <div>Rabies (1–3 yrs): <EmptyHighlight value={pet.rabies_within_1_3_years}><strong className="text-slate-700 capitalize">{pet.rabies_within_1_3_years || '—'}</strong></EmptyHighlight></div>
+                    <div>Disease exposure (30d): <EmptyHighlight value={pet.exposed_to_diseases}><strong className={pet.exposed_to_diseases ? 'text-red-600' : 'text-slate-700'}>{boolLabel(pet.exposed_to_diseases)}</strong></EmptyHighlight></div>
+                    <div>Fleas/ticks: <EmptyHighlight value={pet.has_fleas_ticks}><strong className={pet.has_fleas_ticks ? 'text-amber-600' : 'text-slate-700'}>{boolLabel(pet.has_fleas_ticks)}</strong></EmptyHighlight></div>
                   </div>
                 </div>
                 <div className="border-t border-slate-200 pt-2">
                   <div className="flex items-center gap-1.5 mb-1"><Stethoscope className="w-4 h-4 text-apl-blue" /><span className="text-sm font-semibold text-slate-500">Behavior</span></div>
-                  <p className="text-sm capitalize text-slate-700">{pet.vet_behavior || '—'}</p>
+                  <p className="text-sm capitalize text-slate-700"><EmptyHighlight value={pet.vet_behavior}>{pet.vet_behavior || '—'}</EmptyHighlight></p>
                 </div>
                   </>
                 ) : (
@@ -628,6 +639,15 @@ export default function AppointmentDetail({
                         <option value="no">No</option>
                         <option value="yes">Yes</option>
                       </select>
+                      {pet.previous_surgeries === true && (
+                        <input
+                          type="text"
+                          value={pet.previous_surgeries_details ?? ''}
+                          onChange={(e) => updatePet(i, 'previous_surgeries_details', e.target.value)}
+                          placeholder="Details..."
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
+                        />
+                      )}
                     </div>
                   </div>
                   <div>
@@ -654,6 +674,15 @@ export default function AppointmentDetail({
                         <option value="no">No</option>
                         <option value="yes">Yes</option>
                       </select>
+                      {pet.drug_vaccine_reactions === true && (
+                        <input
+                          type="text"
+                          value={pet.drug_vaccine_reactions_details ?? ''}
+                          onChange={(e) => updatePet(i, 'drug_vaccine_reactions_details', e.target.value)}
+                          placeholder="Details..."
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
+                        />
+                      )}
                     </div>
                     <div>
                       <label className="block text-xs text-slate-500 mb-1">Current medications</label>
@@ -666,6 +695,15 @@ export default function AppointmentDetail({
                         <option value="no">No</option>
                         <option value="yes">Yes</option>
                       </select>
+                      {pet.current_medications === true && (
+                        <input
+                          type="text"
+                          value={pet.current_medications_details ?? ''}
+                          onChange={(e) => updatePet(i, 'current_medications_details', e.target.value)}
+                          placeholder="Details..."
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -766,7 +804,9 @@ export default function AppointmentDetail({
                     {services.wants_flea_treatment && <span className="text-sm bg-apl-blue/10 text-apl-blue-dark px-3 py-1.5 rounded-lg font-medium">Flea Treatment</span>}
                   </>
                 ) : (
-                  <span className="text-sm text-slate-400">None</span>
+                  <EmptyHighlight value="">
+                    <span className="text-sm text-slate-400">None</span>
+                  </EmptyHighlight>
                 )}
               </div>
             ) : (
@@ -825,7 +865,7 @@ export default function AppointmentDetail({
           {/* Legal */}
           <div className="text-sm text-slate-400 space-y-1">
             <p>Legal acknowledged: {appointment.legal_acknowledged ? '✅ Yes' : '❌ No'}</p>
-            <p>Signature: <span className="italic text-slate-600">{appointment.signature}</span></p>
+            <p>Signature: <EmptyHighlight value={appointment.signature}><span className="italic text-slate-600">{appointment.signature || '—'}</span></EmptyHighlight></p>
           </div>
 
           {/* Admin Notes */}

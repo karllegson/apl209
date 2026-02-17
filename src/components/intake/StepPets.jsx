@@ -42,8 +42,7 @@ export default function StepPets({
           className="rounded-md p-4 md:p-5 border border-gray-200 bg-white"
         >
           <h3 className="form-section-heading">
-            Pet #{i + 1}
-            {pet.pet_name ? ` — ${pet.pet_name}` : ''}
+            Pet {i + 1}{pet.pet_name ? ` (${pet.pet_name})` : ''}
           </h3>
 
           <div className="space-y-6">
@@ -52,7 +51,7 @@ export default function StepPets({
               label="Pet Name"
               value={pet.pet_name}
               onChange={(v) => updatePet(i, 'pet_name', v)}
-              placeholder="Buddy"
+              placeholder="Luna"
             />
 
             {/* Select species */}

@@ -6,6 +6,7 @@ import {
 } from './FormWidgets'
 
 const medicalConditions = [
+  { value: 'none', label: 'None' },
   { value: 'heart', label: 'Heart' },
   { value: 'respiratory', label: 'Respiratory' },
   { value: 'seizures', label: 'Seizures' },
@@ -22,7 +23,7 @@ export default function StepHealth({ form, errors, updatePet }) {
           className="rounded-md p-5 border border-gray-200 bg-white"
         >
           <h3 className="form-section-heading">
-            {pet.pet_name || `Pet ${i + 1}`}
+            Pet {i + 1}{pet.pet_name ? ` (${pet.pet_name})` : ''}
           </h3>
 
           <div className="space-y-4 md:space-y-5">
@@ -38,10 +39,18 @@ export default function StepHealth({ form, errors, updatePet }) {
               label="Any known medical conditions?"
               options={medicalConditions}
               values={pet.medical_conditions || []}
-              onChange={(v) => updatePet(i, 'medical_conditions', v)}
+              onChange={(v) => {
+                if (v.includes('none')) {
+                  updatePet(i, 'medical_conditions', ['none'])
+                  if (pet.medical_conditions_other) updatePet(i, 'medical_conditions_other', '')
+                } else {
+                  const next = v.filter((x) => x !== 'none')
+                  updatePet(i, 'medical_conditions', next)
+                }
+              }}
             />
 
-            {pet.medical_conditions.includes('other') && (
+            {pet.medical_conditions?.includes('other') && (
               <input
                 type="text"
                 value={pet.medical_conditions_other}
@@ -59,18 +68,45 @@ export default function StepHealth({ form, errors, updatePet }) {
               value={pet.previous_surgeries}
               onChange={(v) => updatePet(i, 'previous_surgeries', v)}
             />
+            {pet.previous_surgeries === true && (
+              <input
+                type="text"
+                value={pet.previous_surgeries_details ?? ''}
+                onChange={(e) => updatePet(i, 'previous_surgeries_details', e.target.value)}
+                placeholder="Please describe..."
+                className="w-full intake-input px-3 py-2.5 rounded-lg border border-gray-300 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-apl-blue focus:border-apl-blue"
+              />
+            )}
 
             <YesNoButtons
               label="Any known drug or vaccine reactions?"
               value={pet.drug_vaccine_reactions}
               onChange={(v) => updatePet(i, 'drug_vaccine_reactions', v)}
             />
+            {pet.drug_vaccine_reactions === true && (
+              <input
+                type="text"
+                value={pet.drug_vaccine_reactions_details ?? ''}
+                onChange={(e) => updatePet(i, 'drug_vaccine_reactions_details', e.target.value)}
+                placeholder="Please describe..."
+                className="w-full intake-input px-3 py-2.5 rounded-lg border border-gray-300 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-apl-blue focus:border-apl-blue"
+              />
+            )}
 
             <YesNoButtons
               label="Is your pet currently taking medications or supplements?"
               value={pet.current_medications}
               onChange={(v) => updatePet(i, 'current_medications', v)}
             />
+            {pet.current_medications === true && (
+              <input
+                type="text"
+                value={pet.current_medications_details ?? ''}
+                onChange={(e) => updatePet(i, 'current_medications_details', e.target.value)}
+                placeholder="Please list medications or supplements..."
+                className="w-full intake-input px-3 py-2.5 rounded-lg border border-gray-300 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-apl-blue focus:border-apl-blue"
+              />
+            )}
           </div>
         </div>
       ))}

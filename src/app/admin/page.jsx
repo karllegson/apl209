@@ -38,7 +38,19 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen relative flex items-center justify-center p-4">
+      {/* Blurred clinic backroom background */}
+      <div
+        className="fixed inset-0 -z-10 bg-gray-900"
+        style={{
+          backgroundImage: 'url(/admin-login-bg.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'blur(3px)',
+        }}
+      />
+      <div className="fixed inset-0 -z-10 bg-black/60" aria-hidden />
+
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
