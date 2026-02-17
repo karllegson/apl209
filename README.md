@@ -6,11 +6,12 @@ A modern appointment booking system for veterinary clinics, built with **Next.js
 
 ## Features
 
-### Public Booking Form (`/appointment`)
+### Public Booking Form (`/book`)
 - Pet owner & pet information collection
-- Service type selection (wellness, vaccination, surgery, dental, etc.)
-- Date & time slot picker
-- Emergency flag toggle
+- Service type selection (spay/neuter, TNR, wellness, vaccination)
+- Multi-pet intake with health and vaccination details
+- Optional vaccines and wellness add-ons
+- Nonrefundable deposit (card details on Review & Sign)
 - Mobile-responsive, modern UI
 - Embeddable in WordPress via iframe
 
