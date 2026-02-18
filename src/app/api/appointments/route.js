@@ -210,6 +210,7 @@ export async function POST(request) {
         deposit_billing_zip: (body.deposit_billing_zip || '').toString().trim().slice(0, 10) || '',
         legal_acknowledged: !!body.legal_acknowledged,
         signature: trim(body.signature, MAX_SIGNATURE_LEN) || '',
+        vet_note: trim(body.vet_note, 2000) || '',
         status: 'pending',
       })
       .select()

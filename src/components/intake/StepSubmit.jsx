@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { ChevronDown, ChevronUp, FileText, Heart, HelpCircle, Syringe, Wallet } from 'lucide-react'
 import { SectionTitle } from './FormWidgets'
+import { useLanguage } from './LanguageContext'
 
 const VACCINE_OPTIONS = [
   { id: 'office_visit', label: 'Office visit', price: '$10', animal: null, info: 'Required before any vaccine can be given.' },
@@ -33,6 +34,8 @@ const WELLNESS_OPTIONS = [
 ]
 
 export default function StepSubmit({ form, errors, updateField }) {
+  const { language } = useLanguage()
+  const isSpanish = language === 'es'
   const [vaccinesOpen, setVaccinesOpen] = useState(false)
   const [wellnessOpen, setWellnessOpen] = useState(false)
   const [openInfoId, setOpenInfoId] = useState(null)
@@ -56,35 +59,74 @@ export default function StepSubmit({ form, errors, updateField }) {
           ? `$${DEPOSIT_PET_CAT} (pet cat)`
           : `Dogs: $${DEPOSIT_DOG}, Pet cats: $${DEPOSIT_PET_CAT}. TNR: $${DEPOSIT_TNR}.`
 
-  const toggleVaccine = (id) => {
-    const next = selectedVaccines.includes(id)
-      ? selectedVaccines.filter((x) => x !== id)
-      : [...selectedVaccines, id]
-    updateField('optional_vaccines', next)
+  const t = {
+    en: {
+      sectionTitle: 'Optional Services & Acknowledgements',
+      wouldYouLike: 'Would you like any of the following?',
+      vaccines: 'Vaccines',
+      wellnessOther: 'Wellness & other',
+      selected: 'selected',
+      officeVisitRequired: 'Office visit required for vaccines.',
+      moreInfo: 'More info',
+      depositRequired: 'Deposit required',
+      deposit: 'Deposit',
+      yourDeposit: 'Your deposit',
+      depositParagraph: 'Nonrefundable deposits: $50 for dogs, $25 for pet cats. This deposit holds your appointment and is applied to the actual cost of your visit when you come in. If you cancel or reschedule with less than 48 hours before your appointment, you will lose your deposit. Your card will not be charged until we confirm your appointment.',
+      depositNote: 'Enter only the last 4 digits of your card below. We will call you during the confirmation call to collect the full card number and security code (CVV) for the deposit.',
+      last4: 'Last 4 digits of card',
+      expiry: 'Expiry (MM/YY)',
+      billingZip: 'Billing ZIP code',
+      cvvReady: 'Have your security code (CVV) ready for the confirmation call—we don\'t collect or store it online.',
+      depositAck: 'I understand a deposit is required to hold my appointment. I understand that cancelling or rescheduling with less than 48 hours\' notice will result in loss of my deposit, and that my deposit will be applied to the cost of my visit.',
+      pleaseConfirm: 'Please confirm',
+      bySubmitting: 'By submitting, I confirm:',
+      infoAccurate: 'My information is accurate',
+      pricingVary: 'Final pricing may vary (e.g. pregnancy, in heat, weight)',
+      iAgree: 'I agree to the above',
+      signatureLabel: 'Signature (type your full name)',
+      signaturePlaceholder: 'Type your full legal name',
+      notSchedule: 'This does not schedule an appointment.',
+      weContact: 'We\'ll contact you to confirm.',
+    },
+    es: {
+      sectionTitle: 'Servicios opcionales y reconocimientos',
+      wouldYouLike: '¿Le gustaría alguno de los siguientes?',
+      vaccines: 'Vacunas',
+      wellnessOther: 'Bienestar y otro',
+      selected: 'seleccionado(s)',
+      officeVisitRequired: 'Se requiere visita al consultorio para vacunas.',
+      moreInfo: 'Más información',
+      depositRequired: 'Depósito requerido',
+      deposit: 'Depósito',
+      yourDeposit: 'Su depósito',
+      depositParagraph: 'Depósitos no reembolsables: $50 perros, $25 gatos mascota. Con este depósito se reserva su cita y se descuenta del costo de su visita. Si cancela o reprograma con menos de 48 horas de anticipación, pierde el depósito. No le vamos a cobrar hasta confirmarle su cita.',
+      depositNote: 'Solo capture los últimos 4 dígitos de su tarjeta. En la llamada de confirmación le pediremos el número completo y el CVV para cobrar el depósito.',
+      last4: 'Últimos 4 dígitos de la tarjeta',
+      expiry: 'Vencimiento (MM/AA)',
+      billingZip: 'Código postal de facturación',
+      cvvReady: 'Tenga a la mano su código de seguridad (CVV) para la llamada de confirmación; no lo capturamos ni lo guardamos en línea.',
+      depositAck: 'Entiendo que necesito dar un depósito para que me reserven la cita. Entiendo que si cancelo o reprogramo con menos de 48 horas de aviso pierdo el depósito, y que ese depósito se me descuenta del costo de la consulta.',
+      pleaseConfirm: 'Por favor confirme',
+      bySubmitting: 'Al enviar, confirmo:',
+      infoAccurate: 'Mi información es correcta',
+      pricingVary: 'El precio final puede variar (ej. embarazo, en celo, peso)',
+      iAgree: 'Estoy de acuerdo con lo anterior',
+      signatureLabel: 'Firma (escriba su nombre completo)',
+      signaturePlaceholder: 'Escriba su nombre completo (tal como aparece en su INE)',
+      notSchedule: 'Esto no agenda una cita.',
+      weContact: 'Le llamaremos para confirmar.',
+    },
   }
-
-  const toggleWellness = (id) => {
-    const next = selectedWellness.includes(id)
-      ? selectedWellness.filter((x) => x !== id)
-      : [...selectedWellness, id]
-    updateField('optional_wellness_services', next)
-  }
-
-  useEffect(() => {
-    if (!openInfoId) return
-    const close = () => setOpenInfoId(null)
-    document.addEventListener('click', close)
-    return () => document.removeEventListener('click', close)
-  }, [openInfoId])
+  const L = t[language] || t.en
 
   return (
     <div className="space-y-6 min-w-0">
-      <SectionTitle>Optional Services &amp; Acknowledgements</SectionTitle>
+      <SectionTitle>{L.sectionTitle}</SectionTitle>
 
       {/* Optional Services */}
       <div>
         <label className="form-section-heading block mb-3">
-          Would you like any of the following?
+          {L.wouldYouLike}
         </label>
 
         {/* Vaccines dropdown */}
@@ -96,10 +138,10 @@ export default function StepSubmit({ form, errors, updateField }) {
           >
             <div className="flex items-center gap-2">
               <Syringe className="w-5 h-5 text-apl-primary shrink-0" />
-              <span className="font-medium text-gray-900">Vaccines</span>
+              <span className="font-medium text-gray-900">{L.vaccines}</span>
               {selectedVaccines.length > 0 && (
                 <span className="text-xs text-apl-primary font-medium">
-                  ({selectedVaccines.length} selected)
+                  ({selectedVaccines.length} {L.selected})
                 </span>
               )}
             </div>
@@ -111,7 +153,7 @@ export default function StepSubmit({ form, errors, updateField }) {
           </button>
           {vaccinesOpen && (
             <div className="border-t border-gray-200 bg-gray-50/50 p-3 md:p-4 space-y-1">
-              <p className="text-xs text-gray-500 mb-2">Office visit required for vaccines.</p>
+              <p className="text-xs text-gray-500 mb-2">{L.officeVisitRequired}</p>
               {VACCINE_OPTIONS.map(({ id, label, price, animal, info }, index) => (
                 <label
                   key={id}
@@ -138,7 +180,7 @@ export default function StepSubmit({ form, errors, updateField }) {
                             setOpenInfoId((prev) => (prev === id ? null : id))
                           }}
                           onPointerDown={(e) => e.stopPropagation()}
-                          aria-label="More info"
+                          aria-label={L.moreInfo}
                           aria-expanded={openInfoId === id}
                         >
                           <HelpCircle className="w-4 h-4" />
@@ -170,10 +212,10 @@ export default function StepSubmit({ form, errors, updateField }) {
           >
             <div className="flex items-center gap-2">
               <Heart className="w-5 h-5 text-apl-primary shrink-0" />
-              <span className="font-medium text-gray-900">Wellness &amp; other</span>
+              <span className="font-medium text-gray-900">{L.wellnessOther}</span>
               {selectedWellness.length > 0 && (
                 <span className="text-xs text-apl-primary font-medium">
-                  ({selectedWellness.length} selected)
+                  ({selectedWellness.length} {L.selected})
                 </span>
               )}
             </div>
@@ -212,7 +254,7 @@ export default function StepSubmit({ form, errors, updateField }) {
                             setOpenInfoId((prev) => (prev === id ? null : id))
                           }}
                           onPointerDown={(e) => e.stopPropagation()}
-                          aria-label="More info"
+                          aria-label={L.moreInfo}
                           aria-expanded={openInfoId === id}
                         >
                           <HelpCircle className="w-4 h-4" />
@@ -240,25 +282,29 @@ export default function StepSubmit({ form, errors, updateField }) {
       <div className="rounded-lg border border-gray-200 bg-gray-50/80 p-4 md:p-5">
         <div className="flex items-start gap-2 mb-2">
           <Wallet className="w-5 h-5 text-apl-primary shrink-0 mt-[0.1875rem]" aria-hidden />
-          <h3 className="form-section-heading text-gray-900 mb-0 leading-tight">Deposit required</h3>
+          <h3 className="form-section-heading text-gray-900 mb-0 leading-tight">{L.depositRequired}</h3>
         </div>
-        <p className="text-sm font-semibold text-gray-800 mb-1">Deposit: {depositLabel}</p>
+        <p className="text-sm font-semibold text-gray-800 mb-1">{L.deposit}: {depositLabel}</p>
         {depositTotal > 0 && (
-          <p className="text-sm font-medium text-apl-primary mb-1">Your deposit: ${depositTotal}</p>
+          <p className="text-sm font-medium text-apl-primary mb-1">{L.yourDeposit}: ${depositTotal}</p>
         )}
-        <p className="text-sm text-gray-600 mb-4">
-          Nonrefundable deposits: $50 for dogs, $25 for pet cats. This deposit holds your appointment and is applied to the actual cost of your visit when you come in. If you cancel or reschedule with less than 48 hours before your appointment, you will lose your deposit. Your card will not be charged until we confirm your appointment. Enter your card details below.
+        <p className="text-sm text-gray-600 mb-2">
+          {L.depositParagraph}
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-4">
+        <p className="text-sm text-gray-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4">
+          <strong>{language === 'es' ? 'Nota:' : 'Note:'}</strong> {L.depositNote}
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-2">
           <div>
-            <label className="form-field-label block mb-1.5 text-gray-700">Card number (full)</label>
+            <label className="form-field-label block mb-1.5 text-gray-700">{L.last4} <span className="text-red-500">*</span></label>
             <input
               type="tel"
               inputMode="numeric"
-              autoComplete="cc-number"
+              autoComplete="off"
               value={form.deposit_card_number}
-              onChange={(e) => updateField('deposit_card_number', e.target.value.replace(/\D/g, '').slice(0, 19))}
-              placeholder="Full card number (no spaces)"
+              onChange={(e) => updateField('deposit_card_number', e.target.value.replace(/\D/g, '').slice(0, 4))}
+              placeholder="1234"
+              maxLength={4}
               className={`w-full intake-input px-3 py-2.5 rounded-lg border text-sm transition-all ${
                 errors.deposit_card_number ? 'border-red-400 bg-red-50' : 'border-gray-300'
               } focus:outline-none focus:ring-2 focus:ring-apl-blue focus:border-apl-blue`}
@@ -266,7 +312,7 @@ export default function StepSubmit({ form, errors, updateField }) {
             {errors.deposit_card_number && <p className="text-red-500 text-xs mt-1">{errors.deposit_card_number}</p>}
           </div>
           <div>
-            <label className="form-field-label block mb-1.5 text-gray-700">Expiry (MM/YY)</label>
+            <label className="form-field-label block mb-1.5 text-gray-700">{L.expiry} <span className="text-red-500">*</span></label>
             <input
               type="tel"
               inputMode="numeric"
@@ -274,6 +320,7 @@ export default function StepSubmit({ form, errors, updateField }) {
               value={form.deposit_card_expiry}
               onChange={(e) => updateField('deposit_card_expiry', e.target.value.replace(/\D/g, '').slice(0, 4))}
               placeholder="MMYY"
+              maxLength={4}
               className={`w-full intake-input px-3 py-2.5 rounded-lg border text-sm transition-all ${
                 errors.deposit_card_expiry ? 'border-red-400 bg-red-50' : 'border-gray-300'
               } focus:outline-none focus:ring-2 focus:ring-apl-blue focus:border-apl-blue`}
@@ -281,19 +328,7 @@ export default function StepSubmit({ form, errors, updateField }) {
             {errors.deposit_card_expiry && <p className="text-red-500 text-xs mt-1">{errors.deposit_card_expiry}</p>}
           </div>
           <div>
-            <label className="form-field-label block mb-1.5 text-gray-700">CVV</label>
-            <input
-              type="tel"
-              inputMode="numeric"
-              autoComplete="off"
-              value={form.deposit_cvv}
-              onChange={(e) => updateField('deposit_cvv', e.target.value.replace(/\D/g, '').slice(0, 4))}
-              placeholder="3 or 4 digits"
-              className="w-full intake-input px-3 py-2.5 rounded-lg border border-gray-300 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-apl-blue focus:border-apl-blue"
-            />
-          </div>
-          <div>
-            <label className="form-field-label block mb-1.5 text-gray-700">Billing ZIP code</label>
+            <label className="form-field-label block mb-1.5 text-gray-700">{L.billingZip} <span className="text-red-500">*</span></label>
             <input
               type="tel"
               inputMode="numeric"
@@ -308,6 +343,9 @@ export default function StepSubmit({ form, errors, updateField }) {
             {errors.deposit_billing_zip && <p className="text-red-500 text-xs mt-1">{errors.deposit_billing_zip}</p>}
           </div>
         </div>
+        <p className="text-xs text-gray-500 mb-4">
+          {L.cvvReady}
+        </p>
         <button
           type="button"
           onClick={() => updateField('deposit_acknowledged', !form.deposit_acknowledged)}
@@ -320,7 +358,7 @@ export default function StepSubmit({ form, errors, updateField }) {
           }`}>
             {form.deposit_acknowledged && <span className="text-white text-xs font-bold">✓</span>}
           </div>
-          <p className="text-sm font-semibold text-gray-800">I understand a deposit is required to hold my appointment. I understand that cancelling or rescheduling with less than 48 hours&apos; notice will result in loss of my deposit, and that my deposit will be applied to the cost of my visit.</p>
+          <p className="text-sm font-semibold text-gray-800">{L.depositAck}</p>
         </button>
         {errors.deposit_acknowledged && <p className="text-red-500 text-xs mt-2">{errors.deposit_acknowledged}</p>}
       </div>
@@ -330,15 +368,15 @@ export default function StepSubmit({ form, errors, updateField }) {
         <div className="flex items-start gap-2 mb-4">
           <FileText className="w-5 h-5 text-slate-500 shrink-0 mt-[0.1875rem]" />
           <h3 className="form-section-heading text-gray-800 mb-0 leading-tight">
-            Please confirm
+            {L.pleaseConfirm}
           </h3>
         </div>
 
         <div className="space-y-2 text-sm text-gray-700 mb-5">
-          <p className="text-gray-600">By submitting, I confirm:</p>
+          <p className="text-gray-600">{L.bySubmitting}</p>
           <ul className="list-disc pl-5 space-y-1">
-            <li>My information is accurate</li>
-            <li>Final pricing may vary (e.g. pregnancy, in heat, weight)</li>
+            <li>{L.infoAccurate}</li>
+            <li>{L.pricingVary}</li>
           </ul>
         </div>
 
@@ -367,7 +405,7 @@ export default function StepSubmit({ form, errors, updateField }) {
             )}
           </div>
           <p className="text-sm font-semibold text-gray-800">
-            I agree to the above
+            {L.iAgree}
           </p>
         </button>
         {errors.legal_acknowledged && (
@@ -380,13 +418,13 @@ export default function StepSubmit({ form, errors, updateField }) {
       {/* Signature */}
       <div>
         <label className="form-field-label block mb-2 md:mb-2.5 text-gray-700">
-          Signature (type your full name) <span className="text-red-500">*</span>
+          {L.signatureLabel} <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
           value={form.signature}
           onChange={(e) => updateField('signature', e.target.value)}
-          placeholder="Type your full legal name"
+          placeholder={L.signaturePlaceholder}
           className={`w-full intake-input px-3 md:px-4 py-2.5 md:py-3.5 rounded-lg border text-base md:text-lg transition-all ${
             errors.signature ? 'border-red-400 bg-red-50' : 'border-gray-300'
           } focus:outline-none focus:ring-2 focus:ring-apl-blue focus:border-apl-blue`}
@@ -398,8 +436,8 @@ export default function StepSubmit({ form, errors, updateField }) {
 
       {/* Disclaimer */}
       <div className="bg-gray-50 border border-gray-200 rounded-md p-4 text-center">
-        <p className="text-base font-medium text-gray-700">⚠️ This does not schedule an appointment.</p>
-        <p className="text-sm text-gray-500 mt-1">We&apos;ll contact you to confirm.</p>
+        <p className="text-base font-medium text-gray-700">⚠️ {L.notSchedule}</p>
+        <p className="text-sm text-gray-500 mt-1">{L.weContact}</p>
       </div>
     </div>
   )

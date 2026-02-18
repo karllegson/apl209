@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import { Suspense } from 'react'
 import AppointmentPageClient from './AppointmentPageClient'
 
 /* ─── SAVED FORM CARD DECOR SETTINGS (restore from here if needed) ───
@@ -42,7 +43,9 @@ export default function AppointmentPage() {
             </div>
           </div>
           <div className="relative z-10 min-w-0 max-w-full">
-            <AppointmentPageClient />
+            <Suspense fallback={<div className="min-h-[200px]" />}>
+              <AppointmentPageClient />
+            </Suspense>
           </div>
         </div>
 

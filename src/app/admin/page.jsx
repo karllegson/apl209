@@ -28,7 +28,7 @@ export default function AdminLoginPage() {
         throw new Error(data.error || 'Invalid password')
       }
 
-      router.push('/admin/dashboard')
+      router.push('/admin/who')
       router.refresh()
     } catch (err) {
       setError(err.message || 'Invalid password')

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import TrackedLink from '@/components/TrackedLink'
 import { ArrowLeft, Phone, Mail, MapPin } from 'lucide-react'
 import PricingAccordion from './PricingAccordion'
 
@@ -180,18 +181,20 @@ export default function PricingPage() {
         </section>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link
+          <TrackedLink
+            href="/book"
+            linkId="pricing-request-appointment"
+            className="inline-flex justify-center px-6 py-3 bg-apl-primary hover:bg-apl-blue-dark text-white font-semibold rounded-lg transition-colors"
+          >
+            Request an Appointment
+          </TrackedLink>
+            <TrackedLink
               href="/book"
-              className="inline-flex justify-center px-6 py-3 bg-apl-primary hover:bg-apl-blue-dark text-white font-semibold rounded-lg transition-colors"
-            >
-              Request an Appointment
-            </Link>
-            <Link
-              href="/book"
+              linkId="pricing-back-to-home"
               className="inline-flex justify-center px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
             >
               Back to home
-            </Link>
+            </TrackedLink>
           </div>
 
           <footer className="mt-10 text-center text-xs text-slate-400 space-y-1">

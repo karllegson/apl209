@@ -55,23 +55,40 @@ export async function GET(request) {
       .from('appointments')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'cancelled'),
-    // Submitted today
     admin
       .from('appointments')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', `${today}T00:00:00`),
-    // Submitted this week
     admin
       .from('appointments')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', `${weekAgo}T00:00:00`),
-    // Recent 5
     admin
       .from('appointments')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(5),
   ])
+
+  let linkClicks = {
+    'pricing-request-appointment': 0,
+    'pricing-back-to-home': 0,
+    'google-business': 0,
+  }
+  try {
+    const [linkReqApp, linkBackHome, linkGoogle] = await Promise.all([
+      admin.from('link_clicks').select('*', { count: 'exact', head: true }).eq('link_id', 'pricing-request-appointment'),
+      admin.from('link_clicks').select('*', { count: 'exact', head: true }).eq('link_id', 'pricing-back-to-home'),
+      admin.from('link_clicks').select('*', { count: 'exact', head: true }).eq('link_id', 'google-business'),
+    ])
+    linkClicks = {
+      'pricing-request-appointment': linkReqApp?.count ?? 0,
+      'pricing-back-to-home': linkBackHome?.count ?? 0,
+      'google-business': linkGoogle?.count ?? 0,
+    }
+  } catch (_) {
+    // link_clicks table may not exist yet
+  }
 
   return NextResponse.json({
     stats: {
@@ -82,6 +99,7 @@ export async function GET(request) {
       cancelled: cancelledResult.count || 0,
       today: todayResult.count || 0,
       thisWeek: weekResult.count || 0,
+      linkClicks,
     },
     recentAppointments: recentResult.data || [],
   })

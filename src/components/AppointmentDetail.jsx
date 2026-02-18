@@ -9,13 +9,13 @@ import {
   Mail,
   Phone,
   MapPin,
+  CreditCard,
   PawPrint,
   Heart,
   Shield,
   Stethoscope,
   Sparkles,
   FileText,
-  AlertTriangle,
   Loader2,
   Trash2,
   Pencil,
@@ -26,7 +26,6 @@ const statusActions = [
   { value: 'confirmed', label: 'Confirm', color: 'bg-apl-primary hover:bg-apl-blue-dark' },
   { value: 'completed', label: 'Complete', color: 'bg-teal-600 hover:bg-teal-700' },
   { value: 'cancelled', label: 'Cancel', color: 'bg-stone-500 hover:bg-stone-600' },
-  { value: 'no-show', label: 'No Show', color: 'bg-stone-500 hover:bg-stone-600' },
 ]
 
 const boolLabel = (v) =>
@@ -55,6 +54,7 @@ export default function AppointmentDetail({
   onClose,
   onUpdate,
   onDelete,
+  staffName = null,
 }) {
   const [updating, setUpdating] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -123,7 +123,10 @@ export default function AppointmentDetail({
       const res = await fetch(`/api/appointments/${appointment.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({
+          status: newStatus,
+          status_changed_by: staffName || '',
+        }),
       })
       if (!res.ok) throw new Error('Failed to update')
       const data = await res.json()
@@ -261,77 +264,83 @@ export default function AppointmentDetail({
           </div>
         </div>
 
-        <div className="p-6 space-y-6 text-base">
+        <div className="p-5 md:p-6 space-y-5 text-base">
           {/* Status & Actions */}
-          <div>
-            <p className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-2">
-              Status
+          <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Current status</p>
+            <div className="flex flex-wrap items-center gap-3 mb-4">
+              <StatusBadge status={appointment.status} />
+              {(appointment.status_changed_by || appointment.status_changed_at) && (
+                <span className="text-xs text-slate-500">
+                  {appointment.status_changed_by && <>Changed by <strong className="text-slate-600">{appointment.status_changed_by}</strong></>}
+                  {appointment.status_changed_at && (
+                    <> {appointment.status_changed_by ? '·' : ''} {format(new Date(appointment.status_changed_at), 'MMM d, yyyy h:mm a')}</>
+                  )}
+                </span>
+              )}
+            </div>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
+              Change status {updating && <Loader2 className="inline-block w-3.5 h-3.5 animate-spin text-slate-400 ml-1 align-middle" aria-hidden />}
             </p>
-            <StatusBadge status={appointment.status} />
-            <div className="flex flex-wrap gap-2 mt-3">
-              {statusActions.map(({ value, label, color }) => (
-                <button
-                  key={value}
-                  onClick={() => handleStatusChange(value)}
-                  disabled={updating || value === appointment.status}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${color}`}
-                >
-                  {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : label}
-                </button>
-              ))}
+            <div className="flex flex-wrap gap-2">
+              {statusActions.map(({ value, label, color }) => {
+                const isCurrent = value === appointment.status
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => handleStatusChange(value)}
+                    disabled={updating}
+                    className={`
+                      inline-flex items-center justify-center min-w-[6rem] px-4 py-2.5 rounded-lg text-sm font-semibold
+                      transition-colors cursor-pointer border-2
+                      ${updating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                      ${isCurrent
+                        ? `${color} text-white border-transparent shadow-sm`
+                        : `bg-white text-slate-700 border-slate-300 hover:border-slate-400 hover:bg-slate-50`
+                      }
+                    `}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
           {/* Owner Info */}
           <div>
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <div className="flex items-center gap-2">
-                <User className="w-5 h-5 text-apl-blue" />
-                <p className="text-sm font-medium text-slate-400 uppercase tracking-wider">
-                  Owner Information
-                </p>
-              </div>
+            <div className="flex items-center gap-2 mb-2">
+              <User className="w-4 h-4 text-apl-blue" />
+              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Owner</p>
             </div>
-            <div className="bg-slate-50 rounded-xl p-5 space-y-4">
+            <div className="bg-slate-50 rounded-xl p-4">
               {!isEditing ? (
-                <>
-                  <div className="flex items-center gap-2 text-base">
-                    <User className="w-4 h-4 text-slate-400" />
+                <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm items-baseline">
+                  <span className="text-slate-500">Name</span>
+                  <span>
                     <EmptyHighlight value={[owner.owner_first_name, owner.owner_last_name].filter(Boolean).join(' ')}>
-                      <span className="text-slate-700 font-medium">
-                        {[owner.owner_first_name, owner.owner_last_name].filter(Boolean).join(' ') || '—'}
-                      </span>
+                      <span className="text-slate-800 font-medium">{[owner.owner_first_name, owner.owner_last_name].filter(Boolean).join(' ') || '—'}</span>
                     </EmptyHighlight>
-                    {owner.is_returning_customer && (
-                      <span className="text-xs bg-apl-blue/15 text-apl-blue-dark px-2 py-1 rounded font-semibold">Returning</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 text-base">
-                    <Phone className="w-4 h-4 text-slate-400" />
-                    <EmptyHighlight value={owner.owner_phone}>
-                      <a href={`tel:${owner.owner_phone}`} className="text-apl-blue hover:underline">{owner.owner_phone || '—'}</a>
-                    </EmptyHighlight>
-                  </div>
-                  <div className="flex items-center gap-2 text-base">
-                    <Mail className="w-4 h-4 text-slate-400" />
-                    <EmptyHighlight value={owner.owner_email}>
-                      <a href={`mailto:${owner.owner_email}`} className="text-apl-blue hover:underline">{owner.owner_email || '—'}</a>
-                    </EmptyHighlight>
-                  </div>
-                  <div className="flex items-center gap-2 text-base">
-                    <MapPin className="w-4 h-4 text-slate-400" />
-                    <EmptyHighlight value={[owner.street_address, owner.city, owner.state, owner.zip_code].filter(Boolean).join('')}>
-                      <span className="text-slate-600">
-                        {[owner.street_address, [owner.city, owner.state].filter(Boolean).join(', '), owner.zip_code].filter(Boolean).join(' ') || '—'}
-                      </span>
-                    </EmptyHighlight>
-                  </div>
-                  <p className="text-sm text-slate-400">
-                    Preferred: <EmptyHighlight value={owner.preferred_contact}>{owner.preferred_contact || '—'}</EmptyHighlight>
-                    {' · '}
-                    Heard via: <EmptyHighlight value={owner.how_heard}>{owner.how_heard || '—'}</EmptyHighlight>
-                  </p>
-                </>
+                    {owner.is_returning_customer && <span className="ml-2 text-xs bg-apl-blue/15 text-apl-blue-dark px-2 py-0.5 rounded font-semibold">Returning</span>}
+                  </span>
+                  <span className="text-slate-500">Phone</span>
+                  <span><EmptyHighlight value={owner.owner_phone}><a href={`tel:${owner.owner_phone}`} className="text-apl-blue hover:underline">{owner.owner_phone || '—'}</a></EmptyHighlight></span>
+                  <span className="text-slate-500">Email</span>
+                  <span><EmptyHighlight value={owner.owner_email}><a href={`mailto:${owner.owner_email}`} className="text-apl-blue hover:underline">{owner.owner_email || '—'}</a></EmptyHighlight></span>
+                  <span className="text-slate-500">Address</span>
+                  <span><EmptyHighlight value={[owner.street_address, owner.city, owner.state, owner.zip_code].filter(Boolean).join('')}>{[owner.street_address, [owner.city, owner.state].filter(Boolean).join(', '), owner.zip_code].filter(Boolean).join(' ') || '—'}</EmptyHighlight></span>
+                  <span className="text-slate-500">Preferred contact</span>
+                  <span><EmptyHighlight value={owner.preferred_contact}>{owner.preferred_contact || '—'}</EmptyHighlight></span>
+                  <span className="text-slate-500">How heard</span>
+                  <span><EmptyHighlight value={owner.how_heard}>{owner.how_heard || '—'}</EmptyHighlight></span>
+                  <span className="text-slate-500">Emergency contact</span>
+                  <span className="text-slate-700">
+                    {owner.emergency_contact_name || owner.emergency_contact_phone
+                      ? [owner.emergency_contact_name, owner.emergency_contact_phone].filter(Boolean).join(' · ')
+                      : '—'}
+                  </span>
+                </div>
               ) : (
                 <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -435,21 +444,87 @@ export default function AppointmentDetail({
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
                 />
               </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">Emergency contact name</label>
+                  <input
+                    value={owner.emergency_contact_name}
+                    onChange={(e) => setOwner((o) => ({ ...o, emergency_contact_name: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">Emergency contact phone</label>
+                  <input
+                    value={owner.emergency_contact_phone}
+                    onChange={(e) => setOwner((o) => ({ ...o, emergency_contact_phone: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
+                  />
+                </div>
+              </div>
                 </>
               )}
+            </div>
+          </div>
+
+          {/* Owner note for vet */}
+          {(appointment.vet_note && appointment.vet_note.trim()) ? (
+            <div>
+              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Note for vet (from owner)</p>
+              <div className="bg-amber-50/80 rounded-xl p-4 border border-amber-100">
+                <p className="text-sm text-slate-800 whitespace-pre-wrap">{appointment.vet_note.trim()}</p>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Requested service */}
+          <div>
+            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Requested service</p>
+            <div className="bg-slate-50 rounded-xl px-4 py-2.5">
+              <EmptyHighlight value={appointment.requested_service}>
+                <span className="text-slate-700 font-medium">{appointment.requested_service || '—'}</span>
+              </EmptyHighlight>
+            </div>
+          </div>
+
+          {/* Deposit / card */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <CreditCard className="w-4 h-4 text-apl-blue" />
+              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Deposit & card</p>
+            </div>
+            <div className="bg-slate-50 rounded-xl p-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <p className="text-slate-500 mb-0.5">Deposit acknowledged</p>
+                  <p className="text-slate-800 font-medium">{appointment.deposit_acknowledged ? 'Yes' : 'No'}</p>
+                </div>
+                <div>
+                  <p className="text-slate-500 mb-0.5">Card last 4</p>
+                  <p className="text-slate-800 font-medium tabular-nums">{appointment.deposit_card_last4 || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-slate-500 mb-0.5">Expiry</p>
+                  <p className="text-slate-800 font-medium tabular-nums">{appointment.deposit_card_expiry || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-slate-500 mb-0.5">Billing ZIP</p>
+                  <p className="text-slate-800 font-medium tabular-nums">{appointment.deposit_billing_zip || '—'}</p>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Pets */}
           {pets.map((pet, i) => (
             <div key={i}>
-              <div className="flex items-center gap-2 mb-3">
-                <PawPrint className="w-5 h-5 text-apl-blue" />
-                <p className="text-sm font-medium text-slate-400 uppercase tracking-wider">
-                  {pet.pet_name || `Pet ${i + 1}`} — {pet.type === 'cat' ? '🐈 Cat' : '🐕 Dog'}
+              <div className="flex items-center gap-2 mb-2">
+                <PawPrint className="w-4 h-4 text-apl-blue" />
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  {pet.pet_name || `Pet ${i + 1}`} — {pet.type === 'cat' ? 'Cat' : 'Dog'}
                 </p>
               </div>
-              <div className="bg-slate-50 rounded-xl p-5 space-y-4 text-base">
+              <div className="bg-slate-50 rounded-xl p-4 space-y-3 text-sm">
                 {!isEditing ? (
                   <>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -470,15 +545,13 @@ export default function AppointmentDetail({
                   </div>
                 )}
                 {pet.sex === 'female' && (
-                  <div className="text-sm bg-pink-50 rounded-lg p-3 border border-pink-100">
-                    <span className="text-pink-600 font-medium">In heat/pregnant:</span>{' '}
-                    <EmptyHighlight value={pet.in_heat_or_pregnant}>
-                      <span className="text-pink-800 capitalize">{pet.in_heat_or_pregnant || '—'}</span>
-                    </EmptyHighlight>
+                  <div className="text-sm bg-pink-50 rounded-lg p-3 border border-pink-100 space-y-1">
+                    <div><span className="text-pink-600 font-medium">In heat:</span>{' '}<EmptyHighlight value={pet.in_heat_or_pregnant}><span className="text-pink-800 capitalize">{pet.in_heat_or_pregnant || '—'}</span></EmptyHighlight></div>
+                    <div><span className="text-pink-600 font-medium">Pregnant:</span>{' '}<EmptyHighlight value={pet.pregnant}><span className="text-pink-800 capitalize">{pet.pregnant || '—'}</span></EmptyHighlight></div>
                     {pet.last_heat_pregnancy_date ? (
-                      <span className="text-pink-600"> · Date: {pet.last_heat_pregnancy_date}</span>
+                      <div className="text-pink-600">Date: {pet.last_heat_pregnancy_date}</div>
                     ) : (
-                      <EmptyHighlight value={pet.last_heat_pregnancy_date}> · Date: —</EmptyHighlight>
+                      <EmptyHighlight value={pet.last_heat_pregnancy_date}><div className="text-pink-600">Date: —</div></EmptyHighlight>
                     )}
                   </div>
                 )}
@@ -594,7 +667,7 @@ export default function AppointmentDetail({
                 {pet.sex === 'female' && (
                   <div className="space-y-2">
                     <div>
-                      <label className="block text-xs text-slate-500 mb-1">In heat / pregnant</label>
+                      <label className="block text-xs text-slate-500 mb-1">In heat</label>
                       <select
                         value={pet.in_heat_or_pregnant || ''}
                         onChange={(e) => updatePet(i, 'in_heat_or_pregnant', e.target.value)}
@@ -603,10 +676,23 @@ export default function AppointmentDetail({
                         <option value="">—</option>
                         <option value="yes">Yes</option>
                         <option value="no">No</option>
-                        <option value="unknown">Unknown</option>
+                        <option value="unsure">Unsure</option>
                       </select>
                     </div>
-                    {(pet.in_heat_or_pregnant === 'yes' || pet.in_heat_or_pregnant === 'unknown') && (
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">Pregnant</label>
+                      <select
+                        value={pet.pregnant || ''}
+                        onChange={(e) => updatePet(i, 'pregnant', e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-pink-200 bg-pink-50/50 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue cursor-pointer"
+                      >
+                        <option value="">—</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                        <option value="unsure">Unsure</option>
+                      </select>
+                    </div>
+                    {(pet.in_heat_or_pregnant === 'yes' || pet.in_heat_or_pregnant === 'unsure' || pet.pregnant === 'yes' || pet.pregnant === 'unsure') && (
                       <div>
                         <label className="block text-xs text-slate-500 mb-1">Last heat / pregnancy date</label>
                         <input
@@ -800,23 +886,30 @@ export default function AppointmentDetail({
           {/* Optional Services */}
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-5 h-5 text-apl-blue" />
-              <p className="text-sm font-medium text-slate-400 uppercase tracking-wider">
-                Requested Services
-              </p>
+              <Sparkles className="w-4 h-4 text-apl-blue" />
+              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Add-ons & wellness</p>
             </div>
             {!isEditing ? (
-              <div className="flex flex-wrap gap-2">
-                {(services.wants_microchip || services.wants_nail_trim || services.wants_flea_treatment) ? (
-                  <>
-                    {services.wants_microchip && <span className="text-sm bg-apl-blue/10 text-apl-blue-dark px-3 py-1.5 rounded-lg font-medium">Microchip</span>}
-                    {services.wants_nail_trim && <span className="text-sm bg-apl-blue/10 text-apl-blue-dark px-3 py-1.5 rounded-lg font-medium">Nail Trim</span>}
-                    {services.wants_flea_treatment && <span className="text-sm bg-apl-blue/10 text-apl-blue-dark px-3 py-1.5 rounded-lg font-medium">Flea Treatment</span>}
-                  </>
-                ) : (
-                  <EmptyHighlight value="">
+              <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {services.wants_microchip && <span className="text-sm bg-apl-blue/10 text-apl-blue-dark px-3 py-1.5 rounded-lg font-medium">Microchip</span>}
+                  {services.wants_nail_trim && <span className="text-sm bg-apl-blue/10 text-apl-blue-dark px-3 py-1.5 rounded-lg font-medium">Nail Trim</span>}
+                  {services.wants_flea_treatment && <span className="text-sm bg-apl-blue/10 text-apl-blue-dark px-3 py-1.5 rounded-lg font-medium">Flea Treatment</span>}
+                  {!(services.wants_microchip || services.wants_nail_trim || services.wants_flea_treatment) && (
                     <span className="text-sm text-slate-400">None</span>
-                  </EmptyHighlight>
+                  )}
+                </div>
+                {Array.isArray(appointment.optional_vaccines) && appointment.optional_vaccines.length > 0 && (
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Optional vaccines</p>
+                    <p className="text-sm text-slate-700">{appointment.optional_vaccines.join(', ')}</p>
+                  </div>
+                )}
+                {Array.isArray(appointment.optional_wellness_services) && appointment.optional_wellness_services.length > 0 && (
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Optional wellness</p>
+                    <p className="text-sm text-slate-700">{appointment.optional_wellness_services.join(', ')}</p>
+                  </div>
                 )}
               </div>
             ) : (
@@ -873,18 +966,25 @@ export default function AppointmentDetail({
           )}
 
           {/* Legal */}
-          <div className="text-sm text-slate-400 space-y-1">
-            <p>Legal acknowledged: {appointment.legal_acknowledged ? '✅ Yes' : '❌ No'}</p>
-            <p>Signature: <EmptyHighlight value={appointment.signature}><span className="italic text-slate-600">{appointment.signature || '—'}</span></EmptyHighlight></p>
+          <div>
+            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Legal</p>
+            <div className="bg-slate-50 rounded-xl p-4 space-y-3 text-sm">
+              <div>
+                <p className="text-slate-500 mb-0.5">Legal acknowledged</p>
+                <p className="text-slate-800 font-medium">{appointment.legal_acknowledged ? 'Yes' : 'No'}</p>
+              </div>
+              <div>
+                <p className="text-slate-500 mb-0.5">Signature</p>
+                <p className="text-slate-800 break-words"><EmptyHighlight value={appointment.signature}>{appointment.signature || '—'}</EmptyHighlight></p>
+              </div>
+            </div>
           </div>
 
           {/* Admin Notes */}
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <FileText className="w-5 h-5 text-apl-blue" />
-              <p className="text-sm font-medium text-slate-400 uppercase tracking-wider">
-                Admin Notes
-              </p>
+              <FileText className="w-4 h-4 text-apl-blue" />
+              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Admin notes</p>
             </div>
             <textarea
               value={adminNotes}
@@ -903,7 +1003,7 @@ export default function AppointmentDetail({
           </div>
 
           {/* Timestamps */}
-          <div className="text-sm text-slate-400 space-y-1 pt-2 border-t border-slate-100">
+          <div className="text-xs text-slate-400 space-y-1 pt-4 border-t border-slate-100">
             <p>Submitted: {format(new Date(appointment.created_at), 'MMM d, yyyy h:mm a')}</p>
             {appointment.updated_at !== appointment.created_at && (
               <p>Updated: {format(new Date(appointment.updated_at), 'MMM d, yyyy h:mm a')}</p>

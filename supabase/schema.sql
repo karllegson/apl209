@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS appointments (
 
   -- Pet data (stored as JSONB array — one object per pet)
   -- Each pet: { pet_name, type, breed, color, age, weight, sex, pet_ownership,
-  --   how_long_owned, testicles_descended, in_heat_or_pregnant, last_heat_pregnancy_date,
+  --   how_long_owned, testicles_descended, in_heat_or_pregnant, pregnant, last_heat_pregnancy_date,
   --   currently_sick_injured, medical_conditions, medical_conditions_other,
   --   previous_surgeries, previous_surgeries_details,
   --   drug_vaccine_reactions, drug_vaccine_reactions_details,
@@ -65,10 +65,15 @@ CREATE TABLE IF NOT EXISTS appointments (
   legal_acknowledged BOOLEAN DEFAULT FALSE,
   signature TEXT DEFAULT '',
 
+  -- Owner note for vet (free text from pet info step)
+  vet_note TEXT DEFAULT '',
+
   -- Admin management
   status TEXT DEFAULT 'pending'
     CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled', 'no-show')),
   admin_notes TEXT DEFAULT '',
+  status_changed_by TEXT DEFAULT '',
+  status_changed_at TIMESTAMPTZ,
 
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -182,5 +187,31 @@ ALTER TABLE appointments ADD COLUMN IF NOT EXISTS deposit_acknowledged BOOLEAN D
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS deposit_card_last4 TEXT DEFAULT '';
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS deposit_card_expiry TEXT DEFAULT '';
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS deposit_billing_zip TEXT DEFAULT '';
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS vet_note TEXT DEFAULT '';
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS status_changed_by TEXT DEFAULT '';
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS status_changed_at TIMESTAMPTZ;
 -- If owner_name is NOT NULL, uncomment next line:
 -- ALTER TABLE appointments ALTER COLUMN owner_name DROP NOT NULL;
+
+-- ============================================================
+-- LINK CLICKS (track button/link clicks for stats)
+-- link_id: e.g. 'pricing-request-appointment', 'pricing-back-to-home', 'google-business'
+-- ============================================================
+CREATE TABLE IF NOT EXISTS link_clicks (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  link_id TEXT NOT NULL,
+  source TEXT DEFAULT '',
+  clicked_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_link_clicks_link_id ON link_clicks(link_id);
+CREATE INDEX IF NOT EXISTS idx_link_clicks_clicked_at ON link_clicks(clicked_at DESC);
+
+ALTER TABLE link_clicks ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow anon insert link_clicks" ON link_clicks;
+CREATE POLICY "Allow anon insert link_clicks"
+  ON link_clicks FOR INSERT TO anon WITH CHECK (true);
+DROP POLICY IF EXISTS "Allow authenticated read link_clicks" ON link_clicks;
+CREATE POLICY "Allow authenticated read link_clicks"
+  ON link_clicks FOR SELECT TO authenticated USING (true);

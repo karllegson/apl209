@@ -1,7 +1,9 @@
 /* eslint-disable react/jsx-key */
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { trackClick } from '@/lib/trackClick'
 import IntakeForm from '@/components/intake/IntakeForm'
 import AppointmentHome from '@/components/intake/AppointmentHome'
 import AppointmentIntro from '@/components/intake/AppointmentIntro'
@@ -104,7 +106,19 @@ function AppointmentFlow() {
   )
 }
 
+const GOOGLE_BUSINESS_TRACKED = 'apl_google_business_tracked'
+
 export default function AppointmentPageClient() {
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const source = searchParams.get('utm_source')
+    if (source === 'google_business' && typeof window !== 'undefined' && !sessionStorage.getItem(GOOGLE_BUSINESS_TRACKED)) {
+      trackClick('google-business', 'utm')
+      sessionStorage.setItem(GOOGLE_BUSINESS_TRACKED, '1')
+    }
+  }, [searchParams])
+
   return (
     <LanguageProvider>
       <AppointmentFlow />

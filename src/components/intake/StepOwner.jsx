@@ -2,18 +2,63 @@
 
 import { User, Mail, Phone, MapPin } from 'lucide-react'
 import { InputField, RadioGroup, SectionTitle } from './FormWidgets'
+import { useLanguage } from './LanguageContext'
+
+const T = {
+  en: {
+    depositBold: 'Nonrefundable deposit required.',
+    depositRest: ' $50 dogs, $25 pet cats. Your deposit is applied to the cost of your visit. Cancel or reschedule with less than 48 hours\' notice and you will lose your deposit. You\'ll enter payment details on the Review & Sign step before submitting.',
+    clientStatus: 'Client status',
+    newClient: 'I am a new client',
+    returningClient: 'I am a returning client',
+    primaryOwner: 'Primary Owner',
+    firstName: 'First name',
+    lastName: 'Last name',
+    phone: 'Phone',
+    email: 'Email',
+    address: 'Address',
+    streetAddress: 'Street address',
+    city: 'City',
+    state: 'State',
+    zipCode: 'ZIP code',
+    preferredContact: 'Preferred contact method',
+    howHeard: 'How did you hear about us?',
+  },
+  es: {
+    depositBold: 'Se requiere depósito no reembolsable.',
+    depositRest: ' $50 perros, $25 gatos mascota. Su depósito se aplica al costo de su visita. Si cancela o reprograma con menos de 48 horas de aviso, pierde el depósito. Los datos de pago los va a ingresar en el paso Revisión y firma antes de enviar.',
+    clientStatus: 'Estado del cliente',
+    newClient: 'Soy un cliente nuevo',
+    returningClient: 'Soy un cliente recurrente',
+    primaryOwner: 'Titular principal',
+    firstName: 'Nombre',
+    lastName: 'Apellido',
+    phone: 'Teléfono',
+    email: 'Correo electrónico',
+    address: 'Dirección',
+    streetAddress: 'Dirección',
+    city: 'Ciudad',
+    state: 'Estado',
+    zipCode: 'Código postal',
+    preferredContact: 'Método de contacto preferido',
+    howHeard: '¿Cómo se enteró de nosotros?',
+  },
+}
 
 export default function StepOwner({ form, errors, updateField }) {
+  const { language } = useLanguage()
+  const t = T[language] || T.en
+
   return (
     <div className="space-y-5 md:space-y-6">
       <div className="rounded-lg border border-apl-primary/30 bg-apl-blue/5 px-4 py-3 text-sm text-gray-700">
-        <strong className="text-apl-primary">Nonrefundable deposit required.</strong> $50 dogs, $25 pet cats. Your deposit is applied to the cost of your visit. Cancel or reschedule with less than 48 hours&apos; notice and you will lose your deposit. You&apos;ll enter payment details on the Review &amp; Sign step before submitting.
+        <strong className="text-apl-primary">{t.depositBold}</strong>{t.depositRest}
       </div>
 
       {/* Client status */}
       <div>
         <label className="form-section-heading block">
-          Client status <span className="text-red-500">*</span>
+          {t.clientStatus} <span className="text-red-500">*</span>
         </label>
         <div className="flex flex-wrap gap-2 md:gap-3">
           <button
@@ -26,7 +71,7 @@ export default function StepOwner({ form, errors, updateField }) {
             }`}
           >
             <User className="w-4 h-4 md:w-5 md:h-5" />
-            I am a new client
+            {t.newClient}
           </button>
           <button
             type="button"
@@ -38,7 +83,7 @@ export default function StepOwner({ form, errors, updateField }) {
             }`}
           >
             <User className="w-4 h-4 md:w-5 md:h-5" />
-            I am a returning client
+            {t.returningClient}
           </button>
         </div>
         {errors.is_returning_customer && (
@@ -51,11 +96,11 @@ export default function StepOwner({ form, errors, updateField }) {
       {/* Primary Owner */}
       <div>
         <h3 className="form-section-heading">
-          Primary Owner
+          {t.primaryOwner}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField
-            label="First name"
+            label={t.firstName}
             required
             icon={User}
             value={form.owner_first_name}
@@ -64,7 +109,7 @@ export default function StepOwner({ form, errors, updateField }) {
             error={errors.owner_first_name}
           />
           <InputField
-            label="Last name"
+            label={t.lastName}
             required
             value={form.owner_last_name}
             onChange={(v) => updateField('owner_last_name', v)}
@@ -72,7 +117,7 @@ export default function StepOwner({ form, errors, updateField }) {
             error={errors.owner_last_name}
           />
           <InputField
-            label="Phone"
+            label={t.phone}
             required
             type="tel"
             icon={Phone}
@@ -83,7 +128,7 @@ export default function StepOwner({ form, errors, updateField }) {
             className="md:col-span-2"
           />
           <InputField
-            label="Email"
+            label={t.email}
             required
             type="email"
             icon={Mail}
@@ -100,11 +145,11 @@ export default function StepOwner({ form, errors, updateField }) {
       {/* Full address */}
       <div>
         <h3 className="form-section-heading mb-3">
-          Address
+          {t.address}
         </h3>
         <div className="space-y-4">
           <InputField
-            label="Street address"
+            label={t.streetAddress}
             required
             icon={MapPin}
             value={form.street_address}
@@ -114,7 +159,7 @@ export default function StepOwner({ form, errors, updateField }) {
           />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <InputField
-              label="City"
+              label={t.city}
               required
               value={form.city}
               onChange={(v) => updateField('city', v)}
@@ -122,7 +167,7 @@ export default function StepOwner({ form, errors, updateField }) {
               error={errors.city}
             />
             <InputField
-              label="State"
+              label={t.state}
               required
               value={form.state}
               onChange={(v) => updateField('state', v)}
@@ -130,7 +175,7 @@ export default function StepOwner({ form, errors, updateField }) {
               error={errors.state}
             />
             <InputField
-              label="ZIP code"
+              label={t.zipCode}
               required
               value={form.zip_code}
               onChange={(v) => updateField('zip_code', v)}
@@ -144,7 +189,7 @@ export default function StepOwner({ form, errors, updateField }) {
       {/* How did you hear about us — optional, after address */}
       <div>
         <InputField
-          label="How did you hear about us? (optional)"
+          label={language === 'es' ? `${t.howHeard} (opcional)` : `${t.howHeard} (optional)`}
           value={form.how_heard}
           onChange={(v) => updateField('how_heard', v)}
           placeholder="e.g. Google, friend, flyer, social media"

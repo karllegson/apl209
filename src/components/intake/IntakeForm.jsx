@@ -26,6 +26,7 @@ function createEmptyPet() {
     how_long_owned: '',
     testicles_descended: '',
     in_heat_or_pregnant: '',
+    pregnant: '',
     last_heat_pregnancy_date: '',
     currently_sick_injured: null,
     medical_conditions: [],
@@ -73,6 +74,7 @@ const defaultForm = {
   deposit_billing_zip: '',
   legal_acknowledged: false,
   signature: '',
+  vet_note: '',
 }
 
 function mergeForm(initial) {
@@ -182,8 +184,10 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
         if (!pet.sex) e[`pet_${i}_sex`] = 'Required'
         if (pet.sex === 'male' && !pet.testicles_descended)
           e[`pet_${i}_testicles_descended`] = 'Required'
-        if (pet.sex === 'female' && !pet.in_heat_or_pregnant)
-          e[`pet_${i}_in_heat_or_pregnant`] = 'Required'
+        if (pet.sex === 'female') {
+          if (!pet.in_heat_or_pregnant) e[`pet_${i}_in_heat_or_pregnant`] = 'Required'
+          if (!pet.pregnant) e[`pet_${i}_pregnant`] = 'Required'
+        }
       })
     }
 
@@ -208,9 +212,10 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
     if (stepNum === submitStepNum) {
       if (!form.deposit_acknowledged)
         e.deposit_acknowledged = 'You must acknowledge the deposit requirement'
-      const cardDigits = (form.deposit_card_number || '').replace(/\D/g, '')
-      if (cardDigits.length < 13 || cardDigits.length > 19) e.deposit_card_number = 'Enter your full card number (13–19 digits)'
-      if (!(form.deposit_card_expiry || '').trim()) e.deposit_card_expiry = 'Expiry is required'
+      const cardLast4 = (form.deposit_card_number || '').replace(/\D/g, '')
+      if (cardLast4.length !== 4) e.deposit_card_number = 'Enter the last 4 digits of your card'
+      const expiry = (form.deposit_card_expiry || '').replace(/\D/g, '')
+      if (expiry.length !== 4) e.deposit_card_expiry = 'Enter expiry (MMYY)'
       if (!(form.deposit_billing_zip || '').trim()) e.deposit_billing_zip = 'Billing ZIP is required'
       if (!form.legal_acknowledged)
         e.legal_acknowledged = 'You must accept to continue'
@@ -345,12 +350,12 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
 
       {/* Form Title */}
       <h2 className="form-page-title mb-6 md:mb-8">
-        {step === 1 && 'Appointment Preferences'}
-        {step === 2 && 'Pet Information'}
-        {step === 3 && (isShortFlow ? 'Review & Sign' : 'Medical History')}
-        {step === 4 && (isShortFlow ? 'Review your submission' : 'Vaccination & Behavior')}
-        {step === 5 && !isShortFlow && 'Review & Sign'}
-        {step === 6 && !isShortFlow && 'Review your submission'}
+        {step === 1 && (isSpanish ? 'Preferencias de cita' : 'Appointment Preferences')}
+        {step === 2 && (isSpanish ? 'Información de la mascota' : 'Pet Information')}
+        {step === 3 && (isShortFlow ? (isSpanish ? 'Revisión y firma' : 'Review & Sign') : (isSpanish ? 'Historial médico' : 'Medical History'))}
+        {step === 4 && (isShortFlow ? (isSpanish ? 'Revisar su envío' : 'Review your submission') : (isSpanish ? 'Vacunación y comportamiento' : 'Vaccination & Behavior'))}
+        {step === 5 && !isShortFlow && (isSpanish ? 'Revisión y firma' : 'Review & Sign')}
+        {step === 6 && !isShortFlow && (isSpanish ? 'Revisar su envío' : 'Review your submission')}
       </h2>
 
       {/* ── Step Content ── */}
@@ -363,6 +368,7 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
             form={form}
             errors={errors}
             updatePet={updatePet}
+            updateField={updateField}
             handleNumPetsChange={handleNumPetsChange}
             shortFlow={isShortFlow}
           />
@@ -412,7 +418,7 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
                 onClick={handleNext}
                 className="w-full md:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 md:px-6 md:py-3 bg-apl-primary hover:bg-apl-blue-dark text-white font-semibold rounded-lg md:rounded-xl shadow-sm hover:shadow transition-all cursor-pointer text-sm md:text-base order-1 md:order-none"
               >
-                Next
+                {isSpanish ? 'Siguiente' : 'Next'}
                 <ChevronRight className="w-4 h-4 md:w-5 md:h-5 shrink-0" />
               </button>
             ) : (
@@ -422,7 +428,7 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
                 disabled={isSubmitting}
                 className="w-full md:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 md:px-6 md:py-3 bg-apl-primary hover:bg-apl-blue-dark disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg md:rounded-xl shadow-sm hover:shadow transition-all cursor-pointer text-sm md:text-base order-1 md:order-none"
               >
-                {isSubmitting ? 'Submitting...' : 'Submit Form'}
+                {isSubmitting ? (isSpanish ? 'Enviando...' : 'Submitting...') : (isSpanish ? 'Enviar formulario' : 'Submit Form')}
                 <ChevronRight className="w-4 h-4 md:w-5 md:h-5 shrink-0" />
               </button>
             )}
@@ -436,7 +442,7 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
                 className="w-full md:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 md:px-5 md:py-2.5 rounded-lg md:rounded-xl border-2 border-apl-primary/70 text-apl-primary font-medium bg-white hover:bg-apl-primary/5 hover:border-apl-primary transition-all cursor-pointer text-sm md:text-base order-2 md:order-none"
               >
                 <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 shrink-0" />
-                Previous
+                {isSpanish ? 'Anterior' : 'Previous'}
               </button>
             ) : onBackToHome ? (
               <button
@@ -445,7 +451,7 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
                 className="w-full md:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 md:px-5 md:py-2.5 rounded-lg md:rounded-xl border-2 border-apl-primary/70 text-apl-primary font-medium bg-white hover:bg-apl-primary/5 hover:border-apl-primary transition-all cursor-pointer text-sm md:text-base order-2 md:order-none"
               >
                 <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 shrink-0" />
-                Back
+                {isSpanish ? 'Atrás' : 'Back'}
               </button>
             ) : null}
 
@@ -460,7 +466,7 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
               ) : (
                 <Save className="w-4 h-4 shrink-0" />
               )}
-              Save & continue later
+              {isSpanish ? 'Guardar y seguir después' : 'Save & continue later'}
             </button>
           </div>
         </div>

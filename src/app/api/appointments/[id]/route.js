@@ -99,13 +99,16 @@ export async function PATCH(request, { params }) {
     'deposit_card_expiry',
     'deposit_billing_zip',
     'is_returning_customer',
+    'vet_note',
+    'status_changed_by',
+    'status_changed_at',
   ]
   const updates = {}
 
   for (const field of allowedFields) {
     if (body[field] !== undefined) {
       if (typeof body[field] === 'string') {
-        updates[field] = body[field].trim()
+        updates[field] = field === 'vet_note' ? body[field].trim().slice(0, 2000) : body[field].trim()
       } else {
         updates[field] = body[field]
       }
@@ -138,6 +141,13 @@ export async function PATCH(request, { params }) {
       { error: 'Invalid status value' },
       { status: 400 }
     )
+  }
+
+  if (updates.status) {
+    updates.status_changed_at = new Date().toISOString()
+    if (body.status_changed_by != null && typeof body.status_changed_by === 'string') {
+      updates.status_changed_by = body.status_changed_by.trim().slice(0, 200)
+    }
   }
 
   const { data, error } = await admin

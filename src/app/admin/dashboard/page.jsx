@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import AdminSidebar from '@/components/AdminSidebar'
 import StatsCards from '@/components/StatsCards'
 import AppointmentTable from '@/components/AppointmentTable'
@@ -13,10 +14,12 @@ const statusFilters = [
   { value: 'confirmed', label: 'Confirmed' },
   { value: 'completed', label: 'Completed' },
   { value: 'cancelled', label: 'Cancelled' },
-  { value: 'no-show', label: 'No Show' },
 ]
 
 export default function AdminDashboardPage() {
+  const router = useRouter()
+  const [staffName, setStaffName] = useState(null)
+  const [authChecking, setAuthChecking] = useState(true)
   const [stats, setStats] = useState(null)
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
@@ -28,6 +31,27 @@ export default function AdminDashboardPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [selected, setSelected] = useState(null)
   const [lastViewedId, setLastViewedId] = useState(null)
+
+  useEffect(() => {
+    fetch('/api/admin/me', { credentials: 'include' })
+      .then((res) => {
+        if (res.status === 401) {
+          router.replace('/admin')
+          return null
+        }
+        return res.json()
+      })
+      .then((data) => {
+        if (!data) return
+        if (!data.staffName) {
+          router.replace('/admin/who')
+          return
+        }
+        setStaffName(data.staffName)
+      })
+      .catch(() => router.replace('/admin'))
+      .finally(() => setAuthChecking(false))
+  }, [router])
 
   useEffect(() => {
     if (!lastViewedId) return
@@ -113,11 +137,19 @@ export default function AdminDashboardPage() {
     fetchStats()
   }
 
+  if (authChecking) {
+    return (
+      <div className="flex min-h-screen bg-slate-50 items-center justify-center">
+        <div className="w-8 h-8 border-2 border-slate-300 border-t-apl-blue rounded-full animate-spin" />
+      </div>
+    )
+  }
+
   return (
     <div className="flex min-h-screen bg-slate-50">
       <AdminSidebar />
 
-      <main className="flex-1 min-h-screen">
+      <main className="flex-1 min-h-screen md:pl-64">
         {/* Top bar */}
         <header className="bg-white border-b border-slate-100 px-4 md:px-8 py-5">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -207,6 +239,7 @@ export default function AdminDashboardPage() {
           }}
           onUpdate={handleUpdate}
           onDelete={handleDelete}
+          staffName={staffName}
         />
       )}
     </div>
