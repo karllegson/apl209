@@ -2,12 +2,7 @@ import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getClientIp } from '@/lib/getClientIp'
 import { rateLimit } from '@/lib/rateLimit'
-
-const ALLOWED_LINK_IDS = [
-  'pricing-request-appointment',
-  'pricing-back-to-home',
-  'google-business',
-]
+import { ALLOWED_LINK_IDS } from '@/lib/trackedLinkIds'
 
 export async function POST(request) {
   const devMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'

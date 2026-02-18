@@ -19,6 +19,8 @@ import {
   Loader2,
   Trash2,
   Pencil,
+  Copy,
+  Check,
 } from 'lucide-react'
 
 const statusActions = [
@@ -46,6 +48,61 @@ function EmptyHighlight({ value, children, className = '' }) {
     >
       {children}
     </span>
+  )
+}
+
+function CopyableField({ label, value, emptyHighlight = false, copyable = true }) {
+  const [copied, setCopied] = useState(false)
+  const text = value != null && String(value).trim() !== '' ? String(value).trim() : '—'
+  const toCopy = value != null && String(value).trim() !== '' ? String(value).trim() : ''
+  const handleCopy = () => {
+    if (toCopy === '') return
+    navigator.clipboard.writeText(toCopy).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+  return (
+    <div className="flex items-start justify-between gap-2 py-1.5 border-b border-slate-100 last:border-0">
+      {label ? <span className="text-slate-500 text-sm shrink-0">{label}</span> : null}
+      <span className="flex items-start gap-2 min-w-0 flex-1 justify-end">
+        <span className="min-w-0 flex-1 text-right">
+          {emptyHighlight ? (
+            <EmptyHighlight value={toCopy || null} className="min-w-0 block">
+              <span className="text-slate-800 text-sm break-words block">{text}</span>
+            </EmptyHighlight>
+          ) : (
+            <span className="text-slate-800 text-sm break-words block">{text}</span>
+          )}
+        </span>
+        {copyable && (
+          <button type="button" onClick={handleCopy} className="shrink-0 p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-apl-blue" title="Copy">
+            {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+          </button>
+        )}
+      </span>
+    </div>
+  )
+}
+
+function VetNoteWithCopy({ note }) {
+  const [copied, setCopied] = useState(false)
+  const handleCopy = () => {
+    navigator.clipboard.writeText(note).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+  return (
+    <div>
+      <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Note for vet (from owner)</p>
+      <div className="bg-amber-50/80 rounded-xl p-4 border border-amber-100 flex items-start justify-between gap-2">
+        <p className="text-sm text-slate-800 whitespace-pre-wrap flex-1 min-w-0">{note}</p>
+        <button type="button" onClick={handleCopy} className="shrink-0 p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-apl-blue" title="Copy">
+          {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -265,7 +322,7 @@ export default function AppointmentDetail({
         </div>
 
         <div className="p-5 md:p-6 space-y-5 text-base">
-          {/* Status & Actions */}
+          {/* Status & Actions — full width */}
           <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Current status</p>
             <div className="flex flex-wrap items-center gap-3 mb-4">
@@ -308,40 +365,33 @@ export default function AppointmentDetail({
             </div>
           </div>
 
-          {/* Owner Info */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <User className="w-4 h-4 text-apl-blue" />
-              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Owner</p>
-            </div>
-            <div className="bg-slate-50 rounded-xl p-4">
-              {!isEditing ? (
-                <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm items-baseline">
-                  <span className="text-slate-500">Name</span>
-                  <span>
-                    <EmptyHighlight value={[owner.owner_first_name, owner.owner_last_name].filter(Boolean).join(' ')}>
-                      <span className="text-slate-800 font-medium">{[owner.owner_first_name, owner.owner_last_name].filter(Boolean).join(' ') || '—'}</span>
-                    </EmptyHighlight>
-                    {owner.is_returning_customer && <span className="ml-2 text-xs bg-apl-blue/15 text-apl-blue-dark px-2 py-0.5 rounded font-semibold">Returning</span>}
-                  </span>
-                  <span className="text-slate-500">Phone</span>
-                  <span><EmptyHighlight value={owner.owner_phone}><a href={`tel:${owner.owner_phone}`} className="text-apl-blue hover:underline">{owner.owner_phone || '—'}</a></EmptyHighlight></span>
-                  <span className="text-slate-500">Email</span>
-                  <span><EmptyHighlight value={owner.owner_email}><a href={`mailto:${owner.owner_email}`} className="text-apl-blue hover:underline">{owner.owner_email || '—'}</a></EmptyHighlight></span>
-                  <span className="text-slate-500">Address</span>
-                  <span><EmptyHighlight value={[owner.street_address, owner.city, owner.state, owner.zip_code].filter(Boolean).join('')}>{[owner.street_address, [owner.city, owner.state].filter(Boolean).join(', '), owner.zip_code].filter(Boolean).join(' ') || '—'}</EmptyHighlight></span>
-                  <span className="text-slate-500">Preferred contact</span>
-                  <span><EmptyHighlight value={owner.preferred_contact}>{owner.preferred_contact || '—'}</EmptyHighlight></span>
-                  <span className="text-slate-500">How heard</span>
-                  <span><EmptyHighlight value={owner.how_heard}>{owner.how_heard || '—'}</EmptyHighlight></span>
-                  <span className="text-slate-500">Emergency contact</span>
-                  <span className="text-slate-700">
-                    {owner.emergency_contact_name || owner.emergency_contact_phone
-                      ? [owner.emergency_contact_name, owner.emergency_contact_phone].filter(Boolean).join(' · ')
-                      : '—'}
-                  </span>
+          {/* Two columns: Client (left) / Patient (right) — like vet booking form */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left: Client / Owner details */}
+            <div className="space-y-4">
+              {/* Owner Info */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <User className="w-4 h-4 text-apl-blue" />
+                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Client details</p>
                 </div>
-              ) : (
+                <div className="bg-slate-50 rounded-xl p-4">
+                  {!isEditing ? (
+                    <div className="space-y-0">
+                      <CopyableField label="First Name" value={owner.owner_first_name} emptyHighlight />
+                      <CopyableField label="Last Name" value={owner.owner_last_name} emptyHighlight />
+                      {owner.is_returning_customer && <div className="py-1.5 text-xs bg-apl-blue/15 text-apl-blue-dark px-2 rounded font-semibold inline-block">Returning</div>}
+                      <CopyableField label="Phone" value={owner.owner_phone} emptyHighlight />
+                      <CopyableField label="Email" value={owner.owner_email} emptyHighlight />
+                      <CopyableField label="Address" value={owner.street_address} emptyHighlight />
+                      <CopyableField label="City" value={owner.city} emptyHighlight />
+                      <CopyableField label="State" value={owner.state} emptyHighlight />
+                      <CopyableField label="Postal" value={owner.zip_code} emptyHighlight />
+                      <CopyableField label="Preferred contact" value={owner.preferred_contact} emptyHighlight />
+                      <CopyableField label="How heard" value={owner.how_heard} emptyHighlight copyable={false} />
+                      <CopyableField label="Emergency contact" value={[owner.emergency_contact_name, owner.emergency_contact_phone].filter(Boolean).join(' · ')} />
+                    </div>
+                  ) : (
                 <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -467,121 +517,98 @@ export default function AppointmentDetail({
             </div>
           </div>
 
-          {/* Owner note for vet */}
-          {(appointment.vet_note && appointment.vet_note.trim()) ? (
-            <div>
-              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Note for vet (from owner)</p>
-              <div className="bg-amber-50/80 rounded-xl p-4 border border-amber-100">
-                <p className="text-sm text-slate-800 whitespace-pre-wrap">{appointment.vet_note.trim()}</p>
+              {/* Vet note — left column */}
+              {(appointment.vet_note && appointment.vet_note.trim()) ? (
+                <VetNoteWithCopy note={appointment.vet_note.trim()} />
+              ) : null}
+
+              {/* Requested service — left column */}
+              <div>
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Requested service</p>
+                <div className="bg-slate-50 rounded-xl p-4">
+                  <CopyableField label="Service" value={appointment.requested_service} emptyHighlight />
+                </div>
               </div>
-            </div>
-          ) : null}
 
-          {/* Requested service */}
-          <div>
-            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Requested service</p>
-            <div className="bg-slate-50 rounded-xl px-4 py-2.5">
-              <EmptyHighlight value={appointment.requested_service}>
-                <span className="text-slate-700 font-medium">{appointment.requested_service || '—'}</span>
-              </EmptyHighlight>
-            </div>
-          </div>
-
-          {/* Deposit / card */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <CreditCard className="w-4 h-4 text-apl-blue" />
-              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Deposit & card</p>
-            </div>
-            <div className="bg-slate-50 rounded-xl p-4">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <p className="text-slate-500 mb-0.5">Deposit acknowledged</p>
-                  <p className="text-slate-800 font-medium">{appointment.deposit_acknowledged ? 'Yes' : 'No'}</p>
+              {/* Deposit & card — left column */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <CreditCard className="w-4 h-4 text-apl-blue" />
+                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Deposit & card</p>
                 </div>
-                <div>
-                  <p className="text-slate-500 mb-0.5">Card last 4</p>
-                  <p className="text-slate-800 font-medium tabular-nums">{appointment.deposit_card_last4 || '—'}</p>
-                </div>
-                <div>
-                  <p className="text-slate-500 mb-0.5">Expiry</p>
-                  <p className="text-slate-800 font-medium tabular-nums">{appointment.deposit_card_expiry || '—'}</p>
-                </div>
-                <div>
-                  <p className="text-slate-500 mb-0.5">Billing ZIP</p>
-                  <p className="text-slate-800 font-medium tabular-nums">{appointment.deposit_billing_zip || '—'}</p>
+                <div className="bg-slate-50 rounded-xl p-4 space-y-0">
+                  <CopyableField label="Deposit acknowledged" value={appointment.deposit_acknowledged ? 'Yes' : 'No'} copyable={false} />
+                  <CopyableField label="Card last 4" value={appointment.deposit_card_last4} copyable={false} />
+                  <CopyableField label="Expiry" value={appointment.deposit_card_expiry} copyable={false} />
+                  <CopyableField label="Billing ZIP" value={appointment.deposit_billing_zip} copyable={false} />
                 </div>
               </div>
             </div>
-          </div>
 
+            {/* Right: Patient details */}
+            <div className="space-y-6">
           {/* Pets */}
           {pets.map((pet, i) => (
-            <div key={i}>
-              <div className="flex items-center gap-2 mb-2">
-                <PawPrint className="w-4 h-4 text-apl-blue" />
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+            <div
+              key={i}
+              className={`rounded-xl border border-slate-200 overflow-hidden ${i % 2 === 0 ? 'bg-slate-50' : 'bg-slate-100/70'}`}
+            >
+              <div className="flex items-center gap-2 px-4 pt-4 pb-2 border-b border-slate-200/80 bg-white/50">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-apl-blue/10">
+                  <PawPrint className="w-4 h-4 text-apl-blue" />
+                </div>
+                <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
                   {pet.pet_name || `Pet ${i + 1}`} — {pet.type === 'cat' ? 'Cat' : 'Dog'}
                 </p>
+                {pets.length > 1 && (
+                  <span className="ml-auto text-xs text-slate-400 font-medium">#{i + 1}</span>
+                )}
               </div>
-              <div className="bg-slate-50 rounded-xl p-4 space-y-3 text-sm">
+              <div className="p-4 space-y-3 text-sm">
                 {!isEditing ? (
                   <>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                  <div className="col-span-2"><span className="text-slate-400">Name:</span> <EmptyHighlight value={pet.pet_name}><span className="text-slate-700">{pet.pet_name || '—'}</span></EmptyHighlight></div>
-                  <div><span className="text-slate-400">Breed:</span> <EmptyHighlight value={pet.breed}><span className="text-slate-700">{pet.breed || '—'}</span></EmptyHighlight></div>
-                  <div><span className="text-slate-400">Color:</span> <EmptyHighlight value={pet.color}><span className="text-slate-700">{pet.color || '—'}</span></EmptyHighlight></div>
-                  <div><span className="text-slate-400">Age:</span> <EmptyHighlight value={pet.age}><span className="text-slate-700">{pet.age || '—'}</span></EmptyHighlight></div>
-                  <div><span className="text-slate-400">Weight:</span> <EmptyHighlight value={pet.weight}><span className="text-slate-700">{pet.weight || '—'}</span></EmptyHighlight></div>
-                  <div><span className="text-slate-400">Sex:</span> <EmptyHighlight value={pet.sex}><span className="text-slate-700 capitalize">{pet.sex || '—'}</span></EmptyHighlight></div>
-                  <div className="col-span-2"><span className="text-slate-400">Owned:</span> <EmptyHighlight value={pet.how_long_owned}><span className="text-slate-700">{pet.how_long_owned || '—'}</span></EmptyHighlight></div>
+                <div className="space-y-0">
+                  <CopyableField label="Name" value={pet.pet_name} emptyHighlight />
+                  <CopyableField label="Species" value={pet.type === 'cat' ? 'Cat' : pet.type ? 'Dog' : pet.type || ''} emptyHighlight />
+                  <CopyableField label="Breed" value={pet.breed} emptyHighlight />
+                  <CopyableField label="Color" value={pet.color} emptyHighlight />
+                  <CopyableField label="Sex" value={pet.sex} emptyHighlight />
+                  <CopyableField label="Age" value={pet.age} emptyHighlight />
+                  <CopyableField label="Temperament" value={pet.vet_behavior} emptyHighlight />
+                  <CopyableField label="Weight" value={pet.weight} emptyHighlight />
+                  <CopyableField label="How long owned" value={pet.how_long_owned} emptyHighlight />
                 </div>
                 {pet.sex === 'male' && (
                   <div className="text-sm bg-apl-blue/10 rounded-lg p-3 border border-apl-blue/20">
-                    <span className="text-apl-blue-dark font-medium">Testicles descended:</span>{' '}
-                    <EmptyHighlight value={pet.testicles_descended}>
-                      <span className="text-apl-blue-dark capitalize">{pet.testicles_descended || '—'}</span>
-                    </EmptyHighlight>
+                    <CopyableField label="Testicles descended" value={pet.testicles_descended} emptyHighlight />
                   </div>
                 )}
                 {pet.sex === 'female' && (
-                  <div className="text-sm bg-pink-50 rounded-lg p-3 border border-pink-100 space-y-1">
-                    <div><span className="text-pink-600 font-medium">In heat:</span>{' '}<EmptyHighlight value={pet.in_heat_or_pregnant}><span className="text-pink-800 capitalize">{pet.in_heat_or_pregnant || '—'}</span></EmptyHighlight></div>
-                    <div><span className="text-pink-600 font-medium">Pregnant:</span>{' '}<EmptyHighlight value={pet.pregnant}><span className="text-pink-800 capitalize">{pet.pregnant || '—'}</span></EmptyHighlight></div>
-                    {(pet.last_heat_date || pet.last_heat_pregnancy_date) ? (
-                      <div className="text-pink-600"><span className="font-medium">Last heat date:</span> {pet.last_heat_date || pet.last_heat_pregnancy_date}</div>
-                    ) : (
-                      <EmptyHighlight value={pet.last_heat_date}><div className="text-pink-600"><span className="font-medium">Last heat date:</span> —</div></EmptyHighlight>
-                    )}
-                    {pet.pregnancy_date ? (
-                      <div className="text-pink-600"><span className="font-medium">Pregnancy date:</span> {pet.pregnancy_date}</div>
-                    ) : (
-                      <EmptyHighlight value={pet.pregnancy_date}><div className="text-pink-600"><span className="font-medium">Pregnancy date:</span> —</div></EmptyHighlight>
-                    )}
+                  <div className="text-sm bg-pink-50 rounded-lg p-3 border border-pink-100 space-y-0">
+                    <CopyableField label="In heat" value={pet.in_heat_or_pregnant} emptyHighlight />
+                    <CopyableField label="Pregnant" value={pet.pregnant} emptyHighlight />
+                    <CopyableField label="Last heat date" value={pet.last_heat_date || pet.last_heat_pregnancy_date} emptyHighlight />
+                    <CopyableField label="Pregnancy date" value={pet.pregnancy_date} emptyHighlight />
                   </div>
                 )}
                 <div className="border-t border-slate-200 pt-2 mt-2">
                   <div className="flex items-center gap-1.5 mb-2"><Heart className="w-4 h-4 text-apl-blue" /><span className="text-sm font-semibold text-slate-500">Medical</span></div>
-                  <div className="grid grid-cols-1 gap-1.5 text-sm">
-                    <div>Sick/injured: <EmptyHighlight value={pet.currently_sick_injured}><strong className={pet.currently_sick_injured ? 'text-red-600' : 'text-slate-700'}>{boolLabel(pet.currently_sick_injured)}</strong></EmptyHighlight></div>
-                    <div>Conditions: <EmptyHighlight value={pet.medical_conditions?.length ? pet.medical_conditions.join(', ') : ''}><strong className="text-slate-700">{pet.medical_conditions?.length ? `${pet.medical_conditions.join(', ')}${pet.medical_conditions_other ? ` (${pet.medical_conditions_other})` : ''}` : '—'}</strong></EmptyHighlight></div>
-                    <div>Previous surgeries: <EmptyHighlight value={pet.previous_surgeries}><strong className="text-slate-700">{boolLabel(pet.previous_surgeries)}</strong></EmptyHighlight>{pet.previous_surgeries === true && pet.previous_surgeries_details && <span className="text-slate-600"> — {pet.previous_surgeries_details}</span>}</div>
-                    <div>Drug/vaccine reactions: <EmptyHighlight value={pet.drug_vaccine_reactions}><strong className="text-slate-700">{boolLabel(pet.drug_vaccine_reactions)}</strong></EmptyHighlight>{pet.drug_vaccine_reactions === true && pet.drug_vaccine_reactions_details && <span className="text-slate-600"> — {pet.drug_vaccine_reactions_details}</span>}</div>
-                    <div>Current medications: <EmptyHighlight value={pet.current_medications}><strong className="text-slate-700">{boolLabel(pet.current_medications)}</strong></EmptyHighlight>{pet.current_medications === true && pet.current_medications_details && <span className="text-slate-600"> — {pet.current_medications_details}</span>}</div>
+                  <div className="space-y-0">
+                    <CopyableField label="Sick/injured" value={boolLabel(pet.currently_sick_injured)} emptyHighlight />
+                    <CopyableField label="Conditions" value={pet.medical_conditions?.length ? `${pet.medical_conditions.join(', ')}${pet.medical_conditions_other ? ` (${pet.medical_conditions_other})` : ''}` : ''} emptyHighlight />
+                    <CopyableField label="Previous surgeries" value={pet.previous_surgeries === true && pet.previous_surgeries_details ? `Yes — ${pet.previous_surgeries_details}` : boolLabel(pet.previous_surgeries)} emptyHighlight />
+                    <CopyableField label="Drug/vaccine reactions" value={pet.drug_vaccine_reactions === true && pet.drug_vaccine_reactions_details ? `Yes — ${pet.drug_vaccine_reactions_details}` : boolLabel(pet.drug_vaccine_reactions)} emptyHighlight />
+                    <CopyableField label="Current medications" value={pet.current_medications === true && pet.current_medications_details ? `Yes — ${pet.current_medications_details}` : boolLabel(pet.current_medications)} emptyHighlight />
                   </div>
                 </div>
                 <div className="border-t border-slate-200 pt-2">
                   <div className="flex items-center gap-1.5 mb-2"><Shield className="w-4 h-4 text-apl-blue" /><span className="text-sm font-semibold text-slate-500">Vaccination</span></div>
-                  <div className="grid grid-cols-1 gap-1.5 text-sm">
-                    <div>Rabies vaccinated: <EmptyHighlight value={pet.rabies_vaccinated}><strong className="text-slate-700 capitalize">{pet.rabies_vaccinated || '—'}</strong></EmptyHighlight></div>
-                    <div>Rabies (1–3 yrs): <EmptyHighlight value={pet.rabies_within_1_3_years}><strong className="text-slate-700 capitalize">{pet.rabies_within_1_3_years || '—'}</strong></EmptyHighlight></div>
-                    <div>Disease exposure (30d): <EmptyHighlight value={pet.exposed_to_diseases}><strong className={pet.exposed_to_diseases ? 'text-red-600' : 'text-slate-700'}>{boolLabel(pet.exposed_to_diseases)}</strong></EmptyHighlight></div>
-                    <div>Fleas/ticks: <EmptyHighlight value={pet.has_fleas_ticks}><strong className={pet.has_fleas_ticks ? 'text-amber-600' : 'text-slate-700'}>{boolLabel(pet.has_fleas_ticks)}</strong></EmptyHighlight></div>
+                  <div className="space-y-0">
+                    <CopyableField label="Rabies vaccinated" value={pet.rabies_vaccinated} emptyHighlight />
+                    <CopyableField label="Rabies (1–3 yrs)" value={pet.rabies_within_1_3_years} emptyHighlight />
+                    <CopyableField label="Disease exposure (30d)" value={boolLabel(pet.exposed_to_diseases)} emptyHighlight />
+                    <CopyableField label="Fleas/ticks" value={boolLabel(pet.has_fleas_ticks)} emptyHighlight />
                   </div>
-                </div>
-                <div className="border-t border-slate-200 pt-2">
-                  <div className="flex items-center gap-1.5 mb-1"><Stethoscope className="w-4 h-4 text-apl-blue" /><span className="text-sm font-semibold text-slate-500">Pet temperament</span></div>
-                  <p className="text-sm capitalize text-slate-700"><EmptyHighlight value={pet.vet_behavior}>{pet.vet_behavior || '—'}</EmptyHighlight></p>
                 </div>
                   </>
                 ) : (
@@ -619,6 +646,15 @@ export default function AppointmentDetail({
                       value={pet.age || ''}
                       onChange={(e) => updatePet(i, 'age', e.target.value)}
                       placeholder="e.g. 2 years"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1">Temperament</label>
+                    <input
+                      value={pet.vet_behavior || ''}
+                      onChange={(e) => updatePet(i, 'vet_behavior', e.target.value)}
+                      placeholder="e.g. calm, nervous, aggressive"
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
                     />
                   </div>
@@ -880,25 +916,14 @@ export default function AppointmentDetail({
                     </div>
                   </div>
                 </div>
-
-                {/* Temperament */}
-                <div className="border-t border-slate-200 pt-2">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <Stethoscope className="w-4 h-4 text-apl-blue" />
-                    <span className="text-sm font-semibold text-slate-500">Pet temperament</span>
-                  </div>
-                  <input
-                    value={pet.vet_behavior || ''}
-                    onChange={(e) => updatePet(i, 'vet_behavior', e.target.value)}
-                    placeholder="e.g. calm, nervous, aggressive"
-                    className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
-                  />
-                </div>
                   </>
                 )}
               </div>
             </div>
           ))}
+
+            </div>
+          </div>
 
           {/* Optional Services */}
           <div>
@@ -985,15 +1010,9 @@ export default function AppointmentDetail({
           {/* Legal */}
           <div>
             <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Legal</p>
-            <div className="bg-slate-50 rounded-xl p-4 space-y-3 text-sm">
-              <div>
-                <p className="text-slate-500 mb-0.5">Legal acknowledged</p>
-                <p className="text-slate-800 font-medium">{appointment.legal_acknowledged ? 'Yes' : 'No'}</p>
-              </div>
-              <div>
-                <p className="text-slate-500 mb-0.5">Signature</p>
-                <p className="text-slate-800 break-words"><EmptyHighlight value={appointment.signature}>{appointment.signature || '—'}</EmptyHighlight></p>
-              </div>
+            <div className="bg-slate-50 rounded-xl p-4 space-y-0">
+              <CopyableField label="Legal acknowledged" value={appointment.legal_acknowledged ? 'Yes' : 'No'} copyable={false} />
+              <CopyableField label="Signature" value={appointment.signature} emptyHighlight copyable={false} />
             </div>
           </div>
 
