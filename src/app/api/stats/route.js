@@ -35,7 +35,7 @@ export async function GET(request) {
     completedResult,
     cancelledResult,
     todayResult,
-    weekResult,
+    standbyResult,
     recentResult,
   ] = await Promise.all([
     admin.from('appointments').select('*', { count: 'exact', head: true }),
@@ -59,10 +59,7 @@ export async function GET(request) {
       .from('appointments')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', `${today}T00:00:00`),
-    admin
-      .from('appointments')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', `${weekAgo}T00:00:00`),
+    admin.from('standby_appointments').select('*', { count: 'exact', head: true }).eq('status', 'attempted'),
     admin
       .from('appointments')
       .select('*')
@@ -98,7 +95,7 @@ export async function GET(request) {
       completed: completedResult.count || 0,
       cancelled: cancelledResult.count || 0,
       today: todayResult.count || 0,
-      thisWeek: weekResult.count || 0,
+      standby: standbyResult?.count ?? 0,
       linkClicks,
     },
     recentAppointments: recentResult.data || [],

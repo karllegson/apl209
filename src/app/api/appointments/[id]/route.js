@@ -162,6 +162,36 @@ export async function PATCH(request, { params }) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  if (updates.status === 'attempted' && data) {
+    const first = (data.owner_first_name || '').trim() || (data.owner_name || '').trim().split(/\s+/)[0] || ''
+    const last = (data.owner_last_name || '').trim() || (data.owner_name || '').trim().split(/\s+/).slice(1).join(' ') || ''
+    const payload = {
+      first_name: first.slice(0, 200),
+      last_name: last.slice(0, 200),
+      phone: (data.owner_phone || '').trim().slice(0, 50),
+      appointment_type: (data.requested_service || '').trim().slice(0, 200),
+      status: 'attempted',
+    }
+    const { data: existing } = await admin
+      .from('standby_appointments')
+      .select('id')
+      .eq('source_appointment_id', id)
+      .limit(1)
+      .maybeSingle()
+    if (existing) {
+      await admin.from('standby_appointments').update(payload).eq('id', existing.id)
+    } else {
+      await admin.from('standby_appointments').insert({
+        ...payload,
+        source_appointment_id: id,
+      })
+    }
+  }
+
+  if (updates.status === 'pending') {
+    await admin.from('standby_appointments').delete().eq('source_appointment_id', id)
+  }
+
   return NextResponse.json({ appointment: data })
 }
 

@@ -9,9 +9,8 @@ import AppointmentDetail from '@/components/AppointmentDetail'
 import { Search, Filter, RefreshCw } from 'lucide-react'
 
 const statusFilters = [
-  { value: 'all', label: 'All' },
+  { value: 'all', label: 'All (excl. confirmed)' },
   { value: 'pending', label: 'Pending' },
-  { value: 'confirmed', label: 'Confirmed' },
   { value: 'attempted', label: 'Attempted' },
   { value: 'cancelled', label: 'Cancelled' },
 ]
@@ -81,13 +80,27 @@ export default function AdminDashboardPage() {
         page: String(page),
         limit: '20',
       })
-      if (statusFilter !== 'all') params.set('status', statusFilter)
+      if (statusFilter !== 'all') {
+        params.set('status', statusFilter)
+      } else {
+        params.set('excludeStatus', 'confirmed')
+      }
       if (search.trim()) params.set('search', search.trim())
 
       const res = await fetch(`/api/appointments?${params}`)
       if (res.ok) {
         const data = await res.json()
-        setAppointments(data.appointments)
+        const list = data.appointments || []
+        const sorted =
+          statusFilter === 'all'
+            ? [...list].sort((a, b) => {
+                const aPending = a.status === 'pending' ? 0 : 1
+                const bPending = b.status === 'pending' ? 0 : 1
+                if (aPending !== bPending) return aPending - bPending
+                return new Date(b.created_at) - new Date(a.created_at)
+              })
+            : list
+        setAppointments(sorted)
         setTotal(data.total)
         setTotalPages(data.totalPages)
       }

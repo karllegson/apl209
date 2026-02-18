@@ -5,7 +5,9 @@ import Image from 'next/image'
 import {
   LayoutDashboard,
   CalendarDays,
+  CalendarCheck,
   BarChart2,
+  Clock,
   LogOut,
   Menu,
   X,
@@ -16,6 +18,8 @@ import Link from 'next/link'
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/attempted', label: 'Attempted', icon: Clock },
+  { href: '/admin/confirmed', label: 'Confirmed', icon: CalendarCheck },
   { href: '/admin/appointments', label: 'All Appointments', icon: CalendarDays },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart2 },
 ]

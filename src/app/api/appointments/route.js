@@ -40,17 +40,21 @@ export async function GET(request) {
   }
   const { searchParams } = new URL(request.url)
   const status = searchParams.get('status')
+  const excludeStatus = searchParams.get('excludeStatus')
   const rawSearch = searchParams.get('search')
   const search = rawSearch ? sanitizeSearch(rawSearch) : ''
   const page = Math.min(Math.max(1, parseInt(searchParams.get('page') || '1', 10)), 100)
   const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') || '20', 10)), 100)
   const offset = (page - 1) * limit
 
+  const allowedStatuses = ['pending', 'confirmed', 'completed', 'attempted', 'cancelled', 'no-show']
   let query = admin.from('appointments').select('*', { count: 'exact' })
 
   if (status && status !== 'all') {
-    const allowed = ['pending', 'confirmed', 'completed', 'attempted', 'cancelled', 'no-show']
-    if (allowed.includes(status)) query = query.eq('status', status)
+    if (allowedStatuses.includes(status)) query = query.eq('status', status)
+  }
+  if (excludeStatus && allowedStatuses.includes(excludeStatus)) {
+    query = query.neq('status', excludeStatus)
   }
 
   if (search) {

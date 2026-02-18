@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import AdminSidebar from '@/components/AdminSidebar'
 import AppointmentTable from '@/components/AppointmentTable'
 import AppointmentDetail from '@/components/AppointmentDetail'
@@ -17,6 +17,7 @@ const statusFilters = [
 
 export default function AppointmentsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [authChecking, setAuthChecking] = useState(true)
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
@@ -85,6 +86,22 @@ export default function AppointmentsPage() {
   useEffect(() => {
     fetchAppointments()
   }, [fetchAppointments])
+
+  const openId = searchParams.get('open')
+  useEffect(() => {
+    if (!openId || !staffName) return
+    const openAppointment = async () => {
+      try {
+        const res = await fetch(`/api/appointments/${openId}`, { credentials: 'include' })
+        if (res.ok) {
+          const { appointment } = await res.json()
+          setSelected(appointment)
+          router.replace('/admin/appointments', { scroll: false })
+        }
+      } catch (_) {}
+    }
+    openAppointment()
+  }, [openId, staffName, router])
 
   // Debounced search
   useEffect(() => {

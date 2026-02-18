@@ -218,3 +218,47 @@ CREATE POLICY "Allow anon insert link_clicks"
 DROP POLICY IF EXISTS "Allow authenticated read link_clicks" ON link_clicks;
 CREATE POLICY "Allow authenticated read link_clicks"
   ON link_clicks FOR SELECT TO authenticated USING (true);
+
+-- ============================================================
+-- STANDBY APPOINTMENTS (admin-managed list: first/last name, phone, dates, type)
+-- merged_appointment_id: links to appointments when customer later does intake form
+-- ============================================================
+CREATE TABLE IF NOT EXISTS standby_appointments (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  first_name TEXT NOT NULL DEFAULT '',
+  last_name TEXT NOT NULL DEFAULT '',
+  phone TEXT NOT NULL DEFAULT '',
+  standby_date DATE,
+  appointment_type TEXT DEFAULT '',
+  scheduled_date DATE,
+  status TEXT DEFAULT 'pending'
+    CHECK (status IN ('pending', 'confirmed', 'attempted', 'cancelled', 'completed')),
+  status_changed_by TEXT DEFAULT '',
+  status_changed_at TIMESTAMPTZ,
+  merged_appointment_id UUID REFERENCES appointments(id) ON DELETE SET NULL,
+  source_appointment_id UUID REFERENCES appointments(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Ensure column exists when table was created before this was added
+ALTER TABLE standby_appointments ADD COLUMN IF NOT EXISTS source_appointment_id UUID REFERENCES appointments(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS idx_standby_appointments_phone ON standby_appointments(phone);
+CREATE INDEX IF NOT EXISTS idx_standby_appointments_source ON standby_appointments(source_appointment_id);
+CREATE INDEX IF NOT EXISTS idx_standby_appointments_status ON standby_appointments(status);
+CREATE INDEX IF NOT EXISTS idx_standby_appointments_standby_date ON standby_appointments(standby_date);
+CREATE INDEX IF NOT EXISTS idx_standby_appointments_merged ON standby_appointments(merged_appointment_id);
+
+ALTER TABLE standby_appointments ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow authenticated standby" ON standby_appointments;
+CREATE POLICY "Allow authenticated standby"
+  ON standby_appointments FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+DROP TRIGGER IF EXISTS update_standby_appointments_updated_at ON standby_appointments;
+CREATE TRIGGER update_standby_appointments_updated_at
+  BEFORE UPDATE ON standby_appointments
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
