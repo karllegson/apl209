@@ -27,7 +27,9 @@ function createEmptyPet() {
     testicles_descended: '',
     in_heat_or_pregnant: '',
     pregnant: '',
-    last_heat_pregnancy_date: '',
+    last_heat_pregnancy_date: '', // legacy; prefer last_heat_date + pregnancy_date
+    last_heat_date: '',
+    pregnancy_date: '',
     currently_sick_injured: null,
     medical_conditions: [],
     medical_conditions_other: '',

@@ -11,6 +11,10 @@ const statusConfig = {
     label: 'Completed',
     className: 'bg-teal-50 text-teal-800 border-teal-200/60',
   },
+  attempted: {
+    label: 'Attempted',
+    className: 'bg-orange-50 text-orange-800 border-orange-200/60',
+  },
   cancelled: {
     label: 'Cancelled',
     className: 'bg-stone-100 text-stone-600 border-stone-200',

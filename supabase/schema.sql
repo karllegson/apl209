@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS appointments (
 
   -- Pet data (stored as JSONB array — one object per pet)
   -- Each pet: { pet_name, type, breed, color, age, weight, sex, pet_ownership,
-  --   how_long_owned, testicles_descended, in_heat_or_pregnant, pregnant, last_heat_pregnancy_date,
+  --   how_long_owned, testicles_descended, in_heat_or_pregnant, pregnant, last_heat_pregnancy_date, last_heat_date, pregnancy_date,
   --   currently_sick_injured, medical_conditions, medical_conditions_other,
   --   previous_surgeries, previous_surgeries_details,
   --   drug_vaccine_reactions, drug_vaccine_reactions_details,
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS appointments (
 
   -- Admin management
   status TEXT DEFAULT 'pending'
-    CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled', 'no-show')),
+    CHECK (status IN ('pending', 'confirmed', 'completed', 'attempted', 'cancelled', 'no-show')),
   admin_notes TEXT DEFAULT '',
   status_changed_by TEXT DEFAULT '',
   status_changed_at TIMESTAMPTZ,
@@ -190,6 +190,9 @@ ALTER TABLE appointments ADD COLUMN IF NOT EXISTS deposit_billing_zip TEXT DEFAU
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS vet_note TEXT DEFAULT '';
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS status_changed_by TEXT DEFAULT '';
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS status_changed_at TIMESTAMPTZ;
+-- To allow 'attempted' status on existing DBs: drop and re-add the status check:
+-- ALTER TABLE appointments DROP CONSTRAINT IF EXISTS appointments_status_check;
+-- ALTER TABLE appointments ADD CONSTRAINT appointments_status_check CHECK (status IN ('pending', 'confirmed', 'completed', 'attempted', 'cancelled', 'no-show'));
 -- If owner_name is NOT NULL, uncomment next line:
 -- ALTER TABLE appointments ALTER COLUMN owner_name DROP NOT NULL;
 

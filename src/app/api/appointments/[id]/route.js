@@ -133,6 +133,7 @@ export async function PATCH(request, { params }) {
     'pending',
     'confirmed',
     'completed',
+    'attempted',
     'cancelled',
     'no-show',
   ]

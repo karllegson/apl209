@@ -24,7 +24,7 @@ import {
 const statusActions = [
   { value: 'pending', label: 'Pending', color: 'bg-amber-600 hover:bg-amber-700' },
   { value: 'confirmed', label: 'Confirm', color: 'bg-apl-primary hover:bg-apl-blue-dark' },
-  { value: 'completed', label: 'Complete', color: 'bg-teal-600 hover:bg-teal-700' },
+  { value: 'attempted', label: 'Attempted', color: 'bg-orange-600 hover:bg-orange-700' },
   { value: 'cancelled', label: 'Cancel', color: 'bg-stone-500 hover:bg-stone-600' },
 ]
 
@@ -548,10 +548,15 @@ export default function AppointmentDetail({
                   <div className="text-sm bg-pink-50 rounded-lg p-3 border border-pink-100 space-y-1">
                     <div><span className="text-pink-600 font-medium">In heat:</span>{' '}<EmptyHighlight value={pet.in_heat_or_pregnant}><span className="text-pink-800 capitalize">{pet.in_heat_or_pregnant || '—'}</span></EmptyHighlight></div>
                     <div><span className="text-pink-600 font-medium">Pregnant:</span>{' '}<EmptyHighlight value={pet.pregnant}><span className="text-pink-800 capitalize">{pet.pregnant || '—'}</span></EmptyHighlight></div>
-                    {pet.last_heat_pregnancy_date ? (
-                      <div className="text-pink-600">Date: {pet.last_heat_pregnancy_date}</div>
+                    {(pet.last_heat_date || pet.last_heat_pregnancy_date) ? (
+                      <div className="text-pink-600"><span className="font-medium">Last heat date:</span> {pet.last_heat_date || pet.last_heat_pregnancy_date}</div>
                     ) : (
-                      <EmptyHighlight value={pet.last_heat_pregnancy_date}><div className="text-pink-600">Date: —</div></EmptyHighlight>
+                      <EmptyHighlight value={pet.last_heat_date}><div className="text-pink-600"><span className="font-medium">Last heat date:</span> —</div></EmptyHighlight>
+                    )}
+                    {pet.pregnancy_date ? (
+                      <div className="text-pink-600"><span className="font-medium">Pregnancy date:</span> {pet.pregnancy_date}</div>
+                    ) : (
+                      <EmptyHighlight value={pet.pregnancy_date}><div className="text-pink-600"><span className="font-medium">Pregnancy date:</span> —</div></EmptyHighlight>
                     )}
                   </div>
                 )}
@@ -693,14 +698,26 @@ export default function AppointmentDetail({
                       </select>
                     </div>
                     {(pet.in_heat_or_pregnant === 'yes' || pet.in_heat_or_pregnant === 'unsure' || pet.pregnant === 'yes' || pet.pregnant === 'unsure') && (
-                      <div>
-                        <label className="block text-xs text-slate-500 mb-1">Last heat / pregnancy date</label>
-                        <input
-                          value={pet.last_heat_pregnancy_date || ''}
-                          onChange={(e) => updatePet(i, 'last_heat_pregnancy_date', e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
-                        />
-                      </div>
+                      <>
+                        <div>
+                          <label className="block text-xs text-slate-500 mb-1">Last heat date</label>
+                          <input
+                            type="date"
+                            value={pet.last_heat_date ?? pet.last_heat_pregnancy_date ?? ''}
+                            onChange={(e) => updatePet(i, 'last_heat_date', e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-slate-500 mb-1">Pregnancy date</label>
+                          <input
+                            type="date"
+                            value={pet.pregnancy_date ?? ''}
+                            onChange={(e) => updatePet(i, 'pregnancy_date', e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
+                          />
+                        </div>
+                      </>
                     )}
                   </div>
                 )}

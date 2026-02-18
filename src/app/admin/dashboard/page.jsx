@@ -12,7 +12,7 @@ const statusFilters = [
   { value: 'all', label: 'All' },
   { value: 'pending', label: 'Pending' },
   { value: 'confirmed', label: 'Confirmed' },
-  { value: 'completed', label: 'Completed' },
+  { value: 'attempted', label: 'Attempted' },
   { value: 'cancelled', label: 'Cancelled' },
 ]
 

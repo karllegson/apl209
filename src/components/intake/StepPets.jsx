@@ -20,7 +20,8 @@ const T = {
     sex: 'Sex',
     inHeat: 'Is your pet currently in heat?',
     pregnant: 'Is your pet pregnant?',
-    lastHeatDate: 'Last heat cycle or pregnancy date (if known)',
+    lastHeatDate: 'Last heat cycle date (if known)',
+    pregnancyDate: 'Pregnancy date (if known)',
     vetNote: 'Note for our vet team',
     vetNoteHelp: 'Anything you want us to know about your pet(s) or this visit? Optional.',
     vetNotePlaceholder: 'e.g. nervous at the vet, takes medication with food, prefers morning appointments...',
@@ -66,7 +67,8 @@ const T = {
     sex: 'Sexo',
     inHeat: '¿Su mascota está actualmente en celo?',
     pregnant: '¿Su mascota está embarazada?',
-    lastHeatDate: 'Última fecha de celo o embarazo (si se conoce)',
+    lastHeatDate: 'Última fecha de celo (si se conoce)',
+    pregnancyDate: 'Fecha de embarazo (si se conoce)',
     vetNote: 'Nota para nuestro equipo veterinario',
     vetNoteHelp: '¿Algo que quiera que sepamos sobre su(s) mascota(s) o esta visita? Opcional.',
     vetNotePlaceholder: 'ej. nervioso en el veterinario, toma medicación con comida, prefiere citas por la mañana...',
@@ -422,10 +424,14 @@ export default function StepPets({
                 <InputField
                   label={t.lastHeatDate}
                   type="date"
-                  value={pet.last_heat_pregnancy_date}
-                  onChange={(v) =>
-                    updatePet(i, 'last_heat_pregnancy_date', v)
-                  }
+                  value={pet.last_heat_date ?? pet.last_heat_pregnancy_date ?? ''}
+                  onChange={(v) => updatePet(i, 'last_heat_date', v)}
+                />
+                <InputField
+                  label={t.pregnancyDate}
+                  type="date"
+                  value={pet.pregnancy_date ?? ''}
+                  onChange={(v) => updatePet(i, 'pregnancy_date', v)}
                 />
                 {(pet.in_heat_or_pregnant === 'yes' || pet.in_heat_or_pregnant === 'unsure' || pet.pregnant === 'yes' || pet.pregnant === 'unsure') && (
                   <div className="text-xs text-amber-800 bg-amber-50/70 border border-amber-100 rounded-lg p-2.5 mt-2">

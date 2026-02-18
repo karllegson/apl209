@@ -49,7 +49,7 @@ export async function GET(request) {
   let query = admin.from('appointments').select('*', { count: 'exact' })
 
   if (status && status !== 'all') {
-    const allowed = ['pending', 'confirmed', 'completed', 'cancelled', 'no-show']
+    const allowed = ['pending', 'confirmed', 'completed', 'attempted', 'cancelled', 'no-show']
     if (allowed.includes(status)) query = query.eq('status', status)
   }
 
