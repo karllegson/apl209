@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import AdminSidebar from '@/components/AdminSidebar'
 import StatsCards from '@/components/StatsCards'
 import AppointmentTable from '@/components/AppointmentTable'
 import AppointmentDetail from '@/components/AppointmentDetail'
@@ -152,19 +151,15 @@ export default function AdminDashboardPage() {
 
   if (authChecking) {
     return (
-      <div className="flex min-h-screen bg-slate-50 items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="w-8 h-8 border-2 border-slate-300 border-t-apl-blue rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <AdminSidebar />
-
-      <main className="flex-1 min-h-screen md:pl-64">
-        {/* Top bar */}
-        <header className="bg-white border-b border-slate-100 px-4 md:px-8 py-5">
+    <>
+      <header className="bg-white border-b border-slate-100 px-4 md:px-8 py-5">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="md:pl-0 pl-14">
               <h1 className="text-xl font-bold text-slate-800">Dashboard</h1>
@@ -240,9 +235,7 @@ export default function AdminDashboardPage() {
           />
           </section>
         </div>
-      </main>
 
-      {/* Detail Panel */}
       {selected && (
         <AppointmentDetail
           appointment={selected}
@@ -255,6 +248,6 @@ export default function AdminDashboardPage() {
           staffName={staffName}
         />
       )}
-    </div>
+    </>
   )
 }

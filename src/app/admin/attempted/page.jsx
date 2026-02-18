@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import AdminSidebar from '@/components/AdminSidebar'
 import StatusBadge from '@/components/StatusBadge'
 import AppointmentDetail from '@/components/AppointmentDetail'
 import {
@@ -251,17 +250,15 @@ export default function AttemptedPage() {
 
   if (authChecking) {
     return (
-      <div className="flex min-h-screen bg-slate-50 items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="w-8 h-8 border-2 border-slate-300 border-t-apl-blue rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <AdminSidebar />
-      <main className="flex-1 md:ml-64 min-h-screen flex flex-col">
-        <div className="p-4 md:p-6">
+    <>
+      <div className="p-4 md:p-6 flex flex-col min-h-full">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <h1 className="text-xl font-bold text-slate-800">Attempted</h1>
             <div className="flex items-center gap-2">
@@ -642,7 +639,6 @@ export default function AttemptedPage() {
             )}
           </div>
         </div>
-      </main>
 
       {viewFormAppointment && (
         <AppointmentDetail
@@ -776,6 +772,6 @@ export default function AttemptedPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
