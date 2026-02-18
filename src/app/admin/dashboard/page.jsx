@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import AdminPageLoading from '@/components/AdminPageLoading'
 import StatsCards from '@/components/StatsCards'
 import AppointmentTable from '@/components/AppointmentTable'
 import AppointmentDetail from '@/components/AppointmentDetail'
@@ -149,12 +150,9 @@ export default function AdminDashboardPage() {
     fetchStats()
   }
 
-  if (authChecking) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="w-8 h-8 border-2 border-slate-300 border-t-apl-blue rounded-full animate-spin" />
-      </div>
-    )
+  const showOverlay = authChecking || loading || statsLoading
+  if (showOverlay) {
+    return <AdminPageLoading />
   }
 
   return (
@@ -162,16 +160,25 @@ export default function AdminDashboardPage() {
       <header className="bg-white border-b border-slate-100 px-4 md:px-8 py-5">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="md:pl-0 pl-14">
-              <h1 className="text-xl font-bold text-slate-800">Dashboard</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-slate-800">Dashboard</h1>
+                {(loading || statsLoading) && (
+                  <span className="flex items-center gap-1.5 text-sm text-slate-500">
+                    <span className="w-4 h-4 border-2 border-slate-300 border-t-apl-blue rounded-full animate-spin" />
+                    Loading…
+                  </span>
+                )}
+              </div>
               <p className="text-sm text-slate-500">
                 Animal Protection League &mdash; Appointment Manager
               </p>
             </div>
             <button
               onClick={handleRefresh}
-              className="self-start md:self-auto flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm text-slate-600 font-medium transition-colors cursor-pointer"
+              disabled={loading || statsLoading}
+              className="self-start md:self-auto flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm text-slate-600 font-medium transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className={`w-4 h-4 ${loading || statsLoading ? 'animate-spin' : ''}`} />
               Refresh
             </button>
           </div>

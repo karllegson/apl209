@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import AdminPageLoading from '@/components/AdminPageLoading'
 import AppointmentTable from '@/components/AppointmentTable'
 import AppointmentDetail from '@/components/AppointmentDetail'
 import { Search, RefreshCw, Download } from 'lucide-react'
@@ -98,12 +99,8 @@ export default function ConfirmedPage() {
     setTotal((prev) => prev - 1)
   }
 
-  if (authChecking) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="w-8 h-8 border-2 border-slate-300 border-t-apl-blue rounded-full animate-spin" />
-      </div>
-    )
+  if (authChecking || loading) {
+    return <AdminPageLoading />
   }
 
   const handleExportCSV = () => {
@@ -147,9 +144,17 @@ export default function ConfirmedPage() {
       <header className="bg-white border-b border-slate-100 px-4 md:px-8 py-5">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="md:pl-0 pl-14">
-              <h1 className="text-xl font-bold text-slate-800">
-                Confirmed
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-slate-800">
+                  Confirmed
+                </h1>
+                {loading && (
+                  <span className="flex items-center gap-1.5 text-sm text-slate-500">
+                    <span className="w-4 h-4 border-2 border-slate-300 border-t-apl-blue rounded-full animate-spin" />
+                    Loading…
+                  </span>
+                )}
+              </div>
               <p className="text-sm text-slate-500">
                 Successfully called &amp; booked — transfer to your booking app. {total} confirmed.
               </p>
@@ -165,9 +170,10 @@ export default function ConfirmedPage() {
               </button>
               <button
                 onClick={fetchAppointments}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm text-slate-600 font-medium transition-colors cursor-pointer"
+                disabled={loading}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm text-slate-600 font-medium transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
               </button>
             </div>

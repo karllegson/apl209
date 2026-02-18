@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import AdminPageLoading from '@/components/AdminPageLoading'
 import StatusBadge from '@/components/StatusBadge'
 import AppointmentDetail from '@/components/AppointmentDetail'
 import {
@@ -248,19 +249,23 @@ export default function AttemptedPage() {
     }
   }
 
-  if (authChecking) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="w-8 h-8 border-2 border-slate-300 border-t-apl-blue rounded-full animate-spin" />
-      </div>
-    )
+  if (authChecking || loading) {
+    return <AdminPageLoading />
   }
 
   return (
     <>
       <div className="p-4 md:p-6 flex flex-col min-h-full">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <h1 className="text-xl font-bold text-slate-800">Attempted</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-slate-800">Attempted</h1>
+              {loading && (
+                <span className="flex items-center gap-1.5 text-sm text-slate-500">
+                  <span className="w-4 h-4 border-2 border-slate-300 border-t-apl-blue rounded-full animate-spin" />
+                  Loading…
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -274,7 +279,7 @@ export default function AttemptedPage() {
                 type="button"
                 onClick={fetchAttempted}
                 disabled={loading}
-                className="p-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 disabled:opacity-50"
+                className="p-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </button>
