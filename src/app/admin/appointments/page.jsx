@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { Suspense, useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import AdminSidebar from '@/components/AdminSidebar'
 import AppointmentTable from '@/components/AppointmentTable'
@@ -15,7 +15,7 @@ const statusFilters = [
   { value: 'cancelled', label: 'Cancelled' },
 ]
 
-export default function AppointmentsPage() {
+function AppointmentsPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [authChecking, setAuthChecking] = useState(true)
@@ -308,5 +308,19 @@ export default function AppointmentsPage() {
         />
       )}
     </div>
+  )
+}
+
+export default function AppointmentsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen bg-slate-50 items-center justify-center">
+          <div className="w-8 h-8 border-2 border-slate-300 border-t-apl-blue rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <AppointmentsPageContent />
+    </Suspense>
   )
 }
