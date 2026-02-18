@@ -222,10 +222,9 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
   }
 
   const handleNext = () => {
-    if (validateStep(step)) {
-      setStep((s) => Math.min(s + 1, maxStep))
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
+    validateStep(step)
+    setStep((s) => Math.min(s + 1, maxStep))
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handleBack = () => {
