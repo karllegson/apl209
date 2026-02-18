@@ -9,6 +9,7 @@ export default function StepPets({
   errors,
   updatePet,
   handleNumPetsChange,
+  shortFlow = false,
 }) {
   return (
     <div className="space-y-5 md:space-y-6">
@@ -128,6 +129,8 @@ export default function StepPets({
                 placeholder="2 years"
                 error={errors[`pet_${i}_age`]}
               />
+              {!shortFlow && (
+              <>
               <div className="sm:col-span-2">
                 <label className="form-field-label block mb-1.5 md:mb-2 text-gray-700">
                   Weight <span className="text-red-500">*</span>
@@ -175,8 +178,12 @@ export default function StepPets({
                 onChange={(v) => updatePet(i, 'how_long_owned', v)}
                 placeholder="6 months"
               />
+              </>
+              )}
             </div>
 
+            {!shortFlow && (
+            <>
             {/* House pet vs outdoor/TNR — No = TNR (trap required) */}
             <RadioGroup
               label="Is this a house pet?"
@@ -327,6 +334,8 @@ export default function StepPets({
                   </div>
                 )}
               </div>
+            )}
+            </>
             )}
           </div>
         </div>

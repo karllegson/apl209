@@ -45,11 +45,7 @@ export default function AppointmentIntro({ onRequestAppointment }) {
             ? 'Clínica y Centro de Bienestar de Bajo Costo — Stockton, CA'
             : 'Free/Low-Cost Clinic & Wellness Center — Stockton, CA'}
         </p>
-        <p className="text-gray-600 text-sm md:text-base mb-4">
-          {isSpanish ? 'Atención accesible para perros y gatos en Stockton.' : 'Accessible care for dogs and cats in Stockton.'}
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-2">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-2 mt-4">
           <button
             type="button"
             onClick={onRequestAppointment}

@@ -247,7 +247,7 @@ export default function StepSubmit({ form, errors, updateField }) {
           <p className="text-sm font-medium text-apl-primary mb-1">Your deposit: ${depositTotal}</p>
         )}
         <p className="text-sm text-gray-600 mb-4">
-          Nonrefundable deposits: $50 for dogs, $25 for pet cats. This deposit holds your appointment and is applied to the actual cost of your visit when you come in. If you cancel or reschedule with less than 48 hours before your appointment, you will lose your deposit. Your card will not be charged until we confirm your appointment. Enter your card details below. For your security, we only store the last 4 digits.
+          Nonrefundable deposits: $50 for dogs, $25 for pet cats. This deposit holds your appointment and is applied to the actual cost of your visit when you come in. If you cancel or reschedule with less than 48 hours before your appointment, you will lose your deposit. Your card will not be charged until we confirm your appointment. Enter your card details below.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-4">
           <div>
@@ -337,10 +337,8 @@ export default function StepSubmit({ form, errors, updateField }) {
         <div className="space-y-2 text-sm text-gray-700 mb-5">
           <p className="text-gray-600">By submitting, I confirm:</p>
           <ul className="list-disc pl-5 space-y-1">
-            <li>My information is accurate and complete</li>
-            <li>I understand that surgery and anesthesia carry normal risks, and I&apos;ve had a chance to ask questions</li>
+            <li>My information is accurate</li>
             <li>Final pricing may vary (e.g. pregnancy, in heat, weight)</li>
-            <li>APL may provide emergency care if needed during the visit</li>
           </ul>
         </div>
 

@@ -1,6 +1,6 @@
  'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -103,16 +103,25 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
   const { language } = useLanguage()
   const isSpanish = language === 'es'
 
-  const STEPS = isSpanish
-    ? ['Preferencias', 'Mascota', 'Historial médico', 'Vacunación', 'Revisión', 'Resumen']
-    : ['Preferences', 'Pet Info', 'Medical History', 'Vaccination', 'Review', 'Summary']
-  const [step, setStep] = useState(initialStep >= 1 && initialStep <= 6 ? Math.min(initialStep, 6) : 1)
+  const [form, setForm] = useState(() => mergeForm(initialForm))
+  const isShortFlow = form.requested_service === 'vaccines' || form.requested_service === 'wellness_other'
+  const maxStep = isShortFlow ? 4 : 6
+  const STEPS = isShortFlow
+    ? (isSpanish ? ['Preferencias', 'Mascota', 'Revisión', 'Resumen'] : ['Preferences', 'Pet Info', 'Review', 'Summary'])
+    : (isSpanish ? ['Preferencias', 'Mascota', 'Historial médico', 'Vacunación', 'Revisión', 'Resumen'] : ['Preferences', 'Pet Info', 'Medical History', 'Vaccination', 'Review', 'Summary'])
+  const [step, setStep] = useState(() => {
+    const s = initialStep >= 1 && initialStep <= 6 ? initialStep : 1
+    const short = initialForm?.requested_service === 'vaccines' || initialForm?.requested_service === 'wellness_other'
+    return short && s > 4 ? 4 : Math.min(s, short ? 4 : 6)
+  })
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState(null)
 
-  const [form, setForm] = useState(() => mergeForm(initialForm))
+  useEffect(() => {
+    if (isShortFlow && step > 4) setStep(4)
+  }, [isShortFlow, step])
 
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -161,10 +170,12 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
     }
 
     if (stepNum === 2) {
+      const short = form.requested_service === 'vaccines' || form.requested_service === 'wellness_other'
       form.pets.forEach((pet, i) => {
         if (!pet.type) e[`pet_${i}_type`] = 'Select dog or cat'
         if (!pet.breed.trim()) e[`pet_${i}_breed`] = 'Required'
         if (!pet.age.trim()) e[`pet_${i}_age`] = 'Required'
+        if (short) return
         const weightOk = pet.weight === 'unsure' || (pet.weight && String(pet.weight).trim())
         if (!weightOk) e[`pet_${i}_weight`] = 'Required'
         if (!pet.pet_ownership) e[`pet_${i}_pet_ownership`] = 'Required'
@@ -176,14 +187,14 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
       })
     }
 
-    if (stepNum === 3) {
+    if (stepNum === 3 && !isShortFlow) {
       form.pets.forEach((pet, i) => {
         if (pet.currently_sick_injured === null)
           e[`pet_${i}_currently_sick_injured`] = 'Required'
       })
     }
 
-    if (stepNum === 4) {
+    if (stepNum === 4 && !isShortFlow) {
       form.pets.forEach((pet, i) => {
         if (!pet.rabies_vaccinated)
           e[`pet_${i}_rabies_vaccinated`] = 'Required'
@@ -193,7 +204,8 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
       })
     }
 
-    if (stepNum === 5) {
+    const submitStepNum = isShortFlow ? 3 : 5
+    if (stepNum === submitStepNum) {
       if (!form.deposit_acknowledged)
         e.deposit_acknowledged = 'You must acknowledge the deposit requirement'
       const cardDigits = (form.deposit_card_number || '').replace(/\D/g, '')
@@ -211,7 +223,7 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
 
   const handleNext = () => {
     if (validateStep(step)) {
-      setStep((s) => Math.min(s + 1, 6))
+      setStep((s) => Math.min(s + 1, maxStep))
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
@@ -222,7 +234,7 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
   }
 
   const handleSubmit = async () => {
-    if (!validateStep(5)) return
+    if (!validateStep(isShortFlow ? 3 : 5)) return
     setIsSubmitting(true)
     try {
       const { deposit_card_number, deposit_cvv, ...rest } = form
@@ -293,9 +305,9 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
         <LanguageToggle />
       </div>
 
-      {/* ── Progress Bar (6 steps) ── */}
-      <div className="relative grid grid-cols-6 gap-0 mb-6 md:mb-10 px-1 md:px-2">
-        <div className="absolute top-4 left-8 right-8 h-[2px] bg-gray-200 col-span-6" />
+      {/* ── Progress Bar ── */}
+      <div className={`relative grid gap-0 mb-6 md:mb-10 px-1 md:px-2 ${isShortFlow ? 'grid-cols-4' : 'grid-cols-6'}`}>
+        <div className={`absolute top-4 left-8 right-8 h-[2px] bg-gray-200 ${isShortFlow ? 'col-span-4' : 'col-span-6'}`} />
         <div 
           className="absolute top-4 left-8 h-[2px] bg-apl-primary transition-all duration-300"
           style={{ 
@@ -336,10 +348,10 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
       <h2 className="form-page-title mb-6 md:mb-8">
         {step === 1 && 'Appointment Preferences'}
         {step === 2 && 'Pet Information'}
-        {step === 3 && 'Medical History'}
-        {step === 4 && 'Vaccination & Behavior'}
-        {step === 5 && 'Review & Sign'}
-        {step === 6 && 'Review your submission'}
+        {step === 3 && (isShortFlow ? 'Review & Sign' : 'Medical History')}
+        {step === 4 && (isShortFlow ? 'Review your submission' : 'Vaccination & Behavior')}
+        {step === 5 && !isShortFlow && 'Review & Sign'}
+        {step === 6 && !isShortFlow && 'Review your submission'}
       </h2>
 
       {/* ── Step Content ── */}
@@ -353,18 +365,23 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
             errors={errors}
             updatePet={updatePet}
             handleNumPetsChange={handleNumPetsChange}
+            shortFlow={isShortFlow}
           />
         )}
-        {step === 3 && (
+        {step === 3 && !isShortFlow && (
           <StepHealth form={form} errors={errors} updatePet={updatePet} />
         )}
-        {step === 4 && (
-          <StepVaccination form={form} errors={errors} updatePet={updatePet} />
-        )}
-        {step === 5 && (
+        {step === 3 && isShortFlow && (
           <StepSubmit form={form} errors={errors} updateField={updateField} />
         )}
-        {step === 6 && <StepSummary form={form} />}
+        {step === 4 && !isShortFlow && (
+          <StepVaccination form={form} errors={errors} updatePet={updatePet} />
+        )}
+        {step === 4 && isShortFlow && <StepSummary form={form} />}
+        {step === 5 && !isShortFlow && (
+          <StepSubmit form={form} errors={errors} updateField={updateField} />
+        )}
+        {step === 6 && !isShortFlow && <StepSummary form={form} />}
       </div>
 
       {/* Error */}
@@ -390,7 +407,7 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
           {/* Order on mobile: primary (Next/Submit) first, then Previous, then Save */}
           <div className="flex flex-col gap-3 md:order-2 md:flex-1 md:flex-row md:justify-end md:gap-3">
-            {step < 6 ? (
+            {step < maxStep ? (
               <button
                 type="button"
                 onClick={handleNext}
