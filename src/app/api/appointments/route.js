@@ -1,6 +1,20 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 import { isAdminAuthenticated } from '@/lib/auth/admin'
+import { getClientIp } from '@/lib/getClientIp'
+import { rateLimit } from '@/lib/rateLimit'
+
+const MAX_BODY_BYTES = 512 * 1024 // 512KB
+const MAX_PETS = 10
+const MAX_OPTIONAL_ITEMS = 50
+const MAX_TEXT_LEN = 500
+const MAX_SIGNATURE_LEN = 2000
+
+function sanitizeSearch(s) {
+  if (typeof s !== 'string') return ''
+  const trimmed = s.trim().slice(0, 100)
+  return trimmed.replace(/[^\w\s\-']/gi, '')
+}
 
 // GET — List all intake submissions (admin only)
 export async function GET(request) {
@@ -26,20 +40,23 @@ export async function GET(request) {
   }
   const { searchParams } = new URL(request.url)
   const status = searchParams.get('status')
-  const search = searchParams.get('search')
-  const page = parseInt(searchParams.get('page') || '1')
-  const limit = parseInt(searchParams.get('limit') || '20')
+  const rawSearch = searchParams.get('search')
+  const search = rawSearch ? sanitizeSearch(rawSearch) : ''
+  const page = Math.min(Math.max(1, parseInt(searchParams.get('page') || '1', 10)), 100)
+  const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') || '20', 10)), 100)
   const offset = (page - 1) * limit
 
   let query = admin.from('appointments').select('*', { count: 'exact' })
 
   if (status && status !== 'all') {
-    query = query.eq('status', status)
+    const allowed = ['pending', 'confirmed', 'completed', 'cancelled', 'no-show']
+    if (allowed.includes(status)) query = query.eq('status', status)
   }
 
   if (search) {
+    const term = search.replace(/%/g, '\\%').replace(/_/g, '\\_').replace(/'/g, "''")
     query = query.or(
-      `owner_name.ilike.%${search}%,owner_first_name.ilike.%${search}%,owner_last_name.ilike.%${search}%,owner_email.ilike.%${search}%,owner_phone.ilike.%${search}%,city.ilike.%${search}%,street_address.ilike.%${search}%,state.ilike.%${search}%,zip_code.ilike.%${search}%`
+      `owner_name.ilike.%${term}%,owner_first_name.ilike.%${term}%,owner_last_name.ilike.%${term}%,owner_email.ilike.%${term}%,owner_phone.ilike.%${term}%,city.ilike.%${term}%,street_address.ilike.%${term}%,state.ilike.%${term}%,zip_code.ilike.%${term}%`
     )
   }
 
@@ -62,6 +79,23 @@ export async function GET(request) {
 
 // POST — Submit a new intake form (public — no auth required)
 export async function POST(request) {
+  const devMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+
+  if (!devMode) {
+    const ip = getClientIp(request)
+    const rl = rateLimit(ip, { windowMs: 60 * 60 * 1000, max: 10 })
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Too many submissions. Please try again later.' },
+        { status: 429, headers: rl.retryAfter ? { 'Retry-After': String(rl.retryAfter) } : {} }
+      )
+    }
+    const cl = request.headers.get('content-length')
+    if (cl && parseInt(cl, 10) > MAX_BODY_BYTES) {
+      return NextResponse.json({ error: 'Request too large' }, { status: 413 })
+    }
+  }
+
   let admin
   try {
     admin = createAdminClient()
@@ -84,8 +118,22 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
+  if (!devMode) {
+    if (body && typeof body === 'object' && JSON.stringify(body).length > MAX_BODY_BYTES) {
+      return NextResponse.json({ error: 'Request too large' }, { status: 413 })
+    }
+    if (Array.isArray(body.pets) && body.pets.length > MAX_PETS) {
+      return NextResponse.json({ error: 'Too many pets' }, { status: 400 })
+    }
+    if (Array.isArray(body.optional_vaccines) && body.optional_vaccines.length > MAX_OPTIONAL_ITEMS) {
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+    }
+    if (Array.isArray(body.optional_wellness_services) && body.optional_wellness_services.length > MAX_OPTIONAL_ITEMS) {
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+    }
+  }
+
   // Validate required fields (skipped in dev mode)
-  const devMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
   if (!devMode) {
     if (!body.owner_first_name?.trim()) {
       return NextResponse.json({ error: 'First name is required' }, { status: 400 })
@@ -125,38 +173,43 @@ export async function POST(request) {
     }
   }
 
+  const trim = (s, max = MAX_TEXT_LEN) => (typeof s === 'string' ? s.trim().slice(0, max) : '') || ''
+  const pets = Array.isArray(body.pets) ? body.pets.slice(0, MAX_PETS) : []
+  const optionalVaccines = Array.isArray(body.optional_vaccines) ? body.optional_vaccines.slice(0, MAX_OPTIONAL_ITEMS) : []
+  const optionalWellness = Array.isArray(body.optional_wellness_services) ? body.optional_wellness_services.slice(0, MAX_OPTIONAL_ITEMS) : []
+
   try {
     const { data, error } = await admin
       .from('appointments')
       .insert({
         is_returning_customer: body.is_returning_customer || false,
-        owner_name: [body.owner_first_name, body.owner_last_name].map((s) => s?.trim()).filter(Boolean).join(' ') || body.owner_name?.trim() || '',
-        owner_first_name: body.owner_first_name?.trim() || '',
-        owner_last_name: body.owner_last_name?.trim() || '',
-        owner_phone: body.owner_phone?.trim() || '',
-        owner_email: body.owner_email?.trim().toLowerCase() || '',
-        emergency_contact_name: body.emergency_contact_name?.trim() || '',
-        emergency_contact_phone: body.emergency_contact_phone?.trim() || '',
-        preferred_contact: body.preferred_contact || 'call',
-        street_address: body.street_address?.trim() || '',
-        city: body.city?.trim() || '',
-        state: body.state?.trim() || '',
-        zip_code: body.zip_code?.trim() || '',
-        how_heard: body.how_heard?.trim() || '',
-        requested_service: body.requested_service?.trim() || '',
-        num_pets: body.num_pets || (body.pets?.length || 0),
-        pets: body.pets || [],
+        owner_name: trim([body.owner_first_name, body.owner_last_name].map((s) => (typeof s === 'string' ? s.trim() : '')).filter(Boolean).join(' ')) || trim(body.owner_name) || '',
+        owner_first_name: trim(body.owner_first_name) || '',
+        owner_last_name: trim(body.owner_last_name) || '',
+        owner_phone: trim(body.owner_phone, 30) || '',
+        owner_email: trim(body.owner_email, 100).toLowerCase() || '',
+        emergency_contact_name: trim(body.emergency_contact_name) || '',
+        emergency_contact_phone: trim(body.emergency_contact_phone, 30) || '',
+        preferred_contact: ['call', 'text', 'email'].includes(body.preferred_contact) ? body.preferred_contact : 'call',
+        street_address: trim(body.street_address, 300) || '',
+        city: trim(body.city, 100) || '',
+        state: trim(body.state, 50) || '',
+        zip_code: trim(body.zip_code, 20) || '',
+        how_heard: trim(body.how_heard) || '',
+        requested_service: trim(body.requested_service, 50) || '',
+        num_pets: Math.min(pets.length, MAX_PETS),
+        pets,
         wants_microchip: (Array.isArray(body.optional_wellness_services) && body.optional_wellness_services.includes('microchip')) || body.wants_microchip || false,
         wants_nail_trim: (Array.isArray(body.optional_wellness_services) && body.optional_wellness_services.includes('nail_trim')) || body.wants_nail_trim || false,
-        wants_flea_treatment: (Array.isArray(body.optional_wellness_services) && (body.optional_wellness_services.includes('flea_selarid_feline') || body.optional_wellness_services.includes('flea_para_defense_k9'))) || body.wants_flea_treatment || false,
-        optional_vaccines: Array.isArray(body.optional_vaccines) ? body.optional_vaccines : [],
-        optional_wellness_services: Array.isArray(body.optional_wellness_services) ? body.optional_wellness_services : [],
+        wants_flea_treatment: optionalWellness.includes('flea_selarid_feline') || optionalWellness.includes('flea_para_defense_k9') || body.wants_flea_treatment || false,
+        optional_vaccines: optionalVaccines,
+        optional_wellness_services: optionalWellness,
         deposit_acknowledged: body.deposit_acknowledged || false,
         deposit_card_last4: (body.deposit_card_last4 || '').toString().replace(/\D/g, '').slice(0, 4) || '',
         deposit_card_expiry: (body.deposit_card_expiry || '').toString().trim().slice(0, 10) || '',
         deposit_billing_zip: (body.deposit_billing_zip || '').toString().trim().slice(0, 10) || '',
-        legal_acknowledged: body.legal_acknowledged || false,
-        signature: body.signature?.trim() || '',
+        legal_acknowledged: !!body.legal_acknowledged,
+        signature: trim(body.signature, MAX_SIGNATURE_LEN) || '',
         status: 'pending',
       })
       .select()

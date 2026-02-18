@@ -1,12 +1,28 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
+import { getClientIp } from '@/lib/getClientIp'
+import { rateLimit } from '@/lib/rateLimit'
+
+const MAX_BODY_BYTES = 512 * 1024 // 512KB
+const MAX_FORM_DATA_KEYS = 200 // cap form_data object key count
 
 // GET — resume: list drafts by email or phone (typically one)
 export async function GET(request) {
+  const devMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+  if (!devMode) {
+    const ip = getClientIp(request)
+    const rl = rateLimit(`intake-drafts-get:${ip}`, { windowMs: 60 * 1000, max: 30 })
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Too many requests. Try again in a minute.' },
+        { status: 429, headers: rl.retryAfter ? { 'Retry-After': String(rl.retryAfter) } : {} }
+      )
+    }
+  }
   try {
     const { searchParams } = new URL(request.url)
-    const email = searchParams.get('email')?.trim()
-    const phone = searchParams.get('phone')?.trim()
+    const email = searchParams.get('email')?.trim()?.slice(0, 100)
+    const phone = searchParams.get('phone')?.trim()?.slice(0, 30)
     if (!email && !phone) {
       return NextResponse.json(
         { error: 'Provide email or phone to resume' },
@@ -44,6 +60,21 @@ export async function GET(request) {
 
 // POST — save draft (upsert by owner email or phone)
 export async function POST(request) {
+  const devMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+  if (!devMode) {
+    const ip = getClientIp(request)
+    const rl = rateLimit(`intake-drafts-post:${ip}`, { windowMs: 60 * 60 * 1000, max: 60 })
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Too many draft saves. Try again later.' },
+        { status: 429, headers: rl.retryAfter ? { 'Retry-After': String(rl.retryAfter) } : {} }
+      )
+    }
+    const cl = request.headers.get('content-length')
+    if (cl && parseInt(cl, 10) > MAX_BODY_BYTES) {
+      return NextResponse.json({ error: 'Request too large' }, { status: 413 })
+    }
+  }
   try {
     const body = await request.json()
     const { step, formData } = body
@@ -61,10 +92,19 @@ export async function POST(request) {
         { status: 400 }
       )
     }
+    if (!devMode) {
+      if (body && typeof body === 'object' && JSON.stringify(body).length > MAX_BODY_BYTES) {
+        return NextResponse.json({ error: 'Request too large' }, { status: 413 })
+      }
+      const keyCount = formData && typeof formData === 'object' ? Object.keys(formData).length : 0
+      if (keyCount > MAX_FORM_DATA_KEYS) {
+        return NextResponse.json({ error: 'Invalid form data' }, { status: 400 })
+      }
+    }
     const supabase = createAdminClient()
     const row = {
-      owner_email: email || '',
-      owner_phone: phone || '',
+      owner_email: (email || '').slice(0, 100),
+      owner_phone: (phone || '').slice(0, 30),
       step,
       form_data: formData,
       updated_at: new Date().toISOString(),
