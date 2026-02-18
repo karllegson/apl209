@@ -6,8 +6,8 @@ import { useLanguage } from './LanguageContext'
 
 const T = {
   en: {
-    depositBold: 'Deposit required for spay/neuter.',
-    depositRest: ' We\'ll ask for it when we call to confirm. We\'re not collecting payment in this form.',
+    depositBold: 'Nonrefundable deposit required.',
+    depositRest: ' $50 dogs, $25 pet cats. Your deposit is applied to the cost of your visit. Cancel or reschedule with less than 48 hours\' notice and you will lose your deposit. We will ask for your deposit when we call to confirm.',
     clientStatus: 'Client status',
     newClient: 'I am a new client',
     returningClient: 'I am a returning client',
@@ -25,8 +25,8 @@ const T = {
     howHeard: 'How did you hear about us?',
   },
   es: {
-    depositBold: 'Se requiere depósito para esterilización/castración.',
-    depositRest: ' Se lo pediremos cuando le llamemos para confirmar. No cobramos en este formulario.',
+    depositBold: 'Se requiere depósito no reembolsable.',
+    depositRest: ' $50 perros, $25 gatos mascota. Su depósito se aplica al costo de su visita. Si cancela o reprograma con menos de 48 horas de aviso, pierde el depósito. Se lo pediremos cuando le llamemos para confirmar.',
     clientStatus: 'Estado del cliente',
     newClient: 'Soy un cliente nuevo',
     returningClient: 'Soy un cliente recurrente',

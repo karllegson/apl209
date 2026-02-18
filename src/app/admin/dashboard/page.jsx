@@ -9,9 +9,8 @@ import AppointmentDetail from '@/components/AppointmentDetail'
 import { Search, Filter, RefreshCw } from 'lucide-react'
 
 const statusFilters = [
-  { value: 'all', label: 'All (excl. confirmed)' },
+  { value: 'all', label: 'All (excl. confirmed & attempted)' },
   { value: 'pending', label: 'Pending' },
-  { value: 'attempted', label: 'Attempted' },
   { value: 'cancelled', label: 'Cancelled' },
 ]
 
@@ -83,7 +82,7 @@ export default function AdminDashboardPage() {
       if (statusFilter !== 'all') {
         params.set('status', statusFilter)
       } else {
-        params.set('excludeStatus', 'confirmed')
+        params.set('excludeStatus', 'confirmed,attempted')
       }
       if (search.trim()) params.set('search', search.trim())
 

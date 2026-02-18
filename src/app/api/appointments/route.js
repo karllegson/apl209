@@ -40,7 +40,7 @@ export async function GET(request) {
   }
   const { searchParams } = new URL(request.url)
   const status = searchParams.get('status')
-  const excludeStatus = searchParams.get('excludeStatus')
+  const excludeStatusParam = searchParams.get('excludeStatus')
   const rawSearch = searchParams.get('search')
   const search = rawSearch ? sanitizeSearch(rawSearch) : ''
   const page = Math.min(Math.max(1, parseInt(searchParams.get('page') || '1', 10)), 100)
@@ -53,8 +53,9 @@ export async function GET(request) {
   if (status && status !== 'all') {
     if (allowedStatuses.includes(status)) query = query.eq('status', status)
   }
-  if (excludeStatus && allowedStatuses.includes(excludeStatus)) {
-    query = query.neq('status', excludeStatus)
+  if (excludeStatusParam) {
+    const toExclude = excludeStatusParam.split(',').map((s) => s.trim()).filter((s) => allowedStatuses.includes(s))
+    toExclude.forEach((excludeStatus) => { query = query.neq('status', excludeStatus) })
   }
 
   if (search) {

@@ -192,6 +192,20 @@ export async function PATCH(request, { params }) {
     await admin.from('standby_appointments').delete().eq('source_appointment_id', id)
   }
 
+  // When appointment is confirmed/cancelled/completed/no-show, sync linked standby rows so they leave the attempted list
+  if (updates.status && ['confirmed', 'cancelled', 'completed', 'no-show'].includes(updates.status)) {
+    const staffName = body.status_changed_by != null && typeof body.status_changed_by === 'string'
+      ? body.status_changed_by.trim().slice(0, 200)
+      : ''
+    const payload = {
+      status: updates.status,
+      status_changed_by: staffName,
+      status_changed_at: updates.status_changed_at || new Date().toISOString(),
+    }
+    await admin.from('standby_appointments').update(payload).eq('source_appointment_id', id)
+    await admin.from('standby_appointments').update(payload).eq('merged_appointment_id', id)
+  }
+
   return NextResponse.json({ appointment: data })
 }
 

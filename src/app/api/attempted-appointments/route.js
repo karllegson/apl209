@@ -40,13 +40,34 @@ export async function GET(request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  if (!includeMatches || !list?.length) {
-    return NextResponse.json({ attempted: list || [] })
+  let listFiltered = list || []
+
+  // Hide standby rows whose linked appointment is already confirmed/cancelled/completed (they shouldn't show on attempted page)
+  const linkedIds = [...new Set(
+    (listFiltered || [])
+      .flatMap((s) => [s.source_appointment_id, s.merged_appointment_id].filter(Boolean))
+  )]
+  if (linkedIds.length > 0) {
+    const { data: linkedAppointments } = await admin
+      .from('appointments')
+      .select('id, status')
+      .in('id', linkedIds)
+    const resolvedStatus = new Set(
+      (linkedAppointments || []).filter((a) => ['confirmed', 'cancelled', 'completed'].includes(a.status)).map((a) => a.id)
+    )
+    listFiltered = listFiltered.filter((s) => {
+      const srcId = s.source_appointment_id || s.merged_appointment_id
+      return !srcId || !resolvedStatus.has(srcId)
+    })
   }
 
-  const phones = [...new Set(list.map((s) => (s.phone || '').trim()).filter(Boolean))]
+  if (!includeMatches || !listFiltered?.length) {
+    return NextResponse.json({ attempted: listFiltered })
+  }
+
+  const phones = [...new Set(listFiltered.map((s) => (s.phone || '').trim()).filter(Boolean))]
   if (phones.length === 0) {
-    return NextResponse.json({ attempted: list })
+    return NextResponse.json({ attempted: listFiltered })
   }
 
   const { data: appointments } = await admin
@@ -61,7 +82,7 @@ export async function GET(request) {
     byPhone[p].push(a)
   }
 
-  const attempted = list.map((s) => ({
+  const attempted = listFiltered.map((s) => ({
     ...s,
     suggestedAppointments: byPhone[(s.phone || '').trim()] || [],
   }))
