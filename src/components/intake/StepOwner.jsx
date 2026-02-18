@@ -6,8 +6,8 @@ import { useLanguage } from './LanguageContext'
 
 const T = {
   en: {
-    depositBold: 'Nonrefundable deposit required.',
-    depositRest: ' $50 dogs, $25 pet cats. Your deposit is applied to the cost of your visit. Cancel or reschedule with less than 48 hours\' notice and you will lose your deposit. You\'ll enter payment details on the Review & Sign step before submitting.',
+    depositBold: 'Deposit required for spay/neuter.',
+    depositRest: ' We\'ll ask for it when we call to confirm. We\'re not collecting payment in this form.',
     clientStatus: 'Client status',
     newClient: 'I am a new client',
     returningClient: 'I am a returning client',
@@ -25,8 +25,8 @@ const T = {
     howHeard: 'How did you hear about us?',
   },
   es: {
-    depositBold: 'Se requiere depósito no reembolsable.',
-    depositRest: ' $50 perros, $25 gatos mascota. Su depósito se aplica al costo de su visita. Si cancela o reprograma con menos de 48 horas de aviso, pierde el depósito. Los datos de pago los va a ingresar en el paso Revisión y firma antes de enviar.',
+    depositBold: 'Se requiere depósito para esterilización/castración.',
+    depositRest: ' Se lo pediremos cuando le llamemos para confirmar. No cobramos en este formulario.',
     clientStatus: 'Estado del cliente',
     newClient: 'Soy un cliente nuevo',
     returningClient: 'Soy un cliente recurrente',
@@ -48,12 +48,15 @@ const T = {
 export default function StepOwner({ form, errors, updateField }) {
   const { language } = useLanguage()
   const t = T[language] || T.en
+  const showDepositNotice = form.requested_service === 'spay_neuter' || form.requested_service === 'tnr'
 
   return (
     <div className="space-y-5 md:space-y-6">
-      <div className="rounded-lg border border-apl-primary/30 bg-apl-blue/5 px-4 py-3 text-sm text-gray-700">
-        <strong className="text-apl-primary">{t.depositBold}</strong>{t.depositRest}
-      </div>
+      {showDepositNotice && (
+        <div className="rounded-lg border border-apl-primary/30 bg-apl-blue/5 px-4 py-3 text-sm text-gray-700">
+          <strong className="text-apl-primary">{t.depositBold}</strong>{t.depositRest}
+        </div>
+      )}
 
       {/* Client status */}
       <div>

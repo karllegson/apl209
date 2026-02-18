@@ -99,6 +99,11 @@ function mergeForm(initial) {
     if (merged.wants_flea_treatment) fromLegacy.push('flea_selarid_feline') // or flea_para_defense_k9; pick one for display
     if (fromLegacy.length) merged.optional_wellness_services = fromLegacy
   }
+  // Office visit required for vaccines: default to selected when service is vaccines-only
+  if (merged.requested_service === 'vaccines') {
+    const vaccines = Array.isArray(merged.optional_vaccines) ? merged.optional_vaccines : []
+    if (!vaccines.includes('office_visit')) merged.optional_vaccines = ['office_visit', ...vaccines]
+  }
   return merged
 }
 
@@ -212,13 +217,6 @@ export default function IntakeForm({ initialForm, initialStep = 1, onBackToHome,
 
     const submitStepNum = isShortFlow ? 3 : 5
     if (stepNum === submitStepNum) {
-      if (!form.deposit_acknowledged)
-        e.deposit_acknowledged = 'You must acknowledge the deposit requirement'
-      const cardLast4 = (form.deposit_card_number || '').replace(/\D/g, '')
-      if (cardLast4.length !== 4) e.deposit_card_number = 'Enter the last 4 digits of your card'
-      const expiry = (form.deposit_card_expiry || '').replace(/\D/g, '')
-      if (expiry.length !== 4) e.deposit_card_expiry = 'Enter expiry (MMYY)'
-      if (!(form.deposit_billing_zip || '').trim()) e.deposit_billing_zip = 'Billing ZIP is required'
       if (!form.legal_acknowledged)
         e.legal_acknowledged = 'You must accept to continue'
       if (!form.signature.trim()) e.signature = 'Signature is required'

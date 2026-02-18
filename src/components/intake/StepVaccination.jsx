@@ -44,6 +44,7 @@ const T = {
 export default function StepVaccination({ form, errors, updatePet }) {
   const { language } = useLanguage()
   const t = T[language] || T.en
+  const showSpayNeuterWarnings = form.requested_service === 'spay_neuter' || form.requested_service === 'tnr'
 
   return (
     <div className="space-y-6">
@@ -69,12 +70,12 @@ export default function StepVaccination({ form, errors, updatePet }) {
               onChange={(v) => updatePet(i, 'rabies_vaccinated', v)}
               error={errors[`pet_${i}_rabies_vaccinated`]}
             />
-            {pet.rabies_vaccinated === 'yes' && (
+            {showSpayNeuterWarnings && pet.rabies_vaccinated === 'yes' && (
               <p className="text-xs text-gray-600 bg-gray-100 border border-gray-200 rounded-lg px-3 py-2">
                 {t.rabiesProof}
               </p>
             )}
-            {(pet.rabies_vaccinated === 'no' || pet.rabies_vaccinated === 'unknown') && (
+            {showSpayNeuterWarnings && (pet.rabies_vaccinated === 'no' || pet.rabies_vaccinated === 'unknown') && (
               <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
                 {t.rabiesRequired}
               </p>

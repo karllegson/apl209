@@ -190,16 +190,18 @@ export default function StepSummary({ form }) {
         </div>
       )}
 
-      {/* Deposit */}
-      <div className="rounded-lg border border-gray-200 bg-gray-50/50 p-4">
-        <SectionTitle>{L.deposit}</SectionTitle>
-        <div className="mt-2 space-y-0">
-          {line(L.depositAcknowledged, form.deposit_acknowledged ? (language === 'es' ? 'Sí' : 'Yes') : '—')}
-          {(form.deposit_card_last4 || (form.deposit_card_number && form.deposit_card_number.replace(/\D/g, '').slice(-4))) && line(L.cardLast4, `•••• ${form.deposit_card_last4 || form.deposit_card_number.replace(/\D/g, '').slice(-4)}`)}
-          {form.deposit_card_expiry?.trim() && line(L.expiry, form.deposit_card_expiry)}
-          {form.deposit_billing_zip?.trim() && line(L.billingZip, form.deposit_billing_zip)}
+      {/* Deposit (spay/neuter and TNR only) */}
+      {(form.requested_service === 'spay_neuter' || form.requested_service === 'tnr') && (
+        <div className="rounded-lg border border-gray-200 bg-gray-50/50 p-4">
+          <SectionTitle>{L.deposit}</SectionTitle>
+          <div className="mt-2 space-y-0">
+            {line(L.depositAcknowledged, form.deposit_acknowledged ? (language === 'es' ? 'Sí' : 'Yes') : '—')}
+            {(form.deposit_card_last4 || (form.deposit_card_number && form.deposit_card_number.replace(/\D/g, '').slice(-4))) && line(L.cardLast4, `•••• ${form.deposit_card_last4 || form.deposit_card_number.replace(/\D/g, '').slice(-4)}`)}
+            {form.deposit_card_expiry?.trim() && line(L.expiry, form.deposit_card_expiry)}
+            {form.deposit_billing_zip?.trim() && line(L.billingZip, form.deposit_billing_zip)}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Signature */}
       <div className="rounded-lg border border-gray-200 bg-gray-50/50 p-4">

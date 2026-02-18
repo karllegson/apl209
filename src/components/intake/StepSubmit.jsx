@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { ChevronDown, ChevronUp, FileText, Heart, HelpCircle, Syringe, Wallet } from 'lucide-react'
 import { SectionTitle } from './FormWidgets'
 import { useLanguage } from './LanguageContext'
@@ -33,6 +34,8 @@ const WELLNESS_OPTIONS = [
   { id: 'dewormer_small_pyrantel', label: 'K9/feline 5.9 lbs and under dewormer Pyrantel pomoate', price: '$8', animal: null, info: 'Liquid dewormer for very small dogs and cats (5.9 lbs and under).' },
 ]
 
+const ALL_INFO_OPTIONS = [...VACCINE_OPTIONS, ...WELLNESS_OPTIONS]
+
 export default function StepSubmit({ form, errors, updateField }) {
   const { language } = useLanguage()
   const isSpanish = language === 'es'
@@ -41,6 +44,27 @@ export default function StepSubmit({ form, errors, updateField }) {
   const [openInfoId, setOpenInfoId] = useState(null)
   const selectedVaccines = form.optional_vaccines || []
   const selectedWellness = form.optional_wellness_services || []
+
+  // Close info popup when clicking anywhere outside the trigger button or popup
+  useEffect(() => {
+    if (openInfoId == null) return
+    const closeOnClickOutside = (e) => {
+      if (!e.target.closest('[data-info-trigger], [data-info-popup]')) setOpenInfoId(null)
+    }
+    document.addEventListener('mousedown', closeOnClickOutside)
+    return () => document.removeEventListener('mousedown', closeOnClickOutside)
+  }, [openInfoId])
+
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
+  const openInfoOption = openInfoId ? ALL_INFO_OPTIONS.find((o) => o.id === openInfoId) : null
 
   const pets = form.pets || []
   const isTNR = form.requested_service === 'tnr'
@@ -59,6 +83,25 @@ export default function StepSubmit({ form, errors, updateField }) {
           ? `$${DEPOSIT_PET_CAT} (pet cat)`
           : `Dogs: $${DEPOSIT_DOG}, Pet cats: $${DEPOSIT_PET_CAT}. TNR: $${DEPOSIT_TNR}.`
 
+  const showDepositWarning = form.requested_service === 'spay_neuter' || form.requested_service === 'tnr'
+
+  const toggleVaccine = (id) => {
+    const isRemoving = selectedVaccines.includes(id)
+    let next = isRemoving
+      ? selectedVaccines.filter((x) => x !== id)
+      : [...selectedVaccines, id]
+    // Office visit is required when taking any vaccine: auto-include when adding a vaccine, prevent removing if others selected
+    if (id === 'office_visit' && isRemoving && next.length > 0) next = selectedVaccines // keep office_visit when other vaccines selected
+    if (id !== 'office_visit' && !isRemoving && !next.includes('office_visit')) next = ['office_visit', ...next]
+    updateField('optional_vaccines', next)
+  }
+  const toggleWellness = (id) => {
+    const next = selectedWellness.includes(id)
+      ? selectedWellness.filter((x) => x !== id)
+      : [...selectedWellness, id]
+    updateField('optional_wellness_services', next)
+  }
+
   const t = {
     en: {
       sectionTitle: 'Optional Services & Acknowledgements',
@@ -71,7 +114,7 @@ export default function StepSubmit({ form, errors, updateField }) {
       depositRequired: 'Deposit required',
       deposit: 'Deposit',
       yourDeposit: 'Your deposit',
-      depositParagraph: 'Nonrefundable deposits: $50 for dogs, $25 for pet cats. This deposit holds your appointment and is applied to the actual cost of your visit when you come in. If you cancel or reschedule with less than 48 hours before your appointment, you will lose your deposit. Your card will not be charged until we confirm your appointment.',
+      depositParagraph: 'We will ask for your deposit when we call to confirm your appointment. We are not collecting payment in this form.',
       depositNote: 'Enter only the last 4 digits of your card below. We will call you during the confirmation call to collect the full card number and security code (CVV) for the deposit.',
       last4: 'Last 4 digits of card',
       expiry: 'Expiry (MM/YY)',
@@ -99,7 +142,7 @@ export default function StepSubmit({ form, errors, updateField }) {
       depositRequired: 'Depósito requerido',
       deposit: 'Depósito',
       yourDeposit: 'Su depósito',
-      depositParagraph: 'Depósitos no reembolsables: $50 perros, $25 gatos mascota. Con este depósito se reserva su cita y se descuenta del costo de su visita. Si cancela o reprograma con menos de 48 horas de anticipación, pierde el depósito. No le vamos a cobrar hasta confirmarle su cita.',
+      depositParagraph: 'Le pediremos el depósito cuando le llamemos para confirmar su cita. No estamos cobrando en este formulario.',
       depositNote: 'Solo capture los últimos 4 dígitos de su tarjeta. En la llamada de confirmación le pediremos el número completo y el CVV para cobrar el depósito.',
       last4: 'Últimos 4 dígitos de la tarjeta',
       expiry: 'Vencimiento (MM/AA)',
@@ -121,6 +164,31 @@ export default function StepSubmit({ form, errors, updateField }) {
 
   return (
     <div className="space-y-6 min-w-0">
+      {/* Mobile: fixed overlay so info isn't clipped inside the dropdown */}
+      {typeof document !== 'undefined' &&
+        isMobile &&
+        openInfoOption &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 sm:hidden"
+            data-info-popup
+            onClick={() => setOpenInfoId(null)}
+            onKeyDown={(e) => e.key === 'Escape' && setOpenInfoId(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label={openInfoOption.label}
+          >
+            <div
+              className="max-h-[80vh] w-full max-w-sm overflow-auto rounded-xl bg-gray-800 px-4 py-4 text-white shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="font-medium text-sm text-gray-200">{openInfoOption.label}</p>
+              <p className="mt-2 text-sm leading-relaxed">{openInfoOption.info}</p>
+            </div>
+          </div>,
+          document.body
+        )}
+
       <SectionTitle>{L.sectionTitle}</SectionTitle>
 
       {/* Optional Services */}
@@ -153,7 +221,6 @@ export default function StepSubmit({ form, errors, updateField }) {
           </button>
           {vaccinesOpen && (
             <div className="border-t border-gray-200 bg-gray-50/50 p-3 md:p-4 space-y-1">
-              <p className="text-xs text-gray-500 mb-2">{L.officeVisitRequired}</p>
               {VACCINE_OPTIONS.map(({ id, label, price, animal, info }, index) => (
                 <label
                   key={id}
@@ -172,6 +239,7 @@ export default function StepSubmit({ form, errors, updateField }) {
                       <span className="relative inline-flex group/info shrink-0">
                         <button
                           type="button"
+                          data-info-trigger
                           className="inline-flex text-gray-400 hover:text-apl-primary focus:text-apl-primary cursor-pointer rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-apl-primary focus-visible:ring-offset-1 p-0.5 border-0 bg-transparent touch-manipulation"
                           title={info}
                           onClick={(e) => {
@@ -186,7 +254,8 @@ export default function StepSubmit({ form, errors, updateField }) {
                           <HelpCircle className="w-4 h-4" />
                         </button>
                         <span
-                          className={`absolute right-0 left-auto sm:left-1/2 sm:right-auto sm:-translate-x-1/2 bottom-full mb-1 z-10 w-[85vw] max-w-[14rem] sm:w-56 px-2.5 py-1.5 text-xs text-white bg-gray-800 rounded shadow-lg cursor-default ${openInfoId === id ? 'block' : 'hidden'}`}
+                          data-info-popup
+                          className={`absolute right-0 left-auto sm:left-1/2 sm:right-auto sm:-translate-x-1/2 bottom-full mb-1 z-10 w-[85vw] max-w-[14rem] sm:w-56 px-2.5 py-1.5 text-xs text-white bg-gray-800 rounded shadow-lg cursor-default ${openInfoId === id ? 'block max-sm:hidden' : 'hidden'}`}
                           onClick={(e) => e.stopPropagation()}
                           onPointerDown={(e) => e.stopPropagation()}
                           role="tooltip"
@@ -246,6 +315,7 @@ export default function StepSubmit({ form, errors, updateField }) {
                       <span className="relative inline-flex group/info shrink-0">
                         <button
                           type="button"
+                          data-info-trigger
                           className="inline-flex text-gray-400 hover:text-apl-primary focus:text-apl-primary cursor-pointer rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-apl-primary focus-visible:ring-offset-1 p-0.5 border-0 bg-transparent touch-manipulation"
                           title={info}
                           onClick={(e) => {
@@ -260,7 +330,8 @@ export default function StepSubmit({ form, errors, updateField }) {
                           <HelpCircle className="w-4 h-4" />
                         </button>
                         <span
-                          className={`absolute right-0 left-auto sm:left-1/2 sm:right-auto sm:-translate-x-1/2 bottom-full mb-1 z-10 w-[85vw] max-w-[14rem] sm:w-56 px-2.5 py-1.5 text-xs text-white bg-gray-800 rounded shadow-lg cursor-default ${openInfoId === id ? 'block' : 'hidden'}`}
+                          data-info-popup
+                          className={`absolute right-0 left-auto sm:left-1/2 sm:right-auto sm:-translate-x-1/2 bottom-full mb-1 z-10 w-[85vw] max-w-[14rem] sm:w-56 px-2.5 py-1.5 text-xs text-white bg-gray-800 rounded shadow-lg cursor-default ${openInfoId === id ? 'block max-sm:hidden' : 'hidden'}`}
                           onClick={(e) => e.stopPropagation()}
                           onPointerDown={(e) => e.stopPropagation()}
                           role="tooltip"
@@ -278,90 +349,19 @@ export default function StepSubmit({ form, errors, updateField }) {
         </div>
       </div>
 
-      {/* Deposit required */}
-      <div className="rounded-lg border border-gray-200 bg-gray-50/80 p-4 md:p-5">
-        <div className="flex items-start gap-2 mb-2">
-          <Wallet className="w-5 h-5 text-apl-primary shrink-0 mt-[0.1875rem]" aria-hidden />
-          <h3 className="form-section-heading text-gray-900 mb-0 leading-tight">{L.depositRequired}</h3>
+      {/* Deposit warning (spay/neuter only — no card intake) */}
+      {showDepositWarning && (
+        <div className="rounded-lg border border-gray-200 bg-gray-50/80 p-4 md:p-5">
+          <div className="flex items-start gap-2 mb-2">
+            <Wallet className="w-5 h-5 text-apl-primary shrink-0 mt-[0.1875rem]" aria-hidden />
+            <h3 className="form-section-heading text-gray-900 mb-0 leading-tight">{L.depositRequired}</h3>
+          </div>
+          <p className="text-sm text-gray-600">
+            {L.depositParagraph}
+          </p>
+          <p className="text-xs text-gray-500 mt-2">{depositLabel}</p>
         </div>
-        <p className="text-sm font-semibold text-gray-800 mb-1">{L.deposit}: {depositLabel}</p>
-        {depositTotal > 0 && (
-          <p className="text-sm font-medium text-apl-primary mb-1">{L.yourDeposit}: ${depositTotal}</p>
-        )}
-        <p className="text-sm text-gray-600 mb-2">
-          {L.depositParagraph}
-        </p>
-        <p className="text-sm text-gray-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4">
-          <strong>{language === 'es' ? 'Nota:' : 'Note:'}</strong> {L.depositNote}
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-2">
-          <div>
-            <label className="form-field-label block mb-1.5 text-gray-700">{L.last4} <span className="text-red-500">*</span></label>
-            <input
-              type="tel"
-              inputMode="numeric"
-              autoComplete="off"
-              value={form.deposit_card_number}
-              onChange={(e) => updateField('deposit_card_number', e.target.value.replace(/\D/g, '').slice(0, 4))}
-              placeholder="1234"
-              maxLength={4}
-              className={`w-full intake-input px-3 py-2.5 rounded-lg border text-sm transition-all ${
-                errors.deposit_card_number ? 'border-red-400 bg-red-50' : 'border-gray-300'
-              } focus:outline-none focus:ring-2 focus:ring-apl-blue focus:border-apl-blue`}
-            />
-            {errors.deposit_card_number && <p className="text-red-500 text-xs mt-1">{errors.deposit_card_number}</p>}
-          </div>
-          <div>
-            <label className="form-field-label block mb-1.5 text-gray-700">{L.expiry} <span className="text-red-500">*</span></label>
-            <input
-              type="tel"
-              inputMode="numeric"
-              autoComplete="cc-exp"
-              value={form.deposit_card_expiry}
-              onChange={(e) => updateField('deposit_card_expiry', e.target.value.replace(/\D/g, '').slice(0, 4))}
-              placeholder="MMYY"
-              maxLength={4}
-              className={`w-full intake-input px-3 py-2.5 rounded-lg border text-sm transition-all ${
-                errors.deposit_card_expiry ? 'border-red-400 bg-red-50' : 'border-gray-300'
-              } focus:outline-none focus:ring-2 focus:ring-apl-blue focus:border-apl-blue`}
-            />
-            {errors.deposit_card_expiry && <p className="text-red-500 text-xs mt-1">{errors.deposit_card_expiry}</p>}
-          </div>
-          <div>
-            <label className="form-field-label block mb-1.5 text-gray-700">{L.billingZip} <span className="text-red-500">*</span></label>
-            <input
-              type="tel"
-              inputMode="numeric"
-              autoComplete="postal-code"
-              value={form.deposit_billing_zip}
-              onChange={(e) => updateField('deposit_billing_zip', e.target.value.replace(/\D/g, '').slice(0, 10))}
-              placeholder="ZIP"
-              className={`w-full intake-input px-3 py-2.5 rounded-lg border text-sm transition-all ${
-                errors.deposit_billing_zip ? 'border-red-400 bg-red-50' : 'border-gray-300'
-              } focus:outline-none focus:ring-2 focus:ring-apl-blue focus:border-apl-blue`}
-            />
-            {errors.deposit_billing_zip && <p className="text-red-500 text-xs mt-1">{errors.deposit_billing_zip}</p>}
-          </div>
-        </div>
-        <p className="text-xs text-gray-500 mb-4">
-          {L.cvvReady}
-        </p>
-        <button
-          type="button"
-          onClick={() => updateField('deposit_acknowledged', !form.deposit_acknowledged)}
-          className={`flex items-center gap-3 p-3 rounded-md border-2 w-full text-left transition-all cursor-pointer ${
-            errors.deposit_acknowledged ? 'border-red-400 bg-red-50' : form.deposit_acknowledged ? 'border-apl-blue bg-apl-blue-50' : 'border-gray-300 bg-white hover:border-gray-400'
-          }`}
-        >
-          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
-            form.deposit_acknowledged ? 'bg-apl-primary border-apl-primary' : 'bg-white border-gray-300'
-          }`}>
-            {form.deposit_acknowledged && <span className="text-white text-xs font-bold">✓</span>}
-          </div>
-          <p className="text-sm font-semibold text-gray-800">{L.depositAck}</p>
-        </button>
-        {errors.deposit_acknowledged && <p className="text-red-500 text-xs mt-2">{errors.deposit_acknowledged}</p>}
-      </div>
+      )}
 
       {/* Legal Acknowledgements */}
       <div className="bg-slate-50 border border-slate-200 rounded-lg p-5">
