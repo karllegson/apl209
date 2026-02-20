@@ -9,7 +9,6 @@ import {
   Mail,
   Phone,
   MapPin,
-  CreditCard,
   PawPrint,
   Heart,
   Shield,
@@ -29,6 +28,36 @@ const statusActions = [
   { value: 'attempted', label: 'Attempted', color: 'bg-orange-600 hover:bg-orange-700' },
   { value: 'cancelled', label: 'Cancel', color: 'bg-stone-500 hover:bg-stone-600' },
 ]
+
+const REQUESTED_SERVICE_LABELS = {
+  spay_neuter: 'Spay & Neuter',
+  vaccines: 'Vaccines only',
+  wellness_other: 'Wellness / Other',
+  tnr: 'TNR',
+}
+
+const VACCINE_LABELS = {
+  office_visit: 'Office visit',
+  canine_bordetella: 'Canine — Bordetella intranasal',
+  canine_leptospirosis: 'Canine — Leptospirosis',
+  canine_dapp: 'Canine — DAPP',
+  canine_rabies: 'Canine — Rabies 1 yr / 3 yr',
+  feline_hcp: 'Feline — HCP',
+  feline_leukemia: 'Feline — Leukemia',
+  feline_felv_fiv_test: 'Feline — FeLV/FIV test',
+  feline_rabies: 'Feline — Rabies 1 yr',
+}
+
+const WELLNESS_LABELS = {
+  microchip: 'Microchipping',
+  nail_trim: 'Nail Trim',
+  flea_selarid_feline: 'Selarid feline topical flea prevention',
+  flea_para_defense_k9: 'Para-Defense K9 topical flea prevention',
+  dewormer_k9_6_25: 'K9 dewormer Vibrantal 6–25 lbs',
+  dewormer_k9_25_100: 'K9 dewormer Vibrantal 25.1–100 lbs',
+  dewormer_feline_praziquantel: 'Feline dewormer Praziquantel injectable',
+  dewormer_small_pyrantel: 'K9/feline 5.9 lbs and under dewormer Pyrantel pomoate',
+}
 
 const boolLabel = (v) =>
   v === true ? 'Yes' : v === false ? 'No' : v || '—'
@@ -51,7 +80,7 @@ function EmptyHighlight({ value, children, className = '' }) {
   )
 }
 
-function CopyableField({ label, value, emptyHighlight = false, copyable = true }) {
+function CopyableField({ label, value, emptyHighlight = false, dangerHighlight = false, copyable = true }) {
   const [copied, setCopied] = useState(false)
   const text = value != null && String(value).trim() !== '' ? String(value).trim() : '—'
   const toCopy = value != null && String(value).trim() !== '' ? String(value).trim() : ''
@@ -62,17 +91,24 @@ function CopyableField({ label, value, emptyHighlight = false, copyable = true }
       setTimeout(() => setCopied(false), 2000)
     })
   }
+  const valueContent = (className = 'text-slate-800') => (
+    <span className={`text-sm break-words block ${className}`}>{text}</span>
+  )
   return (
     <div className="flex items-start justify-between gap-2 py-1.5 border-b border-slate-100 last:border-0">
       {label ? <span className="text-slate-500 text-sm shrink-0">{label}</span> : null}
       <span className="flex items-start gap-2 min-w-0 flex-1 justify-end">
         <span className="min-w-0 flex-1 text-right">
-          {emptyHighlight ? (
+          {dangerHighlight ? (
+            <span className="inline-block bg-red-50 border border-red-200 rounded px-1.5 py-0.5 text-red-800 text-sm min-w-0 block">
+              {valueContent('text-red-800')}
+            </span>
+          ) : emptyHighlight ? (
             <EmptyHighlight value={toCopy || null} className="min-w-0 block">
-              <span className="text-slate-800 text-sm break-words block">{text}</span>
+              {valueContent()}
             </EmptyHighlight>
           ) : (
-            <span className="text-slate-800 text-sm break-words block">{text}</span>
+            valueContent()
           )}
         </span>
         {copyable && (
@@ -141,6 +177,7 @@ export default function AppointmentDetail({
     wants_nail_trim: false,
     wants_flea_treatment: false,
   })
+  const [fullscreenPhoto, setFullscreenPhoto] = useState(null)
 
   useEffect(() => {
     if (!appointment) return
@@ -292,9 +329,43 @@ export default function AppointmentDetail({
     }
   }
 
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setFullscreenPhoto(null)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+
+      {fullscreenPhoto && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 cursor-pointer"
+          onClick={() => setFullscreenPhoto(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Pet photo full screen"
+        >
+          <button
+            type="button"
+            onClick={() => setFullscreenPhoto(null)}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer z-10"
+            aria-label="Close"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={fullscreenPhoto}
+            alt="Pet"
+            className="max-w-full max-h-[calc(100vh-2rem)] object-contain pointer-events-none"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
 
       <div className="relative w-full md:w-1/2 max-w-3xl bg-white shadow-2xl animate-slide-in-right overflow-y-auto custom-scrollbar">
         {/* Header */}
@@ -522,26 +593,100 @@ export default function AppointmentDetail({
                 <VetNoteWithCopy note={appointment.vet_note.trim()} />
               ) : null}
 
-              {/* Requested service — left column */}
+              {/* Requested service — left column (light green) */}
               <div>
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Requested service</p>
-                <div className="bg-slate-50 rounded-xl p-4">
-                  <CopyableField label="Service" value={appointment.requested_service} emptyHighlight />
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Requested service</p>
+                <div className="rounded-xl p-4 border border-emerald-200 bg-emerald-50/80">
+                  <CopyableField
+                    label="Service"
+                    value={REQUESTED_SERVICE_LABELS[appointment.requested_service] || appointment.requested_service}
+                    emptyHighlight
+                  />
                 </div>
               </div>
 
-              {/* Deposit & card — left column */}
+              {/* Add-ons & wellness — left column (light slight green), in place of Deposit & card */}
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <CreditCard className="w-4 h-4 text-apl-blue" />
-                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Deposit & card</p>
+                  <Sparkles className="w-4 h-4 text-emerald-600" />
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Add-ons & wellness</p>
                 </div>
-                <div className="bg-slate-50 rounded-xl p-4 space-y-0">
-                  <CopyableField label="Deposit acknowledged" value={appointment.deposit_acknowledged ? 'Yes' : 'No'} copyable={false} />
-                  <CopyableField label="Card last 4" value={appointment.deposit_card_last4} copyable={false} />
-                  <CopyableField label="Expiry" value={appointment.deposit_card_expiry} copyable={false} />
-                  <CopyableField label="Billing ZIP" value={appointment.deposit_billing_zip} copyable={false} />
-                </div>
+                {!isEditing ? (
+                  <div className="rounded-xl p-4 border border-emerald-200 bg-emerald-50/80 space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {services.wants_microchip && <span className="text-sm bg-emerald-100/80 text-emerald-800 px-3 py-1.5 rounded-lg font-semibold border border-emerald-200">Microchip</span>}
+                      {services.wants_nail_trim && <span className="text-sm bg-emerald-100/80 text-emerald-800 px-3 py-1.5 rounded-lg font-semibold border border-emerald-200">Nail Trim</span>}
+                      {services.wants_flea_treatment && <span className="text-sm bg-emerald-100/80 text-emerald-800 px-3 py-1.5 rounded-lg font-semibold border border-emerald-200">Flea Treatment</span>}
+                      {!(services.wants_microchip || services.wants_nail_trim || services.wants_flea_treatment) && (
+                        <span className="text-sm text-slate-500">None</span>
+                      )}
+                    </div>
+                    {Array.isArray(appointment.optional_vaccines) && appointment.optional_vaccines.length > 0 && (
+                      <div>
+                        <p className="text-xs text-emerald-700/90 uppercase tracking-wide mb-1.5 font-medium">Optional vaccines</p>
+                        <div className="flex flex-wrap gap-2">
+                          {appointment.optional_vaccines.map((id) => (
+                            <span key={id} className="text-sm bg-emerald-100/80 text-emerald-800 px-3 py-1.5 rounded-lg font-medium border border-emerald-200">
+                              {VACCINE_LABELS[id] || id}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {(() => {
+                      const optionalWellness = Array.isArray(appointment.optional_wellness_services) ? appointment.optional_wellness_services : []
+                      const alreadyShown = new Set([
+                        ...(services.wants_microchip ? ['microchip'] : []),
+                        ...(services.wants_nail_trim ? ['nail_trim'] : []),
+                        ...(services.wants_flea_treatment ? ['flea_selarid_feline', 'flea_para_defense_k9'] : []),
+                      ])
+                      const extra = optionalWellness.filter((id) => !alreadyShown.has(id))
+                      if (extra.length === 0) return null
+                      return (
+                        <div>
+                          <p className="text-xs text-emerald-700/90 uppercase tracking-wide mb-1.5 font-medium">Optional wellness</p>
+                          <div className="flex flex-wrap gap-2">
+                            {extra.map((id) => (
+                              <span key={id} className="text-sm bg-emerald-100/80 text-emerald-800 px-3 py-1.5 rounded-lg font-medium border border-emerald-200">
+                                {WELLNESS_LABELS[id] || id}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    })()}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={services.wants_microchip}
+                        onChange={(e) => setServices((s) => ({ ...s, wants_microchip: e.target.checked }))}
+                        className="rounded border-slate-300"
+                      />
+                      <span className="text-base text-slate-700">Microchip</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={services.wants_nail_trim}
+                        onChange={(e) => setServices((s) => ({ ...s, wants_nail_trim: e.target.checked }))}
+                        className="rounded border-slate-300"
+                      />
+                      <span className="text-base text-slate-700">Nail Trim</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={services.wants_flea_treatment}
+                        onChange={(e) => setServices((s) => ({ ...s, wants_flea_treatment: e.target.checked }))}
+                        className="rounded border-slate-300"
+                      />
+                      <span className="text-base text-slate-700">Flea Treatment</span>
+                    </label>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -553,16 +698,30 @@ export default function AppointmentDetail({
               key={i}
               className={`rounded-xl border border-slate-200 overflow-hidden ${i % 2 === 0 ? 'bg-slate-50' : 'bg-slate-100/70'}`}
             >
-              <div className="flex items-center gap-2 px-4 pt-4 pb-2 border-b border-slate-200/80 bg-white/50">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-apl-blue/10">
-                  <PawPrint className="w-4 h-4 text-apl-blue" />
+              <div className="px-4 pt-4 pb-2 border-b border-slate-200/80 bg-white/50">
+                {pet.pet_photo && typeof pet.pet_photo === 'string' && pet.pet_photo.startsWith('data:') ? (
+                  <div className="flex justify-center mb-3">
+                    <button
+                      type="button"
+                      onClick={() => setFullscreenPhoto(pet.pet_photo)}
+                      className="w-32 h-32 md:w-40 md:h-40 rounded-xl border border-slate-200 overflow-hidden bg-slate-100 shrink-0 flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-apl-blue/50 focus:outline-none focus:ring-2 focus:ring-apl-blue"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={pet.pet_photo} alt={pet.pet_name ? `${pet.pet_name}` : `Pet ${i + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  </div>
+                ) : null}
+                <div className="flex items-center justify-center gap-2">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-apl-blue/10 shrink-0">
+                    <PawPrint className="w-4 h-4 text-apl-blue" />
+                  </div>
+                  <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider min-w-0 truncate">
+                    {pet.pet_name || `Pet ${i + 1}`} — {pet.type === 'cat' ? 'Cat' : 'Dog'}
+                  </p>
+                  {pets.length > 1 && (
+                    <span className="text-xs text-slate-400 font-medium shrink-0">#{i + 1}</span>
+                  )}
                 </div>
-                <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                  {pet.pet_name || `Pet ${i + 1}`} — {pet.type === 'cat' ? 'Cat' : 'Dog'}
-                </p>
-                {pets.length > 1 && (
-                  <span className="ml-auto text-xs text-slate-400 font-medium">#{i + 1}</span>
-                )}
               </div>
               <div className="p-4 space-y-3 text-sm">
                 {!isEditing ? (
@@ -577,6 +736,7 @@ export default function AppointmentDetail({
                   <CopyableField label="Temperament" value={pet.vet_behavior} emptyHighlight />
                   <CopyableField label="Weight" value={pet.weight} emptyHighlight />
                   <CopyableField label="How long owned" value={pet.how_long_owned} emptyHighlight />
+                  <CopyableField label="Indoor/Outdoor" value={pet.pet_ownership === 'indoor' ? 'Indoor (house pet)' : pet.pet_ownership === 'tnr' ? 'Outdoor / TNR' : pet.pet_ownership || ''} emptyHighlight />
                 </div>
                 {pet.sex === 'male' && (
                   <div className="text-sm bg-apl-blue/10 rounded-lg p-3 border border-apl-blue/20">
@@ -604,10 +764,10 @@ export default function AppointmentDetail({
                 <div className="border-t border-slate-200 pt-2">
                   <div className="flex items-center gap-1.5 mb-2"><Shield className="w-4 h-4 text-apl-blue" /><span className="text-sm font-semibold text-slate-500">Vaccination</span></div>
                   <div className="space-y-0">
-                    <CopyableField label="Rabies vaccinated" value={pet.rabies_vaccinated} emptyHighlight />
+                    <CopyableField label="Rabies vaccinated" value={pet.rabies_vaccinated} emptyHighlight dangerHighlight={pet.rabies_vaccinated === 'no'} />
                     <CopyableField label="Rabies (1–3 yrs)" value={pet.rabies_within_1_3_years} emptyHighlight />
                     <CopyableField label="Disease exposure (30d)" value={boolLabel(pet.exposed_to_diseases)} emptyHighlight />
-                    <CopyableField label="Fleas/ticks" value={boolLabel(pet.has_fleas_ticks)} emptyHighlight />
+                    <CopyableField label="Fleas/ticks" value={boolLabel(pet.has_fleas_ticks)} emptyHighlight dangerHighlight={pet.has_fleas_ticks === true} />
                   </div>
                 </div>
                   </>
@@ -686,6 +846,18 @@ export default function AppointmentDetail({
                       onChange={(e) => updatePet(i, 'how_long_owned', e.target.value)}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1">Indoor/Outdoor</label>
+                    <select
+                      value={pet.pet_ownership || ''}
+                      onChange={(e) => updatePet(i, 'pet_ownership', e.target.value || null)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue cursor-pointer"
+                    >
+                      <option value="">—</option>
+                      <option value="indoor">Indoor (house pet)</option>
+                      <option value="tnr">Outdoor / TNR</option>
+                    </select>
                   </div>
                 </div>
 
@@ -923,68 +1095,6 @@ export default function AppointmentDetail({
           ))}
 
             </div>
-          </div>
-
-          {/* Optional Services */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4 text-apl-blue" />
-              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Add-ons & wellness</p>
-            </div>
-            {!isEditing ? (
-              <div className="bg-slate-50 rounded-xl p-4 space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  {services.wants_microchip && <span className="text-sm bg-apl-blue/10 text-apl-blue-dark px-3 py-1.5 rounded-lg font-medium">Microchip</span>}
-                  {services.wants_nail_trim && <span className="text-sm bg-apl-blue/10 text-apl-blue-dark px-3 py-1.5 rounded-lg font-medium">Nail Trim</span>}
-                  {services.wants_flea_treatment && <span className="text-sm bg-apl-blue/10 text-apl-blue-dark px-3 py-1.5 rounded-lg font-medium">Flea Treatment</span>}
-                  {!(services.wants_microchip || services.wants_nail_trim || services.wants_flea_treatment) && (
-                    <span className="text-sm text-slate-400">None</span>
-                  )}
-                </div>
-                {Array.isArray(appointment.optional_vaccines) && appointment.optional_vaccines.length > 0 && (
-                  <div>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Optional vaccines</p>
-                    <p className="text-sm text-slate-700">{appointment.optional_vaccines.join(', ')}</p>
-                  </div>
-                )}
-                {Array.isArray(appointment.optional_wellness_services) && appointment.optional_wellness_services.length > 0 && (
-                  <div>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Optional wellness</p>
-                    <p className="text-sm text-slate-700">{appointment.optional_wellness_services.join(', ')}</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={services.wants_microchip}
-                    onChange={(e) => setServices((s) => ({ ...s, wants_microchip: e.target.checked }))}
-                    className="rounded border-slate-300"
-                  />
-                  <span className="text-base text-slate-700">Microchip</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={services.wants_nail_trim}
-                    onChange={(e) => setServices((s) => ({ ...s, wants_nail_trim: e.target.checked }))}
-                    className="rounded border-slate-300"
-                  />
-                  <span className="text-base text-slate-700">Nail Trim</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={services.wants_flea_treatment}
-                    onChange={(e) => setServices((s) => ({ ...s, wants_flea_treatment: e.target.checked }))}
-                    className="rounded border-slate-300"
-                  />
-                  <span className="text-base text-slate-700">Flea Treatment</span>
-                </label>
-              </div>
-            )}
           </div>
 
           {/* Save / Cancel - only when editing */}

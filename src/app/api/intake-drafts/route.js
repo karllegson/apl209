@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import { getClientIp } from '@/lib/getClientIp'
 import { rateLimit } from '@/lib/rateLimit'
 
-const MAX_BODY_BYTES = 512 * 1024 // 512KB
+const MAX_BODY_BYTES = 2 * 1024 * 1024 // 2MB (allow optional pet photos in drafts)
 const MAX_FORM_DATA_KEYS = 200 // cap form_data object key count
 
 // GET — resume: list drafts by email or phone (typically one)

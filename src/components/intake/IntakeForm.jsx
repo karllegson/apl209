@@ -44,6 +44,7 @@ function createEmptyPet() {
     exposed_to_diseases: null,
     has_fleas_ticks: null,
     vet_behavior: '',
+    pet_photo: '', // optional: base64 data URL (1 photo per pet)
   }
 }
 

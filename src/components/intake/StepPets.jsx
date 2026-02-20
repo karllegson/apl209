@@ -1,9 +1,100 @@
 'use client'
 
+import { useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { InputField, RadioGroup, SectionTitle } from './FormWidgets'
 import { useLanguage } from './LanguageContext'
+
+const MAX_PHOTO_PX = 800
+const MAX_PHOTO_QUALITY = 0.82
+
+function resizeImageToDataUrl(file, maxPx = MAX_PHOTO_PX, quality = MAX_PHOTO_QUALITY) {
+  return new Promise((resolve, reject) => {
+    const img = document.createElement('img')
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      let w = img.naturalWidth
+      let h = img.naturalHeight
+      if (w > maxPx || h > maxPx) {
+        if (w > h) {
+          h = Math.round((h * maxPx) / w)
+          w = maxPx
+        } else {
+          w = Math.round((w * maxPx) / h)
+          h = maxPx
+        }
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, w, h)
+      try {
+        const dataUrl = canvas.toDataURL('image/jpeg', quality)
+        resolve(dataUrl)
+      } catch (e) {
+        reject(e)
+      }
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error('Failed to load image'))
+    }
+    img.src = url
+  })
+}
+
+function PetPhotoField({ label, value, onSelect, onRemove, chooseLabel, removeLabel }) {
+  const inputRef = useRef(null)
+  const hasPhoto = value && String(value).startsWith('data:')
+  return (
+    <div>
+      <label className="form-field-label block mb-2 md:mb-3 text-gray-700">
+        {label}
+      </label>
+      {!hasPhoto ? (
+        <div className="flex items-center gap-2">
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) {
+                onSelect(file)
+                e.target.value = ''
+              }
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            className="px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+          >
+            {chooseLabel}
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="relative w-20 h-20 rounded-lg border border-gray-200 overflow-hidden bg-gray-100 shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={value} alt="Pet" className="w-full h-full object-cover" />
+          </div>
+          <button
+            type="button"
+            onClick={onRemove}
+            className="px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+          >
+            {removeLabel}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
 
 const T = {
   en: {
@@ -52,6 +143,10 @@ const T = {
     unsureWeighAtClinic: "Unsure — we'll weigh at clinic",
     priceReference: 'Price reference',
     referenceOnlyNotQuote: 'Reference only; not a quote.',
+    petPhoto: 'Pet photo',
+    optional: 'Optional',
+    choosePhoto: 'Choose a photo',
+    removePhoto: 'Remove photo',
   },
   es: {
     numberOfPets: 'Número de mascotas',
@@ -99,6 +194,10 @@ const T = {
     unsureWeighAtClinic: 'No estoy seguro — lo pesamos en la clínica',
     priceReference: 'Referencia de precios',
     referenceOnlyNotQuote: 'Solo referencia; no es una cotización.',
+    petPhoto: 'Foto de la mascota',
+    optional: 'Opcional',
+    choosePhoto: 'Elegir una foto',
+    removePhoto: 'Quitar foto',
   },
 }
 
@@ -156,6 +255,26 @@ export default function StepPets({
               value={pet.pet_name}
               onChange={(v) => updatePet(i, 'pet_name', v)}
               placeholder="Luna"
+            />
+
+            {/* Pet photo — optional, 1 per pet */}
+            <PetPhotoField
+              label={`${t.petPhoto} (${t.optional})`}
+              value={pet.pet_photo}
+              onSelect={async (file) => {
+                try {
+                  const dataUrl = await resizeImageToDataUrl(file)
+                  updatePet(i, 'pet_photo', dataUrl)
+                } catch (err) {
+                  console.error('Photo resize failed', err)
+                  const reader = new FileReader()
+                  reader.onload = () => updatePet(i, 'pet_photo', reader.result)
+                  reader.readAsDataURL(file)
+                }
+              }}
+              onRemove={() => updatePet(i, 'pet_photo', '')}
+              chooseLabel={t.choosePhoto}
+              removeLabel={t.removePhoto}
             />
 
             {/* Select species */}

@@ -4,7 +4,7 @@ import { isAdminAuthenticated } from '@/lib/auth/admin'
 import { getClientIp } from '@/lib/getClientIp'
 import { rateLimit } from '@/lib/rateLimit'
 
-const MAX_BODY_BYTES = 512 * 1024 // 512KB
+const MAX_BODY_BYTES = 2 * 1024 * 1024 // 2MB (allow optional pet photos)
 const MAX_PETS = 10
 const MAX_OPTIONAL_ITEMS = 50
 const MAX_TEXT_LEN = 500
