@@ -25,7 +25,12 @@ export async function GET(request) {
   const statusParam = searchParams.get('status')
   const allowed = ['pending', 'confirmed', 'attempted', 'cancelled', 'completed']
 
-  let query = admin.from('standby_appointments').select('*').order('created_at', { ascending: false })
+  // Fetch all matching rows (no pagination cap so attempted page shows everything)
+  let query = admin
+    .from('standby_appointments')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(10000)
   if (statusParam) {
     const statuses = statusParam.split(',').map((s) => s.trim()).filter((s) => allowed.includes(s))
     if (statuses.length === 1) {
@@ -40,7 +45,45 @@ export async function GET(request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  // Ensure every appointment with status=attempted has a standby row so it shows on attempted page
+  const { data: attemptedAppointments } = await admin
+    .from('appointments')
+    .select('id, owner_first_name, owner_last_name, owner_name, owner_phone, requested_service')
+    .eq('status', 'attempted')
+  const attemptedIds = (attemptedAppointments || []).map((a) => a.id)
+  let didInsert = false
+  if (attemptedIds.length > 0) {
+    const { data: existingStandby } = await admin
+      .from('standby_appointments')
+      .select('source_appointment_id')
+      .in('source_appointment_id', attemptedIds)
+    const existingIds = new Set((existingStandby || []).map((s) => s.source_appointment_id).filter(Boolean))
+    for (const apt of attemptedAppointments || []) {
+      if (existingIds.has(apt.id)) continue
+      const first = (apt.owner_first_name || '').trim() || (apt.owner_name || '').trim().split(/\s+/)[0] || ''
+      const last = (apt.owner_last_name || '').trim() || (apt.owner_name || '').trim().split(/\s+/).slice(1).join(' ') || ''
+      await admin.from('standby_appointments').insert({
+        first_name: first.slice(0, 200),
+        last_name: last.slice(0, 200),
+        phone: (apt.owner_phone || '').trim().slice(0, 50),
+        appointment_type: (apt.requested_service || '').trim().slice(0, 200),
+        status: 'attempted',
+        source_appointment_id: apt.id,
+      })
+      didInsert = true
+    }
+  }
+
   let listFiltered = list || []
+  if (didInsert) {
+    const statusFilter = statusParam
+      ? statusParam.split(',').map((s) => s.trim()).filter((s) => allowed.includes(s))[0]
+      : null
+    let refetch = admin.from('standby_appointments').select('*').order('created_at', { ascending: false }).limit(10000)
+    if (statusFilter) refetch = refetch.eq('status', statusFilter)
+    const { data: refetched } = await refetch
+    listFiltered = refetched || []
+  }
 
   // Hide standby rows whose linked appointment is already confirmed/cancelled/completed (they shouldn't show on attempted page)
   const linkedIds = [...new Set(

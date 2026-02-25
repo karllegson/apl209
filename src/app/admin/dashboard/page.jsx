@@ -6,12 +6,17 @@ import AdminPageLoading from '@/components/AdminPageLoading'
 import StatsCards from '@/components/StatsCards'
 import AppointmentTable from '@/components/AppointmentTable'
 import AppointmentDetail from '@/components/AppointmentDetail'
-import { Search, Filter, RefreshCw } from 'lucide-react'
+import { Search, Filter, RefreshCw, ArrowUpDown } from 'lucide-react'
 
 const statusFilters = [
   { value: 'all', label: 'All (excl. confirmed & attempted)' },
   { value: 'pending', label: 'Pending' },
   { value: 'cancelled', label: 'Cancelled' },
+]
+
+const sortOptions = [
+  { value: 'oldest', label: 'Oldest first (first come, first served)' },
+  { value: 'newest', label: 'Newest first' },
 ]
 
 export default function AdminDashboardPage() {
@@ -29,6 +34,7 @@ export default function AdminDashboardPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [selected, setSelected] = useState(null)
   const [lastViewedId, setLastViewedId] = useState(null)
+  const [sortOrder, setSortOrder] = useState('oldest')
 
   useEffect(() => {
     fetch('/api/admin/me', { credentials: 'include' })
@@ -90,15 +96,20 @@ export default function AdminDashboardPage() {
       if (res.ok) {
         const data = await res.json()
         const list = data.appointments || []
-        const sorted =
-          statusFilter === 'all'
-            ? [...list].sort((a, b) => {
-                const aPending = a.status === 'pending' ? 0 : 1
-                const bPending = b.status === 'pending' ? 0 : 1
-                if (aPending !== bPending) return aPending - bPending
-                return new Date(b.created_at) - new Date(a.created_at)
-              })
-            : list
+        let sorted = list
+
+        if (statusFilter === 'all') {
+          // Dashboard default: pending first, then by created_at
+          sorted = [...list].sort((a, b) => {
+            const aPending = a.status === 'pending' ? 0 : 1
+            const bPending = b.status === 'pending' ? 0 : 1
+            if (aPending !== bPending) return aPending - bPending
+            const aTime = new Date(a.created_at).getTime()
+            const bTime = new Date(b.created_at).getTime()
+            return sortOrder === 'oldest' ? aTime - bTime : bTime - aTime
+          })
+        }
+
         setAppointments(sorted)
         setTotal(data.total)
         setTotalPages(data.totalPages)
@@ -108,7 +119,7 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, statusFilter, search])
+  }, [page, statusFilter, search, sortOrder])
 
   useEffect(() => {
     fetchStats()
@@ -192,38 +203,57 @@ export default function AdminDashboardPage() {
           {/* Filters */}
           <section aria-label="Search and filters" className="rounded-xl bg-slate-100/60 border border-slate-200 px-4 py-4">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Search & filter</p>
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* Search */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search by name, email, phone..."
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue transition-all"
-              />
-            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="Search by name, email, phone..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue transition-all"
+                />
+              </div>
 
-            {/* Status filter */}
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <select
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value)
-                  setPage(1)
-                }}
-                className="pl-10 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue transition-all cursor-pointer"
-              >
-                {statusFilters.map(({ value, label }) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+              {/* Status filter */}
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value)
+                    setPage(1)
+                  }}
+                  className="pl-10 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue transition-all cursor-pointer"
+                >
+                  {statusFilters.map(({ value, label }) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Sort order */}
+              <div className="relative">
+                <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <select
+                  value={sortOrder}
+                  onChange={(e) => {
+                    setSortOrder(e.target.value)
+                    setPage(1)
+                  }}
+                  className="pl-10 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue transition-all cursor-pointer"
+                >
+                  {sortOptions.map(({ value, label }) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </div>
           </section>
 
           {/* Table */}
