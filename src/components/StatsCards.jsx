@@ -67,7 +67,7 @@ const cardConfig = [
   },
 ]
 
-export default function StatsCards({ stats, loading }) {
+export default function StatsCards({ stats, loading, onStatusClick }) {
   if (loading) {
     return (
       <div className="space-y-4">
@@ -145,7 +145,10 @@ export default function StatsCards({ stats, loading }) {
         {cardConfig
           .filter((c) => c.size === 'medium' || c.size === 'small')
           .map(({ key, label, icon: Icon, iconBg, iconColor, valueColor, href }) => {
-            const cardClass = `rounded-xl border-2 p-3.5 transition-all ${statusCardBg[key] || 'bg-white border-slate-200'} ${href ? 'hover:shadow cursor-pointer hover:border-slate-300' : ''}`
+            const clickable = !!href || (onStatusClick && key === 'cancelled')
+            const cardClass = `rounded-xl border-2 p-3.5 transition-all ${statusCardBg[key] || 'bg-white border-slate-200'} ${
+              clickable ? 'hover:shadow cursor-pointer hover:border-slate-300' : ''
+            }`
             const content = (
               <>
                 <div className="flex items-center justify-between gap-2">
@@ -168,6 +171,18 @@ export default function StatsCards({ stats, loading }) {
                 <Link key={key} href={href} className={cardClass}>
                   {content}
                 </Link>
+              )
+            }
+            if (onStatusClick && key === 'cancelled') {
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => onStatusClick('cancelled')}
+                  className={`${cardClass} w-full text-left`}
+                >
+                  {content}
+                </button>
               )
             }
             return (

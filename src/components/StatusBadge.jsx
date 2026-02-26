@@ -19,6 +19,10 @@ const statusConfig = {
     label: 'Cancelled',
     className: 'bg-stone-100 text-stone-600 border-stone-200',
   },
+  tnr: {
+    label: 'TNR',
+    className: 'bg-violet-50 text-violet-800 border-violet-200/60',
+  },
   'no-show': {
     label: 'No Show',
     className: 'bg-stone-100 text-stone-600 border-stone-200',

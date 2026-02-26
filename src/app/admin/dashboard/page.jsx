@@ -6,16 +6,17 @@ import AdminPageLoading from '@/components/AdminPageLoading'
 import StatsCards from '@/components/StatsCards'
 import AppointmentTable from '@/components/AppointmentTable'
 import AppointmentDetail from '@/components/AppointmentDetail'
+import TnrWaitlistDetail from '@/components/TnrWaitlistDetail'
 import { Search, Filter, RefreshCw, ArrowUpDown } from 'lucide-react'
 
 const statusFilters = [
-  { value: 'all', label: 'All (excl. confirmed & attempted)' },
+  { value: 'all', label: 'All (excl. confirmed, attempted & TNR)' },
   { value: 'pending', label: 'Pending' },
   { value: 'cancelled', label: 'Cancelled' },
 ]
 
 const sortOptions = [
-  { value: 'oldest', label: 'Oldest first (first come, first served)' },
+  { value: 'oldest', label: 'Oldest first' },
   { value: 'newest', label: 'Newest first' },
 ]
 
@@ -35,6 +36,9 @@ export default function AdminDashboardPage() {
   const [selected, setSelected] = useState(null)
   const [lastViewedId, setLastViewedId] = useState(null)
   const [sortOrder, setSortOrder] = useState('oldest')
+  const [tnrWaitlist, setTnrWaitlist] = useState([])
+  const [tnrLoading, setTnrLoading] = useState(true)
+  const [selectedTnrEntry, setSelectedTnrEntry] = useState(null)
 
   useEffect(() => {
     fetch('/api/admin/me', { credentials: 'include' })
@@ -66,7 +70,7 @@ export default function AdminDashboardPage() {
   const fetchStats = useCallback(async () => {
     setStatsLoading(true)
     try {
-      const res = await fetch('/api/stats')
+      const res = await fetch('/api/stats', { credentials: 'include' })
       if (res.ok) {
         const data = await res.json()
         setStats(data.stats)
@@ -78,17 +82,32 @@ export default function AdminDashboardPage() {
     }
   }, [])
 
+  const fetchTnrWaitlist = useCallback(async () => {
+    setTnrLoading(true)
+    try {
+      const res = await fetch('/api/tnr-waitlist?moved=0', { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        setTnrWaitlist(data.waitlist || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch TNR waitlist:', err)
+    } finally {
+      setTnrLoading(false)
+    }
+  }, [])
+
   const fetchAppointments = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
-        page: String(page),
-        limit: '20',
+        page: '1',
+        limit: '100',
       })
       if (statusFilter !== 'all') {
         params.set('status', statusFilter)
       } else {
-        params.set('excludeStatus', 'confirmed,attempted')
+        params.set('excludeStatus', 'confirmed,attempted,tnr')
       }
       if (search.trim()) params.set('search', search.trim())
 
@@ -97,9 +116,7 @@ export default function AdminDashboardPage() {
         const data = await res.json()
         const list = data.appointments || []
         let sorted = list
-
         if (statusFilter === 'all') {
-          // Dashboard default: pending first, then by created_at
           sorted = [...list].sort((a, b) => {
             const aPending = a.status === 'pending' ? 0 : 1
             const bPending = b.status === 'pending' ? 0 : 1
@@ -109,7 +126,6 @@ export default function AdminDashboardPage() {
             return sortOrder === 'oldest' ? aTime - bTime : bTime - aTime
           })
         }
-
         setAppointments(sorted)
         setTotal(data.total)
         setTotalPages(data.totalPages)
@@ -119,11 +135,15 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, statusFilter, search, sortOrder])
+  }, [statusFilter, search, sortOrder])
 
   useEffect(() => {
     fetchStats()
   }, [fetchStats])
+
+  useEffect(() => {
+    fetchTnrWaitlist()
+  }, [fetchTnrWaitlist])
 
   useEffect(() => {
     fetchAppointments()
@@ -142,7 +162,46 @@ export default function AdminDashboardPage() {
   const handleRefresh = () => {
     fetchStats()
     fetchAppointments()
+    fetchTnrWaitlist()
   }
+
+  const handleSelectEntry = (entry) => {
+    if (entry.type === 'tnr') {
+      setSelectedTnrEntry(entry)
+      setSelected(null)
+    } else {
+      setSelected(entry)
+      setSelectedTnrEntry(null)
+    }
+  }
+
+  const handleTnrAdded = () => {
+    fetchTnrWaitlist()
+  }
+
+  const searchLower = (searchInput || '').trim().toLowerCase()
+  const tnrFiltered =
+    !searchLower && tnrWaitlist.length > 0
+      ? tnrWaitlist
+      : tnrWaitlist.filter((t) => {
+          const name = [t.first_name, t.last_name, t.email, t.phone].filter(Boolean).join(' ').toLowerCase()
+          return name.includes(searchLower)
+        })
+  const appointmentsFiltered =
+    statusFilter === 'all' ? appointments : appointments.filter((a) => a.status === statusFilter)
+  const allEntries = [
+    ...appointmentsFiltered.map((a) => ({ type: 'appointment', ...a })),
+    ...tnrFiltered.map((t) => ({ type: 'tnr', ...t })),
+  ].sort((a, b) => {
+    const ta = new Date(a.created_at).getTime()
+    const tb = new Date(b.created_at).getTime()
+    return sortOrder === 'oldest' ? ta - tb : tb - ta
+  })
+  const pageSize = 20
+  const totalMerged = allEntries.length
+  const totalPagesMerged = Math.max(1, Math.ceil(totalMerged / pageSize))
+  const pageMerged = Math.min(page, totalPagesMerged)
+  const currentPageEntries = allEntries.slice((pageMerged - 1) * pageSize, pageMerged * pageSize)
 
   const handleUpdate = (updatedAppointment) => {
     setAppointments((prev) =>
@@ -160,7 +219,7 @@ export default function AdminDashboardPage() {
     fetchStats()
   }
 
-  const showOverlay = authChecking || loading || statsLoading
+  const showOverlay = authChecking || loading || statsLoading || tnrLoading
   if (showOverlay) {
     return <AdminPageLoading />
   }
@@ -172,7 +231,7 @@ export default function AdminDashboardPage() {
             <div className="md:pl-0 pl-14">
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold text-slate-800">Dashboard</h1>
-                {(loading || statsLoading) && (
+                {(loading || statsLoading || tnrLoading) && (
                   <span className="flex items-center gap-1.5 text-sm text-slate-500">
                     <span className="w-4 h-4 border-2 border-slate-300 border-t-apl-blue rounded-full animate-spin" />
                     Loading…
@@ -185,10 +244,10 @@ export default function AdminDashboardPage() {
             </div>
             <button
               onClick={handleRefresh}
-              disabled={loading || statsLoading}
+              disabled={loading || statsLoading || tnrLoading}
               className="self-start md:self-auto flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm text-slate-600 font-medium transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <RefreshCw className={`w-4 h-4 ${loading || statsLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${loading || statsLoading || tnrLoading ? 'animate-spin' : ''}`} />
               Refresh
             </button>
           </div>
@@ -197,7 +256,16 @@ export default function AdminDashboardPage() {
         <div className="p-4 md:p-8 space-y-6">
           {/* Stats */}
           <section aria-label="Statistics">
-            <StatsCards stats={stats} loading={statsLoading} />
+            <StatsCards
+              stats={stats}
+              loading={statsLoading}
+              onStatusClick={(statusKey) => {
+                if (statusKey === 'cancelled') {
+                  setStatusFilter('cancelled')
+                  setPage(1)
+                }
+              }}
+            />
           </section>
 
           {/* Filters */}
@@ -254,21 +322,37 @@ export default function AdminDashboardPage() {
                 </select>
               </div>
             </div>
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setStatusFilter('cancelled')
+                  setPage(1)
+                }}
+                className={`text-xs font-medium underline-offset-2 ${
+                  statusFilter === 'cancelled'
+                    ? 'text-red-600 underline'
+                    : 'text-slate-500 hover:text-red-600 hover:underline'
+                }`}
+              >
+                View cancelled only
+              </button>
+            </div>
           </section>
 
-          {/* Table */}
-          <section aria-label="Appointments">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Recent submissions</p>
-          <AppointmentTable
-            appointments={appointments}
-            loading={loading}
-            total={total}
-            page={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-            onSelect={setSelected}
-            highlightedId={lastViewedId}
-          />
+          {/* Table — all entries (intake + TNR) */}
+          <section aria-label="All entries">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">All entries</p>
+            <AppointmentTable
+              entries={currentPageEntries}
+              loading={false}
+              total={totalMerged}
+              page={pageMerged}
+              totalPages={totalPagesMerged}
+              onPageChange={setPage}
+              onSelectEntry={handleSelectEntry}
+              highlightedId={lastViewedId}
+            />
           </section>
         </div>
 
@@ -281,7 +365,18 @@ export default function AdminDashboardPage() {
           }}
           onUpdate={handleUpdate}
           onDelete={handleDelete}
+          onTnrAdded={handleTnrAdded}
           staffName={staffName}
+        />
+      )}
+
+      {selectedTnrEntry && (
+        <TnrWaitlistDetail
+          entry={selectedTnrEntry}
+          onClose={() => setSelectedTnrEntry(null)}
+          onMoved={() => {
+            fetchTnrWaitlist()
+          }}
         />
       )}
     </>

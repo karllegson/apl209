@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS appointments (
 
   -- Admin management
   status TEXT DEFAULT 'pending'
-    CHECK (status IN ('pending', 'confirmed', 'completed', 'attempted', 'cancelled', 'no-show')),
+    CHECK (status IN ('pending', 'confirmed', 'completed', 'attempted', 'cancelled', 'no-show', 'tnr')),
   admin_notes TEXT DEFAULT '',
   status_changed_by TEXT DEFAULT '',
   status_changed_at TIMESTAMPTZ,
@@ -193,6 +193,9 @@ ALTER TABLE appointments ADD COLUMN IF NOT EXISTS status_changed_at TIMESTAMPTZ;
 -- To allow 'attempted' status on existing DBs: drop and re-add the status check:
 -- ALTER TABLE appointments DROP CONSTRAINT IF EXISTS appointments_status_check;
 -- ALTER TABLE appointments ADD CONSTRAINT appointments_status_check CHECK (status IN ('pending', 'confirmed', 'completed', 'attempted', 'cancelled', 'no-show'));
+-- To allow 'tnr' status on existing DBs (run if you get invalid status error):
+ALTER TABLE appointments DROP CONSTRAINT IF EXISTS appointments_status_check;
+ALTER TABLE appointments ADD CONSTRAINT appointments_status_check CHECK (status IN ('pending', 'confirmed', 'completed', 'attempted', 'cancelled', 'no-show', 'tnr'));
 -- If owner_name is NOT NULL, uncomment next line:
 -- ALTER TABLE appointments ALTER COLUMN owner_name DROP NOT NULL;
 
@@ -262,3 +265,39 @@ CREATE TRIGGER update_standby_appointments_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
+-- ============================================================
+-- TNR WAITLIST (Trap N Release — minimal form: first/last name, email, phone)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS tnr_waitlist (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  first_name TEXT NOT NULL DEFAULT '',
+  last_name TEXT NOT NULL DEFAULT '',
+  email TEXT NOT NULL DEFAULT '',
+  phone TEXT NOT NULL DEFAULT '',
+  photo_url TEXT,
+  customer_notes TEXT,
+  moved_to_tnr BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_tnr_waitlist_email ON tnr_waitlist(email);
+CREATE INDEX IF NOT EXISTS idx_tnr_waitlist_phone ON tnr_waitlist(phone);
+CREATE INDEX IF NOT EXISTS idx_tnr_waitlist_created ON tnr_waitlist(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_tnr_waitlist_moved ON tnr_waitlist(moved_to_tnr);
+
+ALTER TABLE tnr_waitlist ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow anon insert tnr_waitlist" ON tnr_waitlist;
+CREATE POLICY "Allow anon insert tnr_waitlist"
+  ON tnr_waitlist FOR INSERT TO anon WITH CHECK (true);
+DROP POLICY IF EXISTS "Allow authenticated read tnr_waitlist" ON tnr_waitlist;
+CREATE POLICY "Allow authenticated read tnr_waitlist"
+  ON tnr_waitlist FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Allow authenticated update tnr_waitlist" ON tnr_waitlist;
+CREATE POLICY "Allow authenticated update tnr_waitlist"
+  ON tnr_waitlist FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+
+-- If tnr_waitlist already existed without moved_to_tnr, add it:
+ALTER TABLE tnr_waitlist ADD COLUMN IF NOT EXISTS moved_to_tnr BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE tnr_waitlist ADD COLUMN IF NOT EXISTS photo_url TEXT;
+ALTER TABLE tnr_waitlist ADD COLUMN IF NOT EXISTS customer_notes TEXT;

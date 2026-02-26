@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Scissors, Syringe, Heart, Loader2, ShieldCheck } from 'lucide-react'
+import { Scissors, Syringe, Heart, Loader2, ShieldCheck, PawPrint } from 'lucide-react'
 import { useLanguage, LanguageToggle } from './LanguageContext'
 
 export const SERVICE_OPTIONS = [
@@ -24,6 +24,7 @@ export default function SelectService({ onSelect, onBack, onLogoClick }) {
   const [creatingForLabel, setCreatingForLabel] = useState(null)
 
   const getServiceLabel = (serviceId) => {
+    if (serviceId === 'tnr') return isSpanish ? 'TNR' : 'TNR'
     const opt = SERVICE_OPTIONS.find((o) => o.id === serviceId)
     if (!opt) return serviceId
     return isSpanish ? opt.labelEs : opt.labelEn
@@ -40,6 +41,61 @@ export default function SelectService({ onSelect, onBack, onLogoClick }) {
   const handleServiceClick = (id) => {
     setExpandedId(id)
   }
+
+  const isTnrExpanded = expandedId === 'tnr'
+
+  const TNR_INFO_EN = (
+    <>
+      <p className="font-medium text-gray-800 text-sm mb-2">TNR — Trap N Release</p>
+      <p className="text-gray-600 text-sm leading-relaxed mb-4">
+        Mainly for stray cats—community cats, outdoor cats, or cats you care for but don’t own. We sterilize and return them.
+      </p>
+
+      <p className="font-semibold text-gray-800 text-xs uppercase tracking-wide mb-1.5">Why outdoor pets are in this category</p>
+      <p className="text-gray-600 text-sm leading-relaxed mb-3">
+        Outdoor and community cats have heightened senses—more alert to sounds, smells, and unfamiliar people than house pets. In a clinic that can make them very stressed and reactive. We use a separate category so we can use the right handling (traps, minimal contact, calm environment) and protocols.
+      </p>
+      <ul className="text-sm text-gray-600 space-y-1 mb-4 list-disc list-inside">
+        <li><strong>Safer for the cat</strong> — less risk of escape or injury</li>
+        <li><strong>Safer for our vet team</strong> — predictable, controlled handling</li>
+      </ul>
+      <p className="text-gray-600 text-sm leading-relaxed mb-4">Same care, with procedures designed for their needs.</p>
+
+      <p className="font-semibold text-gray-800 text-xs uppercase tracking-wide mb-1.5">Requirements</p>
+      <p className="text-gray-600 text-sm leading-relaxed mb-3">
+        Cats must arrive in a <strong>humane trap</strong> with weight noted. Traps can be rented from us. You must come in person to sign a waiver.
+      </p>
+
+      <p className="font-semibold text-gray-800 text-xs uppercase tracking-wide mb-1.5">What’s included</p>
+      <p className="text-gray-600 text-sm">Ear tip, pain injection, antibiotic injection, FVRCP, and rabies. Pricing differs from house-pet surgery.</p>
+    </>
+  )
+  const TNR_INFO_ES = (
+    <>
+      <p className="font-medium text-gray-800 text-sm mb-2">TNR — Trap N Release</p>
+      <p className="text-gray-600 text-sm leading-relaxed mb-4">
+        Principalmente para gatos callejeros—gatos comunitarios, de exterior o que usted cuida pero no son suyos. Los esterilizamos y devolvemos.
+      </p>
+
+      <p className="font-semibold text-gray-800 text-xs uppercase tracking-wide mb-1.5">Por qué las mascotas exteriores están en esta categoría</p>
+      <p className="text-gray-600 text-sm leading-relaxed mb-3">
+        Los gatos de exterior y comunitarios tienen los sentidos más agudos: más alerta a sonidos, olores y personas desconocidas que las mascotas de casa. En la clínica eso puede estresarlos mucho y hacerlos más reactivos. Usamos una categoría aparte para aplicar el manejo adecuado (trampas, poco contacto, ambiente tranquilo) y protocolos específicos.
+      </p>
+      <ul className="text-sm text-gray-600 space-y-1 mb-4 list-disc list-inside">
+        <li><strong>Más seguro para el gato</strong> — menos riesgo de escape o lesión</li>
+        <li><strong>Más seguro para nuestro equipo</strong> — manejo predecible y controlado</li>
+      </ul>
+      <p className="text-gray-600 text-sm leading-relaxed mb-4">Mismo cuidado, con procedimientos pensados para ellos.</p>
+
+      <p className="font-semibold text-gray-800 text-xs uppercase tracking-wide mb-1.5">Requisitos</p>
+      <p className="text-gray-600 text-sm leading-relaxed mb-3">
+        Los gatos deben llegar en <strong>jaula trampa</strong> con el peso anotado. Puede rentar trampa con nosotros. Debe venir en persona a firmar un formato.
+      </p>
+
+      <p className="font-semibold text-gray-800 text-xs uppercase tracking-wide mb-1.5">Qué incluye</p>
+      <p className="text-gray-600 text-sm">Corte de oreja, inyección para dolor, antibiótico, FVRCP y rabia. El precio es distinto al de mascota de casa.</p>
+    </>
+  )
 
   return (
     <div className="space-y-5 md:space-y-8 relative">
@@ -158,6 +214,53 @@ export default function SelectService({ onSelect, onBack, onLogoClick }) {
             </div>
           )
         })}
+      </div>
+
+      {/* TNR / Outdoor — separate category button */}
+      <div className={`rounded-xl border-2 overflow-hidden bg-white shadow-sm ${isTnrExpanded ? 'border-apl-primary' : 'border-gray-200 hover:border-apl-primary'}`}>
+        <button
+          type="button"
+          onClick={() => handleServiceClick(isTnrExpanded ? null : 'tnr')}
+          className={`w-full text-left flex items-center gap-4 p-4 md:p-5 transition-all cursor-pointer hover:bg-apl-primary/5 ${isTnrExpanded ? 'border-b border-gray-200 bg-apl-primary/5' : ''}`}
+        >
+          <span className="flex shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-full bg-violet-100 flex items-center justify-center">
+            <PawPrint className="w-6 h-6 md:w-7 md:h-7 text-violet-700" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-gray-900">
+              {isSpanish ? '¿No es su mascota?' : 'Not your pet?'}
+            </p>
+            <p className="text-sm text-gray-500 mt-0.5">
+              {isSpanish ? 'TNR — principalmente gatos callejeros' : 'TNR — mainly for stray cats'}
+            </p>
+          </div>
+        </button>
+        {isTnrExpanded && (
+          <div className="px-3 md:px-4 pb-3 md:pb-4 pt-2.5 bg-gray-100/80 border-t border-gray-200">
+            <div className="flex items-start gap-2 mb-3">
+              <ShieldCheck className="w-4 h-4 text-gray-500 shrink-0 mt-0.5" />
+              <div className="text-xs md:text-sm text-gray-600">
+                {isSpanish ? TNR_INFO_ES : TNR_INFO_EN}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setExpandedId(null)}
+                className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 font-medium text-xs hover:bg-gray-50"
+              >
+                {isSpanish ? 'Cerrar' : 'Close'}
+              </button>
+              <button
+                type="button"
+                onClick={() => goToForm('tnr')}
+                className="px-4 py-1.5 rounded-lg bg-apl-primary hover:bg-apl-blue-dark text-white font-semibold text-xs"
+              >
+                {isSpanish ? 'Continuar' : 'Proceed'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

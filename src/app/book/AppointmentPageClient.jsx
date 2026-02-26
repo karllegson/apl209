@@ -9,6 +9,7 @@ import AppointmentHome from '@/components/intake/AppointmentHome'
 import AppointmentIntro from '@/components/intake/AppointmentIntro'
 import ResumeDraftList from '@/components/intake/ResumeDraftList'
 import SelectService from '@/components/intake/SelectService'
+import TnrWaitlist from '@/components/intake/TnrWaitlist'
 import { LanguageProvider } from '@/components/intake/LanguageContext'
 
 function AppointmentFlow() {
@@ -16,6 +17,7 @@ function AppointmentFlow() {
   const [showForm, setShowForm] = useState(false)
   const [showResumeList, setShowResumeList] = useState(false)
   const [showSelectService, setShowSelectService] = useState(false)
+  const [showTnrWaitlist, setShowTnrWaitlist] = useState(false)
   const [resumeDrafts, setResumeDrafts] = useState([])
   const [initialForm, setInitialForm] = useState(null)
   const [initialStep, setInitialStep] = useState(1)
@@ -31,6 +33,11 @@ function AppointmentFlow() {
   }
 
   const handleServiceSelect = (serviceId) => {
+    if (serviceId === 'tnr') {
+      setShowSelectService(false)
+      setShowTnrWaitlist(true)
+      return
+    }
     setInitialForm({ requested_service: serviceId })
     setInitialStep(1)
     setShowSelectService(false)
@@ -51,11 +58,13 @@ function AppointmentFlow() {
 
   const handleBackToHome = () => {
     setShowForm(false)
+    setShowTnrWaitlist(false)
     setShowSelectService(true)
   }
 
   const handleBackToStart = () => {
     setShowForm(false)
+    setShowTnrWaitlist(false)
     setShowResumeList(false)
     setShowSelectService(false)
     setShowIntro(true)
@@ -80,6 +89,15 @@ function AppointmentFlow() {
       <SelectService
         onSelect={handleServiceSelect}
         onBack={handleBackToStart}
+        onLogoClick={handleBackToStart}
+      />
+    )
+  }
+
+  if (showTnrWaitlist) {
+    return (
+      <TnrWaitlist
+        onBack={handleBackToHome}
         onLogoClick={handleBackToStart}
       />
     )

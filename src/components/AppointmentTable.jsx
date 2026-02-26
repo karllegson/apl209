@@ -2,18 +2,30 @@
 
 import { format } from 'date-fns'
 import StatusBadge from './StatusBadge'
-import { AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { AlertTriangle, ChevronLeft, ChevronRight, FileText, ImageIcon } from 'lucide-react'
+
+const REQUESTED_SERVICE_LABELS = {
+  spay_neuter: 'Spay & Neuter',
+  vaccines: 'Vaccines only',
+  wellness_other: 'Wellness / Other',
+  tnr: 'TNR',
+}
 
 export default function AppointmentTable({
   appointments,
+  entries: entriesProp,
   loading,
   total,
   page,
   totalPages,
   onPageChange,
   onSelect,
+  onSelectEntry,
   highlightedId,
 }) {
+  const isMerged = Array.isArray(entriesProp) && entriesProp.length >= 0
+  const entries = isMerged ? entriesProp : (appointments || []).map((apt) => ({ type: 'appointment', ...apt }))
+  const onRowSelect = onSelectEntry || ((entry) => entry.type === 'appointment' && onSelect?.(entry))
   if (loading) {
     return (
       <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-sm">
@@ -28,7 +40,7 @@ export default function AppointmentTable({
     )
   }
 
-  if (!appointments || appointments.length === 0) {
+  if ((isMerged ? entries.length === 0 : !appointments?.length)) {
     return (
       <div className="bg-white rounded-xl border-2 border-slate-200 p-12 text-center shadow-sm">
         <p className="text-slate-400 text-sm">No submissions found.</p>
@@ -40,7 +52,7 @@ export default function AppointmentTable({
     if (!pets || !Array.isArray(pets) || pets.length === 0) return '—'
     return pets
       .map((p) => {
-        const emoji = p.type === 'cat' ? '🐈' : '🐕'
+        const emoji = p.type === 'cat' ? '🐱' : '🐶'
         return `${emoji} ${p.pet_name || p.type}`
       })
       .join(', ')
@@ -57,6 +69,11 @@ export default function AppointmentTable({
         <table className="w-full">
           <thead>
             <tr className="border-b-2 border-slate-200 bg-slate-100">
+              {isMerged && (
+                <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">
+                  Type
+                </th>
+              )}
               <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">
                 Owner
               </th>
@@ -78,14 +95,73 @@ export default function AppointmentTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {appointments.map((apt) => (
-              <tr
-                key={apt.id}
-                onClick={() => onSelect?.(apt)}
-                className={`cursor-pointer transition-colors hover:bg-apl-blue/5 ${
-                  highlightedId === apt.id ? 'bg-amber-100/80 ring-2 ring-amber-400/60' : ''
-                }`}
-              >
+            {entries.map((entry) => {
+              if (entry.type === 'tnr') {
+                const name = [entry.first_name, entry.last_name].filter(Boolean).join(' ') || '—'
+                return (
+                  <tr
+                    key={`tnr-${entry.id}`}
+                    onClick={() => onRowSelect(entry)}
+                    className="cursor-pointer transition-colors hover:bg-apl-blue/5"
+                  >
+                    {isMerged && (
+                      <td className="px-4 py-3">
+                        <span className="text-xs font-semibold text-violet-700 bg-violet-100 px-2 py-1 rounded">TNR</span>
+                      </td>
+                    )}
+                    <td className="px-4 py-3">
+                      <p className="text-sm font-semibold text-slate-800">{name}</p>
+                      <p className="text-xs text-slate-400">{entry.phone || entry.email || '—'}</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="text-sm text-slate-400">—</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="text-sm text-slate-400">—</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="text-sm font-medium text-slate-700">TNR waitlist</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        {entry.customer_notes && String(entry.customer_notes).trim() && (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] text-slate-500" title="Has note">
+                            <FileText className="w-3 h-3" /> Note
+                          </span>
+                        )}
+                        {entry.photo_url && (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] text-slate-500" title="Has photo">
+                            <ImageIcon className="w-3 h-3" /> Photo
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="text-sm text-slate-700">
+                        {entry.created_at ? format(new Date(entry.created_at), 'MMM d, yyyy') : '—'}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {entry.created_at ? format(new Date(entry.created_at), 'h:mm a') : '—'}
+                      </p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-xs text-slate-400">—</span>
+                    </td>
+                  </tr>
+                )
+              }
+              const apt = entry
+              return (
+                <tr
+                  key={apt.id}
+                  onClick={() => onRowSelect(apt)}
+                  className={`cursor-pointer transition-colors hover:bg-apl-blue/5 ${
+                    highlightedId === apt.id ? 'bg-amber-100/80 ring-2 ring-amber-400/60' : ''
+                  }`}
+                >
+                  {isMerged && (
+                    <td className="px-4 py-3">
+                      <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-1 rounded">Intake</span>
+                    </td>
+                  )}
                 <td className="px-4 py-3">
                   <p className="text-sm font-semibold text-slate-800">
                     {[apt.owner_first_name, apt.owner_last_name].filter(Boolean).join(' ') || apt.owner_name || '—'}
@@ -109,7 +185,12 @@ export default function AppointmentTable({
                   </p>
                 </td>
                 <td className="px-4 py-3">
-                  <div className="flex flex-wrap gap-1">
+                  <p className="text-sm font-semibold text-slate-800">
+                    {REQUESTED_SERVICE_LABELS[apt.requested_service] ||
+                      apt.requested_service ||
+                      '—'}
+                  </p>
+                  <div className="flex flex-wrap gap-1 mt-1">
                     {apt.wants_microchip && (
                       <span className="text-[10px] bg-apl-blue/10 text-apl-blue-dark px-1.5 py-0.5 rounded font-medium">
                         Chip
@@ -127,7 +208,8 @@ export default function AppointmentTable({
                     )}
                     {!apt.wants_microchip &&
                       !apt.wants_nail_trim &&
-                      !apt.wants_flea_treatment && (
+                      !apt.wants_flea_treatment &&
+                      !apt.requested_service && (
                         <span className="text-xs text-slate-400">—</span>
                       )}
                   </div>
@@ -144,7 +226,8 @@ export default function AppointmentTable({
                   <StatusBadge status={apt.status} />
                 </td>
               </tr>
-            ))}
+            );
+            })}
           </tbody>
         </table>
       </div>

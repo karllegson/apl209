@@ -136,6 +136,7 @@ export async function PATCH(request, { params }) {
     'attempted',
     'cancelled',
     'no-show',
+    'tnr',
   ]
   if (updates.status && !validStatuses.includes(updates.status)) {
     return NextResponse.json(
@@ -192,8 +193,8 @@ export async function PATCH(request, { params }) {
     await admin.from('standby_appointments').delete().eq('source_appointment_id', id)
   }
 
-  // When appointment is confirmed/cancelled/completed/no-show, sync linked standby rows so they leave the attempted list
-  if (updates.status && ['confirmed', 'cancelled', 'completed', 'no-show'].includes(updates.status)) {
+  // When appointment is confirmed/cancelled/completed/no-show/tnr, sync linked standby rows so they leave the attempted list
+  if (updates.status && ['confirmed', 'cancelled', 'completed', 'no-show', 'tnr'].includes(updates.status)) {
     const staffName = body.status_changed_by != null && typeof body.status_changed_by === 'string'
       ? body.status_changed_by.trim().slice(0, 200)
       : ''

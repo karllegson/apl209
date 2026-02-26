@@ -27,6 +27,7 @@ const statusActions = [
   { value: 'confirmed', label: 'Confirm', color: 'bg-apl-primary hover:bg-apl-blue-dark' },
   { value: 'attempted', label: 'Attempted', color: 'bg-orange-600 hover:bg-orange-700' },
   { value: 'cancelled', label: 'Cancel', color: 'bg-stone-500 hover:bg-stone-600' },
+  { value: 'tnr', label: 'Move to TNR', color: 'bg-violet-600 hover:bg-violet-700' },
 ]
 
 const REQUESTED_SERVICE_LABELS = {
@@ -147,6 +148,7 @@ export default function AppointmentDetail({
   onClose,
   onUpdate,
   onDelete,
+  onTnrAdded = null,
   staffName = null,
 }) {
   const [updating, setUpdating] = useState(false)
@@ -178,6 +180,8 @@ export default function AppointmentDetail({
     wants_flea_treatment: false,
   })
   const [fullscreenPhoto, setFullscreenPhoto] = useState(null)
+  const [movingToTnr, setMovingToTnr] = useState(false)
+  const [tnrAdded, setTnrAdded] = useState(false)
 
   useEffect(() => {
     if (!appointment) return
@@ -329,6 +333,54 @@ export default function AppointmentDetail({
     }
   }
 
+  const handleMoveToTnrWaitlist = async () => {
+    const first = (appointment?.owner_first_name || '').trim() || (appointment?.owner_name || '').trim().split(/\s+/)[0] || ''
+    const last = (appointment?.owner_last_name || '').trim() || (appointment?.owner_name || '').trim().split(/\s+/).slice(1).join(' ') || ''
+    const email = (appointment?.owner_email || '').trim()
+    const phone = (appointment?.owner_phone || '').trim()
+    if (!email || !phone) return
+    setMovingToTnr(true)
+    setTnrAdded(false)
+    try {
+      const res = await fetch('/api/tnr-waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          first_name: first,
+          last_name: last,
+          email,
+          phone,
+          moved_to_tnr: true,
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to add to waitlist')
+      }
+      const patchRes = await fetch(`/api/appointments/${appointment.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          status: 'tnr',
+          status_changed_by: staffName || '',
+        }),
+      })
+      if (patchRes.ok) {
+        const { appointment: updated } = await patchRes.json()
+        onUpdate?.(updated)
+      }
+      setTnrAdded(true)
+      onTnrAdded?.()
+    } catch (err) {
+      console.error('Move to TNR waitlist failed:', err)
+      alert(err.message || 'Failed to add to TNR waitlist.')
+    } finally {
+      setMovingToTnr(false)
+    }
+  }
+
   useEffect(() => {
     const onKeyDown = (e) => {
       if (e.key === 'Escape') setFullscreenPhoto(null)
@@ -413,23 +465,27 @@ export default function AppointmentDetail({
             <div className="flex flex-wrap gap-2">
               {statusActions.map(({ value, label, color }) => {
                 const isCurrent = value === appointment.status
+                const isTnr = value === 'tnr'
+                const tnrDisabled = isTnr && !(appointment?.owner_email && appointment?.owner_phone)
+                const disabled = isTnr ? (updating || movingToTnr || tnrDisabled) : updating
+                const onClick = isTnr ? handleMoveToTnrWaitlist : () => handleStatusChange(value)
                 return (
                   <button
                     key={value}
                     type="button"
-                    onClick={() => handleStatusChange(value)}
-                    disabled={updating}
+                    onClick={onClick}
+                    disabled={disabled}
                     className={`
                       inline-flex items-center justify-center min-w-[6rem] px-4 py-2.5 rounded-lg text-sm font-semibold
                       transition-colors cursor-pointer border-2
-                      ${updating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                      ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                       ${isCurrent
                         ? `${color} text-white border-transparent shadow-sm`
                         : `bg-white text-slate-700 border-slate-300 hover:border-slate-400 hover:bg-slate-50`
                       }
                     `}
                   >
-                    {label}
+                    {isTnr && movingToTnr ? <Loader2 className="w-4 h-4 animate-spin" /> : label}
                   </button>
                 )
               })}
@@ -1182,13 +1238,15 @@ export default function AppointmentDetail({
                 </div>
               </div>
             ) : (
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="flex items-center gap-1.5 text-base text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete submission
-              </button>
+              <>
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="flex items-center gap-1.5 text-base text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete submission
+                </button>
+              </>
             )}
           </div>
         </div>

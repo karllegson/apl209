@@ -34,6 +34,7 @@ export async function GET(request) {
     confirmedResult,
     completedResult,
     cancelledResult,
+    tnrResult,
     todayResult,
     standbyResult,
     recentResult,
@@ -55,6 +56,10 @@ export async function GET(request) {
       .from('appointments')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'cancelled'),
+    admin
+      .from('appointments')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'tnr'),
     admin
       .from('appointments')
       .select('*', { count: 'exact', head: true })
@@ -117,6 +122,7 @@ export async function GET(request) {
       confirmed: confirmedResult.count || 0,
       completed: completedResult.count || 0,
       cancelled: cancelledResult.count || 0,
+      tnr: tnrResult.count || 0,
       today: todayResult.count || 0,
       standby: standbyResult?.count ?? 0,
       linkClicks,

@@ -13,6 +13,7 @@ import {
   Link2,
   Trash2,
   FileText,
+  Search,
 } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 
@@ -73,6 +74,7 @@ export default function AttemptedPage() {
     scheduled_date: '',
   })
   const [submitting, setSubmitting] = useState(false)
+  const [searchInput, setSearchInput] = useState('')
 
   useEffect(() => {
     fetch('/api/admin/me', { credentials: 'include' })
@@ -259,6 +261,17 @@ export default function AttemptedPage() {
     }
   }
 
+  const searchLower = searchInput.trim().toLowerCase()
+  const filteredAttempted = !searchLower
+    ? attempted
+    : attempted.filter((s) => {
+        const haystack = [s.first_name, s.last_name, s.phone, s.appointment_type]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+        return haystack.includes(searchLower)
+      })
+
   if (authChecking || loading) {
     return <AdminPageLoading />
   }
@@ -296,6 +309,19 @@ export default function AttemptedPage() {
             </div>
           </div>
 
+          <div className="mb-4 flex justify-end">
+            <div className="relative w-full max-w-xs">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search by name, phone, type..."
+                className="w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-apl-blue/30 focus:border-apl-blue transition-all"
+              />
+            </div>
+          </div>
+
           <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-sm">
             {loading ? (
               <div className="p-8 text-center text-slate-400">
@@ -305,7 +331,7 @@ export default function AttemptedPage() {
                   ))}
                 </div>
               </div>
-            ) : !attempted.length ? (
+            ) : !filteredAttempted.length ? (
               <div className="p-12 text-center text-slate-400 text-sm">No attempted.</div>
             ) : (
               <div className="overflow-x-auto">
@@ -349,7 +375,7 @@ export default function AttemptedPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {attempted.map((s) => (
+                    {filteredAttempted.map((s) => (
                       <tr key={s.id} className="hover:bg-slate-50/50">
                         <td className="px-4 py-2 text-sm text-slate-800 align-middle w-0">
                           <div className="h-8 flex items-center">

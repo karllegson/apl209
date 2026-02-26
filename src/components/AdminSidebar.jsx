@@ -12,12 +12,14 @@ import {
   Menu,
   X,
   User,
+  PawPrint,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/tnr', label: 'TNR', icon: PawPrint },
   { href: '/admin/attempted', label: 'Attempted', icon: Phone },
   { href: '/admin/confirmed', label: 'Confirmed', icon: CalendarCheck },
   { href: '/admin/appointments', label: 'All Appointments', icon: CalendarDays },

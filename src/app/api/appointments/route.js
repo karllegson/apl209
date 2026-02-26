@@ -47,7 +47,7 @@ export async function GET(request) {
   const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') || '20', 10)), 100)
   const offset = (page - 1) * limit
 
-  const allowedStatuses = ['pending', 'confirmed', 'completed', 'attempted', 'cancelled', 'no-show']
+  const allowedStatuses = ['pending', 'confirmed', 'completed', 'attempted', 'cancelled', 'no-show', 'tnr']
   let query = admin.from('appointments').select('*', { count: 'exact' })
 
   if (status && status !== 'all') {
