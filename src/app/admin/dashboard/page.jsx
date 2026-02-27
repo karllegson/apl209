@@ -234,8 +234,31 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <>
-      <header className="bg-white border-b border-slate-100 px-4 md:px-8 py-5">
+    <div className="relative min-h-screen">
+      {/* Blurry clinic background + peeking pets (same as form page) */}
+      <div
+        className="absolute inset-0 -z-10 bg-gray-900"
+        style={{
+          backgroundImage: 'url(/clinic-waiting-bg.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'blur(14px)',
+        }}
+      />
+      <div className="absolute inset-0 -z-10 bg-black/60" aria-hidden />
+      <div className="absolute inset-y-0 left-[75%] right-[-25%] md:left-[82%] md:right-[-40%] z-[1] pointer-events-none flex items-center" aria-hidden>
+        <div className="relative w-[42vw] h-[36vh] max-h-[55%] md:w-full md:h-full md:max-h-[65%] md:max-w-[55%] opacity-[0.10] origin-left -translate-y-[15%] md:-translate-y-[22%]">
+          <Image
+            src="/peeking-pets.png"
+            alt=""
+            fill
+            className="object-contain object-left"
+            sizes="40vw"
+          />
+        </div>
+      </div>
+
+      <header className="relative z-10 bg-white/95 backdrop-blur-sm border-b border-slate-100 px-4 md:px-8 py-5">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="md:pl-0 pl-14">
               <div className="flex items-center gap-2">
@@ -262,7 +285,7 @@ export default function AdminDashboardPage() {
           </div>
         </header>
 
-        <div className="p-4 md:p-8 space-y-6">
+        <div className="relative z-10 p-4 md:p-8 space-y-6">
           {/* Stats */}
           <section aria-label="Statistics">
             <StatsCards
@@ -368,8 +391,8 @@ export default function AdminDashboardPage() {
                 onSelectEntry={handleSelectEntry}
                 highlightedId={lastViewedId}
               />
-            )}
-          </section>
+          )}
+        </section>
         </div>
 
       {selected && (
@@ -395,6 +418,6 @@ export default function AdminDashboardPage() {
           }}
         />
       )}
-    </>
+    </div>
   )
 }

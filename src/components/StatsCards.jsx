@@ -8,6 +8,7 @@ import {
   CalendarCheck,
   Activity,
   MousePointerClick,
+  PawPrint,
 } from 'lucide-react'
 
 const cardConfig = [
@@ -42,10 +43,20 @@ const cardConfig = [
     label: 'Confirmed',
     icon: CalendarCheck,
     size: 'medium',
-    iconBg: 'bg-sky-100',
-    iconColor: 'text-sky-700',
-    valueColor: 'text-sky-800',
+    iconBg: 'bg-emerald-100',
+    iconColor: 'text-emerald-700',
+    valueColor: 'text-emerald-800',
     href: '/admin/confirmed',
+  },
+  {
+    key: 'tnr',
+    label: 'TNR',
+    icon: PawPrint,
+    size: 'small',
+    iconBg: 'bg-violet-100',
+    iconColor: 'text-violet-700',
+    valueColor: 'text-violet-800',
+    href: '/admin/tnr',
   },
   {
     key: 'cancelled',
@@ -69,8 +80,8 @@ export default function StatsCards({ stats, loading, showLinkAnalytics = false }
             <div key={i} className="h-24 bg-slate-200 rounded-xl animate-pulse" />
           ))}
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {Array.from({ length: 3 }).map((_, i) => (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-20 bg-slate-200 rounded-xl animate-pulse" />
           ))}
         </div>
@@ -79,9 +90,10 @@ export default function StatsCards({ stats, loading, showLinkAnalytics = false }
   }
 
   const statusCardBg = {
-    total: 'bg-apl-blue/5 border-apl-blue/25',
-    confirmed: 'bg-sky-50 border-sky-200',
-    cancelled: 'bg-rose-50 border-rose-200',
+    total: 'bg-white/95 backdrop-blur-xl border-apl-blue/25',
+    confirmed: 'bg-emerald-50/95 backdrop-blur-xl border-emerald-200',
+    cancelled: 'bg-rose-50/95 backdrop-blur-xl border-rose-200',
+    tnr: 'bg-violet-50/95 backdrop-blur-xl border-violet-200',
   }
 
   const monthRange = (() => {
@@ -105,8 +117,8 @@ export default function StatsCards({ stats, loading, showLinkAnalytics = false }
         {cardConfig
           .filter((c) => c.size === 'large')
           .map(({ key, label, icon: Icon, valueColor, description }) => {
-            const pendingStyles = 'bg-amber-50/90 border-2 border-amber-200'
-            const todayStyles = 'bg-apl-orange/10 border-2 border-apl-orange/30'
+            const pendingStyles = 'bg-amber-50/95 backdrop-blur-xl border-2 border-amber-200'
+            const todayStyles = 'bg-white/95 backdrop-blur-xl border-2 border-apl-orange/30'
             return (
               <div
                 key={key}
@@ -131,8 +143,8 @@ export default function StatsCards({ stats, loading, showLinkAnalytics = false }
           })}
       </div>
 
-      {/* Status cards: Total, Confirmed, Cancelled */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      {/* Status cards: Total, Confirmed, TNR, Cancelled */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {cardConfig
           .filter((c) => c.size === 'medium' || c.size === 'small')
           .map(({ key, label, icon: Icon, iconBg, iconColor, valueColor, href }) => {
@@ -153,7 +165,7 @@ export default function StatsCards({ stats, loading, showLinkAnalytics = false }
                 </p>
               </>
             )
-            const cardClass = `rounded-xl border-2 p-3.5 hover:shadow transition-all ${statusCardBg[key] || 'bg-white border-slate-200'} ${href ? 'cursor-pointer hover:border-apl-blue/40' : ''}`
+            const cardClass = `rounded-xl border-2 p-3.5 hover:shadow transition-all backdrop-blur-xl ${statusCardBg[key] || 'bg-white/95 border-slate-200'} ${href ? 'cursor-pointer hover:border-apl-blue/40' : ''}`
             return href ? (
               <Link key={key} href={href} className={cardClass}>
                 {cardContent}
