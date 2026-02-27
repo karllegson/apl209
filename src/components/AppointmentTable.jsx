@@ -98,6 +98,12 @@ export default function AppointmentTable({
             {entries.map((entry) => {
               if (entry.type === 'tnr') {
                 const name = [entry.first_name, entry.last_name].filter(Boolean).join(' ') || '—'
+                const animalLabel =
+                  entry.animal_type === 'cat'
+                    ? 'Cat'
+                    : entry.animal_type === 'dog'
+                      ? 'Dog'
+                      : null
                 return (
                   <tr
                     key={`tnr-${entry.id}`}
@@ -114,7 +120,7 @@ export default function AppointmentTable({
                       <p className="text-xs text-slate-400">{entry.phone || entry.email || '—'}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="text-sm text-slate-400">—</p>
+                      <p className="text-sm text-slate-700">{animalLabel || '—'}</p>
                     </td>
                     <td className="px-4 py-3">
                       <p className="text-sm text-slate-400">—</p>

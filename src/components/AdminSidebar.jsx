@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {
   LayoutDashboard,
@@ -28,6 +28,7 @@ const navItems = [
 
 export default function AdminSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [staffName, setStaffName] = useState(null)
 
@@ -37,6 +38,20 @@ export default function AdminSidebar() {
       .then((data) => data?.staffName && setStaffName(data.staffName))
       .catch(() => {})
   }, [])
+
+  const handleSwitchUser = async () => {
+    try {
+      await fetch('/api/admin/staff', {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+    } catch {
+      // Ignore errors — still send user to selection screen
+    } finally {
+      router.push('/admin/who')
+      router.refresh()
+    }
+  }
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full min-h-0">
@@ -78,12 +93,17 @@ export default function AdminSidebar() {
       {/* Signed-in user + Logout — fixed at bottom */}
       <div className="shrink-0 p-3 border-t border-slate-700/50 space-y-1">
         {staffName && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-700/40">
+          <button
+            type="button"
+            onClick={handleSwitchUser}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-700/40 hover:bg-slate-600/60 text-left cursor-pointer"
+            title="Switch user"
+          >
             <User className="w-4 h-4 text-slate-400 shrink-0" />
             <span className="text-xs font-medium text-slate-300 truncate" title={staffName}>
               {staffName}
             </span>
-          </div>
+          </button>
         )}
         <a
           href="/api/admin/logout"

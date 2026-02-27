@@ -182,6 +182,17 @@ export default function TnrWaitlistDetail({ entry, onClose, onMoved, alreadyOnTn
               <DetailRow label="Email" value={entry.email} />
               <DetailRow label="Phone" value={entry.phone} />
               <DetailRow
+                label="Animal"
+                value={
+                  entry.animal_type === 'cat'
+                    ? 'Cat'
+                    : entry.animal_type === 'dog'
+                      ? 'Dog'
+                      : ''
+                }
+                copyable={false}
+              />
+              <DetailRow
                 label="Submitted"
                 value={entry.created_at ? format(new Date(entry.created_at), 'MMM d, yyyy h:mm a') : ''}
                 copyable={!!entry.created_at}

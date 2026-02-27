@@ -40,3 +40,20 @@ export async function POST(request) {
   })
   return response
 }
+
+export async function DELETE(request) {
+  const devMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+  if (!devMode && !isAdminAuthenticated(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const response = NextResponse.json({ success: true })
+  response.cookies.set(STAFF_COOKIE, '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0,
+  })
+  return response
+}

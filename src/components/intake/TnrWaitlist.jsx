@@ -48,7 +48,15 @@ function resizeImageToDataUrl(file, maxPx = MAX_PHOTO_PX, quality = MAX_PHOTO_QU
 export default function TnrWaitlist({ onBack, onLogoClick }) {
   const { language } = useLanguage()
   const isSpanish = language === 'es'
-  const [form, setForm] = useState({ first_name: '', last_name: '', email: '', phone: '', customer_notes: '', photo_url: '' })
+  const [form, setForm] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    animal_type: '',
+    customer_notes: '',
+    photo_url: '',
+  })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const [submitted, setSubmitted] = useState(false)
@@ -61,8 +69,13 @@ export default function TnrWaitlist({ onBack, onLogoClick }) {
     const last = form.last_name?.trim()
     const email = form.email?.trim()
     const phone = form.phone?.trim()
-    if (!first || !last || !email || !phone) {
-      setError(isSpanish ? 'Complete todos los campos.' : 'Please fill in all fields.')
+    const animalType = form.animal_type
+    if (!first || !last || !email || !phone || !animalType) {
+      setError(
+        isSpanish
+          ? 'Complete todos los campos y seleccione gato o perro.'
+          : 'Please fill in all fields and choose cat or dog.'
+      )
       return
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -79,6 +92,7 @@ export default function TnrWaitlist({ onBack, onLogoClick }) {
           last_name: last,
           email,
           phone,
+          animal_type: animalType,
           customer_notes: form.customer_notes?.trim() || undefined,
           photo_url: form.photo_url || undefined,
         }),
@@ -108,7 +122,16 @@ export default function TnrWaitlist({ onBack, onLogoClick }) {
             <Image src="/logo.png" alt="APL" width={140} height={140} className="h-14 md:h-16 w-auto object-contain" />
           </Link>
         )}
-        <div className="bg-white rounded-xl border-2 border-green-200 p-6 md:p-8 text-center">
+        <div className="bg-white rounded-xl border-2 border-green-200 p-6 md:p-8 text-center space-y-4">
+          <div className="flex justify-center">
+            <Image
+              src="/tnr-confirmation-cat.png"
+              alt=""
+              width={160}
+              height={160}
+              className="rounded-2xl w-28 h-28 md:w-32 md:h-32 object-cover"
+            />
+          </div>
           <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-gray-900 mb-2">
             {isSpanish ? '¡Ya está en la lista!' : "You're on the list!"}
@@ -216,6 +239,37 @@ export default function TnrWaitlist({ onBack, onLogoClick }) {
             className="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-gray-800 focus:outline-none focus:ring-2 focus:ring-apl-primary/30 focus:border-apl-primary"
             placeholder={isSpanish ? 'Teléfono' : 'Phone'}
           />
+        </div>
+
+        {/* Animal type */}
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">
+            {isSpanish ? 'Animal' : 'Animal'} <span className="text-red-500">*</span>
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, animal_type: 'cat' }))}
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium border transition-colors cursor-pointer ${
+                form.animal_type === 'cat'
+                  ? 'border-apl-primary bg-apl-primary/10 text-apl-primary'
+                  : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              {isSpanish ? 'Gato' : 'Cat'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, animal_type: 'dog' }))}
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium border transition-colors cursor-pointer ${
+                form.animal_type === 'dog'
+                  ? 'border-apl-primary bg-apl-primary/10 text-apl-primary'
+                  : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              {isSpanish ? 'Perro' : 'Dog'}
+            </button>
+          </div>
         </div>
 
         {/* Optional photo */}

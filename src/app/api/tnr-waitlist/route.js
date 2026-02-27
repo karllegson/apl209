@@ -23,7 +23,7 @@ export async function GET(request) {
   const movedParam = new URL(request.url).searchParams.get('moved')
   let query = admin
     .from('tnr_waitlist')
-    .select('id, first_name, last_name, email, phone, photo_url, customer_notes, moved_to_tnr, created_at')
+    .select('id, first_name, last_name, email, phone, animal_type, photo_url, customer_notes, moved_to_tnr, created_at')
     .order('created_at', { ascending: false })
     .limit(limit)
   if (movedParam === '0' || movedParam === 'false') query = query.eq('moved_to_tnr', false)
@@ -76,6 +76,10 @@ export async function POST(request) {
   const last_name = typeof body.last_name === 'string' ? body.last_name.trim().slice(0, 200) : ''
   const email = typeof body.email === 'string' ? body.email.trim().slice(0, 200) : ''
   const phone = typeof body.phone === 'string' ? body.phone.trim().slice(0, 50) : ''
+  const animal_type =
+    typeof body.animal_type === 'string' && ['cat', 'dog'].includes(body.animal_type.trim().toLowerCase())
+      ? body.animal_type.trim().toLowerCase()
+      : ''
   const photo_url = typeof body.photo_url === 'string' && body.photo_url.trim().startsWith('data:') ? body.photo_url.trim().slice(0, 2 * 1024 * 1024) : null
   const customer_notes = typeof body.customer_notes === 'string' ? body.customer_notes.trim().slice(0, 2000) : ''
   const wantsMoved = body && body.moved_to_tnr === true
@@ -95,6 +99,7 @@ export async function POST(request) {
       last_name,
       email,
       phone,
+      animal_type,
       photo_url: photo_url || null,
       customer_notes: customer_notes || null,
       moved_to_tnr,

@@ -274,6 +274,7 @@ CREATE TABLE IF NOT EXISTS tnr_waitlist (
   last_name TEXT NOT NULL DEFAULT '',
   email TEXT NOT NULL DEFAULT '',
   phone TEXT NOT NULL DEFAULT '',
+  animal_type TEXT DEFAULT '',
   photo_url TEXT,
   customer_notes TEXT,
   moved_to_tnr BOOLEAN NOT NULL DEFAULT FALSE,
@@ -301,3 +302,4 @@ CREATE POLICY "Allow authenticated update tnr_waitlist"
 ALTER TABLE tnr_waitlist ADD COLUMN IF NOT EXISTS moved_to_tnr BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE tnr_waitlist ADD COLUMN IF NOT EXISTS photo_url TEXT;
 ALTER TABLE tnr_waitlist ADD COLUMN IF NOT EXISTS customer_notes TEXT;
+ALTER TABLE tnr_waitlist ADD COLUMN IF NOT EXISTS animal_type TEXT DEFAULT '';
