@@ -1,7 +1,6 @@
 import Image from 'next/image'
 import { Suspense } from 'react'
 import AppointmentPageClient from './AppointmentPageClient'
-import CopyFormLink from './CopyFormLink'
 
 /* ─── SAVED FORM CARD DECOR SETTINGS (restore from here if needed) ───
  * Peeking pets: mobile left-[65%] right-[-25%], max-h-[50%] max-w-[45%], -translate-y-[15%]; md: left-[82%] right-[-40%], max-h-[65%] max-w-[55%], -translate-y-[22%]; opacity 0.20.
@@ -28,13 +27,9 @@ export default function AppointmentPage() {
       />
       <div className="fixed inset-0 -z-10 bg-black/60" aria-hidden />
 
-      {/* Narrow column for side-by-side with AP form; Copy link inside card */}
-      <main className="relative w-full max-w-xl mx-auto px-3 py-4 md:px-4 md:py-6 overflow-x-hidden">
+      {/* Full-width on desktop; only constrain on very large screens */}
+      <main className="relative w-full max-w-4xl mx-auto px-3 py-4 md:px-8 md:py-8 overflow-x-hidden">
         <div className="relative overflow-hidden rounded-lg border border-gray-200 shadow-sm bg-white min-h-0 min-w-0">
-          {/* Copy bar inside card, top */}
-          <div className="flex items-center justify-end border-b border-gray-100 bg-gray-50/80 px-4 py-2 rounded-t-lg">
-            <CopyFormLink />
-          </div>
           <div className="relative p-4 md:p-6">
             {/* Peeking pets */}
             <div className="absolute inset-y-0 left-[75%] right-[-25%] md:left-[82%] md:right-[-40%] z-[1] pointer-events-none flex items-center" aria-hidden>

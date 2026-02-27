@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, MapPin, Phone, Mail } from 'lucide-react'
+import { ArrowLeft, MapPin } from 'lucide-react'
 import { useLanguage, LanguageToggle } from './LanguageContext'
 
 /**
@@ -78,25 +78,16 @@ export default function AppointmentIntro({ onRequestAppointment }) {
             : 'Filling out this form requests an appointment. Our team will review your information and contact you to schedule and confirm a date and time.'}
         </p>
 
-        <div className="mt-4 pt-4 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-start gap-2 sm:gap-4 text-xs md:text-sm text-gray-500">
-          <div className="inline-flex items-center justify-start gap-1.5">
-            <MapPin className="w-3 h-3 md:w-4 md:h-4 text-apl-blue" />
-            <span>1409 West Oak St., Stockton 95203</span>
-          </div>
-          <div className="inline-flex items-center justify-start gap-1.5">
-            <Phone className="w-3 h-3 md:w-4 md:h-4 text-apl-blue" />
-            <a href="tel:+12094204776" className="hover:underline">
-              (209) 420-4776
-            </a>
-          </div>
-          <div className="inline-flex items-center justify-start gap-1.5">
-            <Mail className="w-3 h-3 md:w-4 md:h-4 text-apl-blue" />
-            <a
-              href="mailto:aplclinic@apl209.org"
-              className="hover:underline"
-            >
-              aplclinic@apl209.org
-            </a>
+        <div className="mt-6 pt-4 border-t border-gray-100">
+          <div className="flex flex-wrap justify-center items-center gap-x-2 gap-y-1 text-xs text-gray-500">
+            <span className="inline-flex items-center gap-1.5">
+              <MapPin className="w-3 h-3 text-gray-400 shrink-0" />
+              1409 West Oak St., Stockton, CA 95203
+            </span>
+            <span className="text-gray-300">·</span>
+            <a href="tel:+12094204776" className="hover:text-apl-blue hover:underline">(209) 420-4776</a>
+            <span className="text-gray-300">·</span>
+            <a href="mailto:aplclinic@apl209.org" className="hover:text-apl-blue hover:underline">aplclinic@apl209.org</a>
           </div>
         </div>
       </section>
