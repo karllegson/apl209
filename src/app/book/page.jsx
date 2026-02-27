@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { Suspense } from 'react'
 import AppointmentPageClient from './AppointmentPageClient'
+import CopyFormLink from './CopyFormLink'
 
 /* ─── SAVED FORM CARD DECOR SETTINGS (restore from here if needed) ───
  * Peeking pets: mobile left-[65%] right-[-25%], max-h-[50%] max-w-[45%], -translate-y-[15%]; md: left-[82%] right-[-40%], max-h-[65%] max-w-[55%], -translate-y-[22%]; opacity 0.20.
@@ -27,30 +28,36 @@ export default function AppointmentPage() {
       />
       <div className="fixed inset-0 -z-10 bg-black/60" aria-hidden />
 
-      {/* Form: compact on mobile so it fits; scrolls if needed */}
-      <main className="relative max-w-3xl mx-auto px-3 py-6 md:px-4 md:py-12 overflow-x-hidden">
-        <div className="relative overflow-hidden rounded-lg border border-gray-200 shadow-sm p-4 md:p-10 min-h-0 min-w-0 bg-white">
-          {/* Peeking pets — MOBILE: left/right = position; w/h = image size (e.g. 42vw) so moving strip doesn't shrink it. DESKTOP: unchanged. */}
-          <div className="absolute inset-y-0 left-[75%] right-[-25%] md:left-[82%] md:right-[-40%] z-[1] pointer-events-none flex items-center" aria-hidden>
-            <div className="relative w-[42vw] h-[36vh] max-h-[55%] md:w-full md:h-full md:max-h-[65%] md:max-w-[55%] opacity-[0.10] origin-left -translate-y-[15%] md:-translate-y-[22%]">
-              <Image
-                src="/peeking-pets.png"
-                alt=""
-                fill
-                className="object-contain object-left"
-                sizes="40vw"
-              />
-            </div>
+      {/* Narrow column for side-by-side with AP form; Copy link inside card */}
+      <main className="relative w-full max-w-xl mx-auto px-3 py-4 md:px-4 md:py-6 overflow-x-hidden">
+        <div className="relative overflow-hidden rounded-lg border border-gray-200 shadow-sm bg-white min-h-0 min-w-0">
+          {/* Copy bar inside card, top */}
+          <div className="flex items-center justify-end border-b border-gray-100 bg-gray-50/80 px-4 py-2 rounded-t-lg">
+            <CopyFormLink />
           </div>
-          <div className="relative z-10 min-w-0 max-w-full">
-            <Suspense fallback={<div className="min-h-[200px]" />}>
-              <AppointmentPageClient />
-            </Suspense>
+          <div className="relative p-4 md:p-6">
+            {/* Peeking pets */}
+            <div className="absolute inset-y-0 left-[75%] right-[-25%] md:left-[82%] md:right-[-40%] z-[1] pointer-events-none flex items-center" aria-hidden>
+              <div className="relative w-[42vw] h-[36vh] max-h-[55%] md:w-full md:h-full md:max-h-[65%] md:max-w-[55%] opacity-[0.10] origin-left -translate-y-[15%] md:-translate-y-[22%]">
+                <Image
+                  src="/peeking-pets.png"
+                  alt=""
+                  fill
+                  className="object-contain object-left"
+                  sizes="40vw"
+                />
+              </div>
+            </div>
+            <div className="relative z-10 min-w-0 max-w-full">
+              <Suspense fallback={<div className="min-h-[200px]" />}>
+                <AppointmentPageClient />
+              </Suspense>
+            </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-xs text-slate-400 space-y-1">
+        <div className="mt-6 text-center text-xs text-slate-400 space-y-1">
           <p>
             Animal Protection League &mdash; 1409 West Oak St., Stockton 95203
           </p>
