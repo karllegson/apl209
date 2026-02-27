@@ -113,6 +113,12 @@ function AppointmentsPageContent() {
   }, [searchInput])
 
   const handleUpdate = (updatedAppointment) => {
+    if (statusFilter !== 'all' && updatedAppointment.status !== statusFilter) {
+      setAppointments((prev) => prev.filter((apt) => apt.id !== updatedAppointment.id))
+      setTotal((prev) => Math.max(0, prev - 1))
+      setSelected(null)
+      return
+    }
     setAppointments((prev) =>
       prev.map((apt) =>
         apt.id === updatedAppointment.id ? updatedAppointment : apt

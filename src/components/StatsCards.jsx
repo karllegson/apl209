@@ -64,6 +64,7 @@ const cardConfig = [
     iconBg: 'bg-rose-100',
     iconColor: 'text-rose-600',
     valueColor: 'text-rose-700',
+    href: '/admin/cancelled',
   },
 ]
 
@@ -145,7 +146,7 @@ export default function StatsCards({ stats, loading, onStatusClick }) {
         {cardConfig
           .filter((c) => c.size === 'medium' || c.size === 'small')
           .map(({ key, label, icon: Icon, iconBg, iconColor, valueColor, href }) => {
-            const clickable = !!href || (onStatusClick && key === 'cancelled')
+            const clickable = !!href
             const cardClass = `rounded-xl border-2 p-3.5 transition-all ${statusCardBg[key] || 'bg-white border-slate-200'} ${
               clickable ? 'hover:shadow cursor-pointer hover:border-slate-300' : ''
             }`
@@ -173,18 +174,7 @@ export default function StatsCards({ stats, loading, onStatusClick }) {
                 </Link>
               )
             }
-            if (onStatusClick && key === 'cancelled') {
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => onStatusClick('cancelled')}
-                  className={`${cardClass} w-full text-left`}
-                >
-                  {content}
-                </button>
-              )
-            }
+
             return (
               <div key={key} className={cardClass}>
                 {content}

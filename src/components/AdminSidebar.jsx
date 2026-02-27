@@ -8,6 +8,7 @@ import {
   CalendarCheck,
   BarChart2,
   Phone,
+  XCircle,
   LogOut,
   Menu,
   X,
@@ -22,6 +23,7 @@ const navItems = [
   { href: '/admin/tnr', label: 'TNR', icon: PawPrint },
   { href: '/admin/attempted', label: 'Attempted', icon: Phone },
   { href: '/admin/confirmed', label: 'Confirmed', icon: CalendarCheck },
+  { href: '/admin/cancelled', label: 'Cancelled', icon: XCircle },
   { href: '/admin/appointments', label: 'All Appointments', icon: CalendarDays },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart2 },
 ]

@@ -25,14 +25,14 @@ export default function AdminPageLoading() {
       aria-live="polite"
       aria-busy="true"
     >
-      <div className="inline-flex flex-col items-center justify-center gap-4 rounded-2xl bg-white px-6 py-5 shadow-2xl border border-slate-200">
+      <div className="inline-flex flex-col items-center justify-center gap-4 rounded-2xl bg-white px-7 py-6 shadow-2xl border border-slate-200">
         {selectedImage && (
-          <div className="w-28 h-28 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 flex-shrink-0">
+          <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 flex-shrink-0">
             <Image
               src={selectedImage}
               alt=""
-              width={128}
-              height={128}
+              width={160}
+              height={160}
               className="w-full h-full object-cover"
               priority
             />

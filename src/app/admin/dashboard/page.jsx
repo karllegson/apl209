@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import AdminPageLoading from '@/components/AdminPageLoading'
 import StatsCards from '@/components/StatsCards'
 import AppointmentTable from '@/components/AppointmentTable'
@@ -12,7 +13,6 @@ import { Search, Filter, RefreshCw, ArrowUpDown } from 'lucide-react'
 const statusFilters = [
   { value: 'all', label: 'All (excl. confirmed, attempted & TNR)' },
   { value: 'pending', label: 'Pending' },
-  { value: 'cancelled', label: 'Cancelled' },
 ]
 
 const sortOptions = [
@@ -107,7 +107,7 @@ export default function AdminDashboardPage() {
       if (statusFilter !== 'all') {
         params.set('status', statusFilter)
       } else {
-        params.set('excludeStatus', 'confirmed,attempted,tnr')
+        params.set('excludeStatus', 'confirmed,attempted,cancelled,tnr')
       }
       if (search.trim()) params.set('search', search.trim())
 
@@ -204,12 +204,21 @@ export default function AdminDashboardPage() {
   const currentPageEntries = allEntries.slice((pageMerged - 1) * pageSize, pageMerged * pageSize)
 
   const handleUpdate = (updatedAppointment) => {
-    setAppointments((prev) =>
-      prev.map((apt) =>
+    setAppointments((prev) => {
+      const movedAway =
+        (statusFilter === 'all' && ['confirmed', 'attempted', 'cancelled', 'tnr'].includes(updatedAppointment.status)) ||
+        (statusFilter === 'pending' && updatedAppointment.status !== 'pending')
+      if (movedAway) {
+        return prev.filter((apt) => apt.id !== updatedAppointment.id)
+      }
+      return prev.map((apt) =>
         apt.id === updatedAppointment.id ? updatedAppointment : apt
       )
-    )
-    setSelected(updatedAppointment)
+    })
+    const movedAway =
+      (statusFilter === 'all' && ['confirmed', 'attempted', 'cancelled', 'tnr'].includes(updatedAppointment.status)) ||
+      (statusFilter === 'pending' && updatedAppointment.status !== 'pending')
+    setSelected(movedAway ? null : updatedAppointment)
     fetchStats()
   }
 
@@ -322,37 +331,44 @@ export default function AdminDashboardPage() {
                 </select>
               </div>
             </div>
-            <div className="mt-3 flex justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  setStatusFilter('cancelled')
-                  setPage(1)
-                }}
-                className={`text-xs font-medium underline-offset-2 ${
-                  statusFilter === 'cancelled'
-                    ? 'text-red-600 underline'
-                    : 'text-slate-500 hover:text-red-600 hover:underline'
-                }`}
-              >
-                View cancelled only
-              </button>
+            <div className="mt-3 flex justify-end text-xs text-slate-400">
+              {/* Cancelled are available on the All Appointments page */}
             </div>
           </section>
 
           {/* Table — all entries (intake + TNR) */}
           <section aria-label="All entries">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">All entries</p>
-            <AppointmentTable
-              entries={currentPageEntries}
-              loading={false}
-              total={totalMerged}
-              page={pageMerged}
-              totalPages={totalPagesMerged}
-              onPageChange={setPage}
-              onSelectEntry={handleSelectEntry}
-              highlightedId={lastViewedId}
-            />
+            {totalMerged === 0 ? (
+              <div className="bg-white rounded-xl border-2 border-slate-200 p-8 md:p-10 text-center shadow-sm flex flex-col items-center gap-4">
+                <Image
+                  src="/tnr-confirmation-cat.png"
+                  alt=""
+                  width={160}
+                  height={160}
+                  className="w-28 h-28 md:w-32 md:h-32 rounded-2xl object-cover"
+                />
+                <div className="space-y-1">
+                  <p className="text-base md:text-lg font-semibold text-slate-800">
+                    Nothing to see here.
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    No pending intakes or TNR waitlist entries match your filters.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <AppointmentTable
+                entries={currentPageEntries}
+                loading={false}
+                total={totalMerged}
+                page={pageMerged}
+                totalPages={totalPagesMerged}
+                onPageChange={setPage}
+                onSelectEntry={handleSelectEntry}
+                highlightedId={lastViewedId}
+              />
+            )}
           </section>
         </div>
 

@@ -115,7 +115,8 @@ export default function AdminTnrPage() {
     }
   }
 
-  if (authChecking) {
+  const showOverlay = authChecking || loading
+  if (showOverlay) {
     return <AdminPageLoading />
   }
 
@@ -166,15 +167,19 @@ export default function AdminTnrPage() {
           appointment={selectedAppointment}
           onClose={() => setSelectedAppointment(null)}
           onUpdate={(updated) => {
-            setSelectedAppointment(updated)
             if (updated.status !== 'tnr') {
+              setAppointments((prev) => prev.filter((apt) => apt.id !== updated.id))
               setSelectedAppointment(null)
-              fetchAppointments()
+              return
             }
+            setAppointments((prev) =>
+              prev.map((apt) => (apt.id === updated.id ? updated : apt))
+            )
+            setSelectedAppointment(updated)
           }}
           onDelete={() => {
+            setAppointments((prev) => prev.filter((apt) => apt.id !== selectedAppointment.id))
             setSelectedAppointment(null)
-            fetchAppointments()
           }}
           staffName={staffName}
         />
