@@ -1,11 +1,10 @@
 'use client'
 
+import Link from 'next/link'
 import {
   CalendarDays,
   Clock,
-  CheckCircle,
   XCircle,
-  TrendingUp,
   CalendarCheck,
   Activity,
   MousePointerClick,
@@ -20,6 +19,7 @@ const cardConfig = [
     iconBg: 'bg-apl-blue/15',
     iconColor: 'text-apl-blue-dark',
     valueColor: 'text-apl-blue-dark',
+    href: '/admin/appointments',
   },
   {
     key: 'pending',
@@ -45,24 +45,7 @@ const cardConfig = [
     iconBg: 'bg-sky-100',
     iconColor: 'text-sky-700',
     valueColor: 'text-sky-800',
-  },
-  {
-    key: 'thisWeek',
-    label: 'This Week',
-    icon: TrendingUp,
-    size: 'medium',
-    iconBg: 'bg-violet-100',
-    iconColor: 'text-violet-700',
-    valueColor: 'text-violet-800',
-  },
-  {
-    key: 'completed',
-    label: 'Completed',
-    icon: CheckCircle,
-    size: 'small',
-    iconBg: 'bg-emerald-100',
-    iconColor: 'text-emerald-700',
-    valueColor: 'text-emerald-800',
+    href: '/admin/confirmed',
   },
   {
     key: 'cancelled',
@@ -72,6 +55,7 @@ const cardConfig = [
     iconBg: 'bg-rose-100',
     iconColor: 'text-rose-600',
     valueColor: 'text-rose-700',
+    href: '/admin/cancelled',
   },
 ]
 
@@ -85,8 +69,8 @@ export default function StatsCards({ stats, loading, showLinkAnalytics = false }
             <div key={i} className="h-24 bg-slate-200 rounded-xl animate-pulse" />
           ))}
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {Array.from({ length: 5 }).map((_, i) => (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-20 bg-slate-200 rounded-xl animate-pulse" />
           ))}
         </div>
@@ -97,8 +81,6 @@ export default function StatsCards({ stats, loading, showLinkAnalytics = false }
   const statusCardBg = {
     total: 'bg-apl-blue/5 border-apl-blue/25',
     confirmed: 'bg-sky-50 border-sky-200',
-    thisWeek: 'bg-violet-50 border-violet-200',
-    completed: 'bg-emerald-50 border-emerald-200',
     cancelled: 'bg-rose-50 border-rose-200',
   }
 
@@ -149,30 +131,39 @@ export default function StatsCards({ stats, loading, showLinkAnalytics = false }
           })}
       </div>
 
-      {/* Status cards: Total, Confirmed, This Week, Completed, Cancelled */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      {/* Status cards: Total, Confirmed, Cancelled */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {cardConfig
           .filter((c) => c.size === 'medium' || c.size === 'small')
-          .map(({ key, label, icon: Icon, iconBg, iconColor, valueColor }) => (
-            <div
-              key={key}
-              className={`rounded-xl border-2 p-3.5 hover:shadow transition-all ${statusCardBg[key] || 'bg-white border-slate-200'}`}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-[11px] font-semibold text-slate-600 truncate uppercase tracking-wide">
-                  {label}
-                </p>
-                <div
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${iconBg} ${iconColor}`}
-                >
-                  <Icon className="w-3.5 h-3.5" />
+          .map(({ key, label, icon: Icon, iconBg, iconColor, valueColor, href }) => {
+            const cardContent = (
+              <>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[11px] font-semibold text-slate-600 truncate uppercase tracking-wide">
+                    {label}
+                  </p>
+                  <div
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${iconBg} ${iconColor}`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                  </div>
                 </div>
+                <p className={`text-xl font-bold mt-1 ${valueColor}`}>
+                  {stats?.[key] ?? 0}
+                </p>
+              </>
+            )
+            const cardClass = `rounded-xl border-2 p-3.5 hover:shadow transition-all ${statusCardBg[key] || 'bg-white border-slate-200'} ${href ? 'cursor-pointer hover:border-apl-blue/40' : ''}`
+            return href ? (
+              <Link key={key} href={href} className={cardClass}>
+                {cardContent}
+              </Link>
+            ) : (
+              <div key={key} className={cardClass}>
+                {cardContent}
               </div>
-              <p className={`text-xl font-bold mt-1 ${valueColor}`}>
-                {stats?.[key] ?? 0}
-              </p>
-            </div>
-          ))}
+            )
+          })}
       </div>
 
       {/* Link click counts — only for Karl Legson */}
