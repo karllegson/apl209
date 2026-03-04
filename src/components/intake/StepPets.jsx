@@ -1,7 +1,6 @@
 'use client'
 
 import { useRef } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { InputField, RadioGroup, SectionTitle } from './FormWidgets'
 import { useLanguage } from './LanguageContext'
@@ -138,7 +137,7 @@ const T = {
     cryptorchid: 'Cryptorchid surgery may be required (undescended testicles). Estimated add-ons:',
     housePet: 'Is this a house pet?',
     tnrTitle: 'TNR — Trap-Neuter-Return (outdoor/community cats)',
-    tnrSafety: 'Outdoor cats behave differently than house pets. For everyone\'s safety (yours, our staff, and others at the clinic) and to meet legal requirements, cats must arrive in a humane trap with weight noted. Traps can be rented from us. You must come in person to sign a waiver.',
+    tnrSafety: 'Outdoor cats behave differently than house pets. For everyone\'s safety (yours, our staff, and others at the clinic) and to meet legal requirements, cats must arrive in a humane trap with weight noted. Traps can be rented from us (if you don\'t have a trap). You\'ll need to come in person to book and sign a waiver.',
     enterWeight: 'Enter weight',
     unsureWeighAtClinic: "Unsure — we'll weigh at clinic",
     priceReference: 'Price reference',
@@ -189,7 +188,7 @@ const T = {
     cryptorchid: 'Puede ser necesaria cirugía por criptorquidia (testículos no descendidos). Adicionales estimados:',
     housePet: '¿Es una mascota de casa?',
     tnrTitle: 'TNR — Capturar-Esterilizar-Devolver (gatos callejeros/comunitarios)',
-    tnrSafety: 'Los gatos callejeros se comportan distinto a las mascotas de casa. Para la seguridad de todos (usted, el personal y los demás en la clínica) y por requisito legal, los gatos tienen que llegar en jaula trampa con el peso anotado. Con nosotros puede rentar trampa. Tiene que venir en persona a firmar un formato.',
+    tnrSafety: 'Los gatos callejeros se comportan distinto a las mascotas de casa. Para la seguridad de todos (usted, el personal y los demás en la clínica) y por requisito legal, los gatos tienen que llegar en jaula trampa con el peso anotado. Con nosotros puede rentar una trampa (si no tiene una). Tiene que venir en persona para hacer la cita y firmar un formato.',
     enterWeight: 'Ingresar peso',
     unsureWeighAtClinic: 'No estoy seguro — lo pesamos en la clínica',
     priceReference: 'Referencia de precios',
@@ -286,38 +285,34 @@ export default function StepPets({
                 <button
                   type="button"
                   onClick={() => updatePet(i, 'type', 'dog')}
-                  className={`w-[72px] h-[72px] md:w-20 md:h-20 rounded-lg border-2 flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+                  className={`w-[82px] h-[82px] md:w-24 md:h-24 rounded-xl border-2 flex flex-col items-center justify-center gap-1 transition-all cursor-pointer shadow-sm ${
                     pet.type === 'dog'
-                      ? 'bg-apl-primary text-white border-apl-primary'
-                      : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                      ? 'bg-blue-500 text-white border-blue-500 shadow-md'
+                      : 'bg-blue-50 text-blue-900 border-blue-200 hover:border-blue-300'
                   }`}
                 >
-                  <Image
-                    src="/dog-icon.png"
-                    alt=""
-                    width={40}
-                    height={40}
-                    className="object-contain flex-shrink-0"
-                  />
-                  <span className="text-xs font-medium">{t.dog}</span>
+                  <span className="text-2xl md:text-3xl" aria-hidden="true">
+                    🐶
+                  </span>
+                  <span className="text-[11px] md:text-xs font-semibold uppercase tracking-wide">
+                    {t.dog}
+                  </span>
                 </button>
                 <button
                   type="button"
                   onClick={() => updatePet(i, 'type', 'cat')}
-                  className={`w-[72px] h-[72px] md:w-20 md:h-20 rounded-lg border-2 flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+                  className={`w-[82px] h-[82px] md:w-24 md:h-24 rounded-xl border-2 flex flex-col items-center justify-center gap-1 transition-all cursor-pointer shadow-sm ${
                     pet.type === 'cat'
-                      ? 'bg-apl-primary text-white border-apl-primary'
-                      : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                      ? 'bg-purple-500 text-white border-purple-500 shadow-md'
+                      : 'bg-purple-50 text-purple-900 border-purple-200 hover:border-purple-300'
                   }`}
                 >
-                  <Image
-                    src="/cat-icon.png"
-                    alt=""
-                    width={40}
-                    height={40}
-                    className="object-contain flex-shrink-0"
-                  />
-                  <span className="text-xs font-medium">{t.cat}</span>
+                  <span className="text-2xl md:text-3xl" aria-hidden="true">
+                    🐱
+                  </span>
+                  <span className="text-[11px] md:text-xs font-semibold uppercase tracking-wide">
+                    {t.cat}
+                  </span>
                 </button>
               </div>
               {errors[`pet_${i}_type`] && (
@@ -540,18 +535,52 @@ export default function StepPets({
                   onChange={(v) => updatePet(i, 'pregnant', v)}
                   error={errors[`pet_${i}_pregnant`]}
                 />
-                <InputField
-                  label={t.lastHeatDate}
-                  type="date"
-                  value={pet.last_heat_date ?? pet.last_heat_pregnancy_date ?? ''}
-                  onChange={(v) => updatePet(i, 'last_heat_date', v)}
-                />
-                <InputField
-                  label={t.pregnancyDate}
-                  type="date"
-                  value={pet.pregnancy_date ?? ''}
-                  onChange={(v) => updatePet(i, 'pregnancy_date', v)}
-                />
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <label className="form-field-label text-gray-700">
+                        {t.lastHeatDate}
+                      </label>
+                      {pet.last_heat_date && (
+                        <button
+                          type="button"
+                          onClick={() => updatePet(i, 'last_heat_date', '')}
+                          className="text-[11px] text-gray-500 hover:text-gray-700 underline-offset-2 hover:underline"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    <InputField
+                      label=""
+                      type="date"
+                      value={pet.last_heat_date ?? pet.last_heat_pregnancy_date ?? ''}
+                      onChange={(v) => updatePet(i, 'last_heat_date', v)}
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <label className="form-field-label text-gray-700">
+                        {t.pregnancyDate}
+                      </label>
+                      {pet.pregnancy_date && (
+                        <button
+                          type="button"
+                          onClick={() => updatePet(i, 'pregnancy_date', '')}
+                          className="text-[11px] text-gray-500 hover:text-gray-700 underline-offset-2 hover:underline"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    <InputField
+                      label=""
+                      type="date"
+                      value={pet.pregnancy_date ?? ''}
+                      onChange={(v) => updatePet(i, 'pregnancy_date', v)}
+                    />
+                  </div>
+                </div>
                 {(pet.in_heat_or_pregnant === 'yes' || pet.in_heat_or_pregnant === 'unsure' || pet.pregnant === 'yes' || pet.pregnant === 'unsure') && (
                   <div className="text-xs text-amber-800 bg-amber-50/70 border border-amber-100 rounded-lg p-2.5 mt-2">
                     <p className="font-medium">{t.addOnsRef}</p>

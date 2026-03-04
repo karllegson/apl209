@@ -18,6 +18,8 @@ export default function AdminTnrPage() {
   const [searchInput, setSearchInput] = useState('')
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [selectedWaitlistEntry, setSelectedWaitlistEntry] = useState(null)
+  const [tnrEnabled, setTnrEnabled] = useState(true)
+  const [tnrSettingsLoading, setTnrSettingsLoading] = useState(true)
 
   useEffect(() => {
     fetch('/api/admin/me', { credentials: 'include' })
@@ -39,6 +41,23 @@ export default function AdminTnrPage() {
       })
       .catch(() => router.replace('/admin'))
   }, [router])
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch('/api/tnr-settings')
+        if (!res.ok) throw new Error('settings error')
+        const data = await res.json()
+        if (typeof data.enabled === 'boolean') setTnrEnabled(data.enabled)
+      } catch {
+        // Fail-open: keep enabled if settings can’t be read
+        setTnrEnabled(true)
+      } finally {
+        setTnrSettingsLoading(false)
+      }
+    }
+    fetchSettings()
+  }, [])
 
   const fetchAppointments = useCallback(async () => {
     try {
@@ -132,7 +151,7 @@ export default function AdminTnrPage() {
         <button
           onClick={fetchAll}
           disabled={loading}
-          className="self-start flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm text-slate-600 font-medium transition-colors cursor-pointer disabled:opacity-60"
+          className="self-start sm:self-end flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm text-slate-600 font-medium transition-colors cursor-pointer disabled:opacity-60"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           Refresh
@@ -140,8 +159,41 @@ export default function AdminTnrPage() {
       </header>
 
       <section aria-label="TNR list">
-        <div className="flex justify-end mb-3">
-          <div className="relative w-full max-w-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+          <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+            <span className="text-xs font-medium text-slate-600">
+              TNR waitlist submissions
+            </span>
+            <button
+              type="button"
+              disabled={tnrSettingsLoading}
+              onClick={async () => {
+                const next = !tnrEnabled
+                setTnrEnabled(next)
+                try {
+                  await fetch('/api/tnr-settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled: next }),
+                    credentials: 'include',
+                  })
+                } catch {
+                  // revert on error
+                  setTnrEnabled(!next)
+                }
+              }}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                tnrEnabled ? 'bg-emerald-500' : 'bg-slate-300'
+              } ${tnrSettingsLoading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  tnrEnabled ? 'translate-x-5' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+          <div className="relative w-full max-w-xs sm:ml-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"

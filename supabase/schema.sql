@@ -218,6 +218,16 @@ ALTER TABLE link_clicks ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow anon insert link_clicks" ON link_clicks;
 CREATE POLICY "Allow anon insert link_clicks"
   ON link_clicks FOR INSERT TO anon WITH CHECK (true);
+
+-- ============================================================
+-- FEATURE FLAGS / APP SETTINGS
+-- Simple key → enabled boolean, for things like TNR waitlist toggle
+-- ============================================================
+CREATE TABLE IF NOT EXISTS feature_flags (
+  key TEXT PRIMARY KEY,
+  enabled BOOLEAN NOT NULL DEFAULT FALSE
+);
+
 DROP POLICY IF EXISTS "Allow authenticated read link_clicks" ON link_clicks;
 CREATE POLICY "Allow authenticated read link_clicks"
   ON link_clicks FOR SELECT TO authenticated USING (true);

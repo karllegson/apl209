@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useLanguage, LanguageToggle } from './LanguageContext'
@@ -61,6 +61,8 @@ export default function TnrWaitlist({ onBack, onLogoClick }) {
   const [error, setError] = useState(null)
   const [submitted, setSubmitted] = useState(false)
   const photoInputRef = useRef(null)
+  const [tnrEnabled, setTnrEnabled] = useState(true)
+  const [settingsLoading, setSettingsLoading] = useState(true)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -106,6 +108,24 @@ export default function TnrWaitlist({ onBack, onLogoClick }) {
       setSubmitting(false)
     }
   }
+
+  // Load TNR waitlist enabled/disabled flag
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch('/api/tnr-settings')
+        if (!res.ok) throw new Error('settings error')
+        const data = await res.json()
+        if (typeof data.enabled === 'boolean') setTnrEnabled(data.enabled)
+      } catch {
+        // Fail-open: keep enabled if settings can’t be read
+        setTnrEnabled(true)
+      } finally {
+        setSettingsLoading(false)
+      }
+    }
+    fetchSettings()
+  }, [])
 
   if (submitted) {
     return (
@@ -177,7 +197,7 @@ export default function TnrWaitlist({ onBack, onLogoClick }) {
       {/* Info block */}
       <div className="rounded-xl border-2 border-slate-200 bg-slate-50/80 p-4 md:p-5 space-y-3 text-sm text-gray-700">
         <p className="font-semibold text-gray-800">
-          {isSpanish ? 'Necesitamos que venga en persona' : 'You’ll need to come in person'}
+          {isSpanish ? 'Necesitamos que venga en persona para hacer la cita' : 'You’ll need to come in person to book'}
         </p>
         <p className="leading-relaxed">
           {isSpanish
@@ -186,8 +206,8 @@ export default function TnrWaitlist({ onBack, onLogoClick }) {
         </p>
         <p className="leading-relaxed">
           {isSpanish
-            ? 'Trampas: el depósito en efectivo de $50 se devuelve como $45 en efectivo al devolver la trampa (es decir, la trampa cuesta $5).'
-            : 'Traps: the $50 cash deposit is refunded as $45 cash when you return the trap (so the trap is effectively $5).'}
+            ? 'Trampas: el depósito en efectivo de $50 se devuelve como $45 en efectivo al devolver la trampa (es decir, la trampa cuesta $5). Puede rentar una trampa con nosotros si no tiene una.'
+            : 'Traps: the $50 cash deposit is refunded as $45 cash when you return the trap (so the trap is effectively $5). You can rent a trap from us if you don’t have one.'}
         </p>
         <p className="leading-relaxed">
           {isSpanish
@@ -198,6 +218,24 @@ export default function TnrWaitlist({ onBack, onLogoClick }) {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border-2 border-slate-200 p-4 md:p-5 space-y-4">
+        {!tnrEnabled && !settingsLoading && (
+          <div className="flex flex-col items-center text-center space-y-3 mb-2">
+            <div className="w-28 h-28 md:w-32 md:h-32 relative">
+              <img
+                src="/waiting-kitten.png"
+                alt=""
+                className="w-full h-full object-cover rounded-2xl"
+              />
+            </div>
+            <p className="text-sm text-slate-600 font-medium">
+              {isSpanish
+                ? 'La lista de espera TNR está llena y temporalmente cerrada.'
+                : 'The TNR waitlist is maxed out and temporarily closed.'}
+            </p>
+          </div>
+        )}
+        {!submitting && tnrEnabled && (
+          <fieldset className="">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">{isSpanish ? 'Nombre' : 'First name'}</label>
@@ -345,15 +383,39 @@ export default function TnrWaitlist({ onBack, onLogoClick }) {
           >
             {isSpanish ? 'Atrás' : 'Back'}
           </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="flex-1 py-2.5 rounded-lg bg-apl-primary hover:bg-apl-blue-dark text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
-          >
-            {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-            {isSpanish ? 'Enviar' : 'Submit'}
-          </button>
+          {tnrEnabled && (
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex-1 py-2.5 rounded-lg bg-apl-primary hover:bg-apl-blue-dark text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+            >
+              {isSpanish ? 'Enviar' : 'Submit'}
+            </button>
+          )}
         </div>
+        </fieldset>
+        )}
+
+        {!submitting && !tnrEnabled && !settingsLoading && (
+          <div className="flex justify-center pt-2">
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium text-sm hover:bg-gray-50"
+            >
+              {isSpanish ? 'Atrás' : 'Back'}
+            </button>
+          </div>
+        )}
+
+        {submitting && (
+          <div className="flex flex-col items-center justify-center gap-3 py-6 text-center">
+            <Loader2 className="w-6 h-6 text-apl-primary animate-spin" />
+            <p className="text-sm text-slate-600">
+              {isSpanish ? 'Enviando su información…' : 'Submitting your information…'}
+            </p>
+          </div>
+        )}
       </form>
     </div>
   )

@@ -14,18 +14,23 @@ import {
   X,
   User,
   PawPrint,
+  Wrench,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
-const navItems = [
+const baseNavItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/tnr', label: 'TNR', icon: PawPrint },
   { href: '/admin/attempted', label: 'Attempted', icon: Phone },
   { href: '/admin/confirmed', label: 'Confirmed', icon: CalendarCheck },
   { href: '/admin/cancelled', label: 'Cancelled', icon: XCircle },
   { href: '/admin/appointments', label: 'All Appointments', icon: CalendarDays },
+]
+
+const karlOnlyNavItems = [
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart2 },
+  { href: '/admin/tools', label: 'Admin Tools', icon: Wrench },
 ]
 
 export default function AdminSidebar() {
@@ -72,7 +77,7 @@ export default function AdminSidebar() {
 
       {/* Navigation — scrolls if needed */}
       <nav className="flex-1 min-h-0 overflow-y-auto p-3 space-y-1">
-        {navItems.map(({ href, label, icon: Icon }) => {
+        {[...baseNavItems, ...(staffName === 'Karl Legson' ? karlOnlyNavItems : [])].map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href || pathname.startsWith(href + '/')
           return (
             <Link

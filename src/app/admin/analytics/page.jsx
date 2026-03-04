@@ -154,8 +154,19 @@ export default function AdminAnalyticsPage() {
     })
   }
 
+  useEffect(() => {
+    if (!authChecking && staffName && staffName !== 'Karl Legson') {
+      router.replace('/admin')
+    }
+  }, [authChecking, staffName, router])
+
   if (authChecking || loading) {
     return <AdminPageLoading />
+  }
+
+  if (!canViewAnalytics) {
+    // Redirect in effect above; render nothing so non-Karl never sees analytics UI.
+    return null
   }
 
   return (
@@ -198,15 +209,7 @@ export default function AdminAnalyticsPage() {
         </header>
 
         <div className="p-4 md:p-8">
-          {!canViewAnalytics ? (
-            <div className="rounded-xl border-2 border-slate-200 bg-slate-50 p-8 text-center max-w-md mx-auto">
-              <Lock className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-              <h2 className="text-lg font-semibold text-slate-700 mb-2">Access restricted</h2>
-              <p className="text-sm text-slate-600">
-                Analytics are only available to Karl Legson.
-              </p>
-            </div>
-          ) : loading ? (
+          {loading ? (
             <div className="space-y-4">
               <div className="h-6 w-48 bg-slate-200 rounded animate-pulse" />
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
