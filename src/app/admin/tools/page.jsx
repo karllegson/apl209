@@ -61,6 +61,34 @@ export default function AdminToolsPage() {
     const d = new Date()
     return new Date(d.getFullYear(), d.getMonth(), d.getDate())
   })
+  const [taskCompletion, setTaskCompletion] = useState({})
+
+  const monthKeyFor = (date) => {
+    const y = date.getFullYear()
+    const m = String(date.getMonth() + 1).padStart(2, '0')
+    return `${y}-${m}`
+  }
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const raw = window.localStorage.getItem('apl-admin-calendar-tasks-v1')
+      if (!raw) return
+      const parsed = JSON.parse(raw)
+      if (parsed && typeof parsed === 'object') setTaskCompletion(parsed)
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      window.localStorage.setItem('apl-admin-calendar-tasks-v1', JSON.stringify(taskCompletion))
+    } catch {
+      // ignore
+    }
+  }, [taskCompletion])
 
   useEffect(() => {
     fetch('/api/admin/me', { credentials: 'include' })
@@ -89,7 +117,14 @@ export default function AdminToolsPage() {
   const day = getDate(now)
   const firstTuesday = getFirstTuesdayOfMonth(now)
   const thirdTuesday = getThirdTuesdayOfMonth(now)
-  const activeTasksForSelected = getActiveTasksForToday(selectedDate)
+  const rawTasksForSelected = getActiveTasksForToday(selectedDate)
+  const selectedMonthKey = monthKeyFor(selectedDate)
+  const completedForMonth = taskCompletion[selectedMonthKey] || {}
+  const sharefileDone = !!completedForMonth.sharefile
+  const billP1Done = !!completedForMonth.billP1
+  const billP2Done = !!completedForMonth.billP2
+  const boardPacketDone = !!completedForMonth.boardPacket
+  const payParagonDone = !!completedForMonth.payParagon
   const sharefileActive = day >= 1 && day <= 7
   const billP1Active = day === 16
   const billP2Active = day === firstTuesday
@@ -131,12 +166,28 @@ export default function AdminToolsPage() {
                 <AdminSimpleCalendar
                   selectedDate={selectedDate}
                   onSelectDate={setSelectedDate}
+                  taskCompletion={taskCompletion}
                 />
               </div>
               <div className="flex-1 min-w-0">
                 <AdminTasksToday
                   date={selectedDate}
-                  activeTasks={activeTasksForSelected}
+                  tasks={rawTasksForSelected}
+                  completed={completedForMonth}
+                  onToggleTask={(key) => {
+                    setTaskCompletion((prev) => {
+                      const mk = monthKeyFor(selectedDate)
+                      const monthState = prev[mk] || {}
+                      const nextMonthState = {
+                        ...monthState,
+                        [key]: !monthState[key],
+                      }
+                      return {
+                        ...prev,
+                        [mk]: nextMonthState,
+                      }
+                    })
+                  }}
                 />
               </div>
             </section>
@@ -150,41 +201,71 @@ export default function AdminToolsPage() {
             <section aria-label="Monthly checklists">
               <h2 className="text-sm font-semibold text-slate-700 mb-3">Monthly checklists</h2>
               <div className="space-y-4">
-                <ChecklistSection
-              storageKey="apl-checklist-sharefile"
-              title="Sharefile"
-              description="First week of month — send files/documents"
-              defaultItems={SHAREFILE_DEFAULT}
-              isActive={sharefileActive}
-            />
-            <ChecklistSection
-              storageKey="apl-checklist-bill-sfspca-p1"
-              title="Bill SFSPCA (Vouchers) — Part 1"
-              description="Vouchers for days 1–15; do the task on the 16th (mid-month)"
-              defaultItems={BILL_SFSPCA_P1_DEFAULT}
-              isActive={billP1Active}
-            />
-            <ChecklistSection
-              storageKey="apl-checklist-bill-sfspca-p2"
-              title="Bill SFSPCA (Vouchers) — Part 2"
-              description="Vouchers for 16–end of previous month; do the task on first Tuesday of the month"
-              defaultItems={BILL_SFSPCA_P2_DEFAULT}
-              isActive={billP2Active}
-            />
-            <ChecklistSection
-              storageKey="apl-checklist-board-packet"
-              title="Board Packet Preparation"
-              description="Board packet prep — do on 3rd Tuesday of month"
-              defaultItems={BOARD_PACKET_DEFAULT}
-              isActive={boardPacketActive}
-            />
-            <ChecklistSection
-              storageKey="apl-checklist-pay-paragon"
-              title="Pay Paragon"
-              description="5th of month"
-              defaultItems={PAY_PARAGON_DEFAULT}
-              isActive={payParagonActive}
-            />
+                {[
+                  {
+                    key: 'paragon',
+                    storageKey: 'apl-checklist-pay-paragon',
+                    title: 'Pay Paragon',
+                    description: '5th of month',
+                    defaults: PAY_PARAGON_DEFAULT,
+                    isActive: payParagonActive,
+                    visible: !payParagonDone,
+                  },
+                  {
+                    key: 'board',
+                    storageKey: 'apl-checklist-board-packet',
+                    title: 'Board Packet Preparation',
+                    description: 'Board packet prep — do on 3rd Tuesday of month',
+                    defaults: BOARD_PACKET_DEFAULT,
+                    isActive: boardPacketActive,
+                    visible: !boardPacketDone,
+                  },
+                  {
+                    key: 'billP2',
+                    storageKey: 'apl-checklist-bill-sfspca-p2',
+                    title: 'Bill SFSPCA (Vouchers) — Part 2',
+                    description: 'Vouchers for 16–end of previous month; do the task on first Tuesday of the month',
+                    defaults: BILL_SFSPCA_P2_DEFAULT,
+                    isActive: billP2Active,
+                    visible: !billP2Done,
+                  },
+                  {
+                    key: 'billP1',
+                    storageKey: 'apl-checklist-bill-sfspca-p1',
+                    title: 'Bill SFSPCA (Vouchers) — Part 1',
+                    description: 'Vouchers for days 1–15; do the task on the 16th (mid-month)',
+                    defaults: BILL_SFSPCA_P1_DEFAULT,
+                    isActive: billP1Active,
+                    visible: !billP1Done,
+                  },
+                  {
+                    key: 'sharefile',
+                    storageKey: 'apl-checklist-sharefile',
+                    title: 'Sharefile',
+                    description: 'First week of month — send files/documents',
+                    defaults: SHAREFILE_DEFAULT,
+                    isActive: sharefileActive,
+                    visible: !sharefileDone,
+                  },
+                ]
+                  .filter((section) => section.visible)
+                  .sort((a, b) => {
+                    // Active sections first; within that, keep the defined importance order above
+                    if (a.isActive && !b.isActive) return -1
+                    if (!a.isActive && b.isActive) return 1
+                    return 0
+                  })
+                  .map((section) => (
+                    <ChecklistSection
+                      key={section.key}
+                      storageKey={section.storageKey}
+                      title={section.title}
+                      description={section.description}
+                      defaultItems={section.defaults}
+                      isActive={section.isActive}
+                      visible={section.visible}
+                    />
+                  ))}
               </div>
             </section>
           </div>

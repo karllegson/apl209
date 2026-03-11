@@ -31,7 +31,7 @@ function saveItems(storageKey, items) {
   } catch (_) {}
 }
 
-export default function ChecklistSection({ storageKey, title, description, defaultItems, isActive }) {
+export default function ChecklistSection({ storageKey, title, description, defaultItems, isActive, visible = true }) {
   const [items, setItems] = useState(defaultItems)
 
   useEffect(() => {
@@ -66,6 +66,17 @@ export default function ChecklistSection({ storageKey, title, description, defau
   const addItem = () => {
     const id = crypto.randomUUID()
     setItems((prev) => [...prev, { id, label: '', checked: false, isNew: true }])
+  }
+
+  if (!visible) {
+    return null
+  }
+
+  const hasItems = items.length > 0
+  const allCompleted = hasItems && items.every((x) => x.checked)
+  if (allCompleted) {
+    // Hide fully completed checklists; user can re-add items by clearing localStorage if needed.
+    return null
   }
 
   return (

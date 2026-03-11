@@ -41,7 +41,13 @@ function getThirdTuesdayOfMonth(date) {
   return getFirstTuesdayOfMonth(date) + 14
 }
 
-function getTasksForDate(date) {
+function monthKeyFor(date) {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  return `${y}-${m}`
+}
+
+function getTasksForDate(date, taskCompletion = {}) {
   const day = date.getDate()
   const firstTue = getFirstTuesdayOfMonth(date)
   const thirdTue = getThirdTuesdayOfMonth(date)
@@ -56,10 +62,12 @@ function getTasksForDate(date) {
   if (day === thirdTue) tasks.push('boardPacket')
   // Pay Paragon — 5th of month
   if (day === 5) tasks.push('payParagon')
-  return tasks
+  const mk = monthKeyFor(date)
+  const completed = taskCompletion[mk] || {}
+  return tasks.filter((key) => !completed[key])
 }
 
-export default function AdminSimpleCalendar({ selectedDate: controlledSelected, onSelectDate }) {
+export default function AdminSimpleCalendar({ selectedDate: controlledSelected, onSelectDate, taskCompletion = {} }) {
   const isControlled = controlledSelected != null && typeof onSelectDate === 'function'
   const [internalSelected, setInternalSelected] = useState(() => toDayStart(new Date()))
   const selectedDate = isControlled ? controlledSelected : internalSelected
@@ -130,7 +138,7 @@ export default function AdminSimpleCalendar({ selectedDate: controlledSelected, 
               const inMonth = isSameMonth(d, monthStart)
               const today = isToday(d)
               const selected = selectedDate ? isSameDay(d, selectedDate) : false
-              const tasksForDay = getTasksForDate(d)
+              const tasksForDay = getTasksForDate(d, taskCompletion)
               const handleDayClick = () => {
                 const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate())
                 if (!inMonth) {

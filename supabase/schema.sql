@@ -313,3 +313,29 @@ ALTER TABLE tnr_waitlist ADD COLUMN IF NOT EXISTS moved_to_tnr BOOLEAN NOT NULL 
 ALTER TABLE tnr_waitlist ADD COLUMN IF NOT EXISTS photo_url TEXT;
 ALTER TABLE tnr_waitlist ADD COLUMN IF NOT EXISTS customer_notes TEXT;
 ALTER TABLE tnr_waitlist ADD COLUMN IF NOT EXISTS animal_type TEXT DEFAULT '';
+
+-- ============================================================
+-- ADMIN NOTES (Notes & reminders — Admin Tools, persisted in DB)
+-- Used by AdminNotes component. API uses service role (bypasses RLS).
+-- ============================================================
+CREATE TABLE IF NOT EXISTS admin_notes (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  text TEXT NOT NULL DEFAULT '',
+  checked BOOLEAN NOT NULL DEFAULT FALSE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_admin_notes_created ON admin_notes(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_admin_notes_sort ON admin_notes(sort_order);
+
+ALTER TABLE admin_notes ENABLE ROW LEVEL SECURITY;
+
+-- No policies: only server-side admin client (service role) can access.
+
+DROP TRIGGER IF EXISTS update_admin_notes_updated_at ON admin_notes;
+CREATE TRIGGER update_admin_notes_updated_at
+  BEFORE UPDATE ON admin_notes
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
