@@ -60,6 +60,8 @@ export async function GET(request) {
 
   if (search) {
     const term = search.replace(/%/g, '\\%').replace(/_/g, '\\_').replace(/'/g, "''")
+    // API search stays simple: owner/contact/address only.
+    // Dashboard will do extra client-side pet-name filtering.
     query = query.or(
       `owner_name.ilike.%${term}%,owner_first_name.ilike.%${term}%,owner_last_name.ilike.%${term}%,owner_email.ilike.%${term}%,owner_phone.ilike.%${term}%,city.ilike.%${term}%,street_address.ilike.%${term}%,state.ilike.%${term}%,zip_code.ilike.%${term}%`
     )

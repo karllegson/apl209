@@ -96,7 +96,7 @@ export default function AdminTnrPage() {
   const appointmentsFiltered = !searchLower
     ? appointments
     : appointments.filter((a) => {
-        const haystack = [
+        const ownerAndContact = [
           a.owner_first_name,
           a.owner_last_name,
           a.owner_name,
@@ -107,6 +107,15 @@ export default function AdminTnrPage() {
           .filter(Boolean)
           .join(' ')
           .toLowerCase()
+
+        const petsArray = Array.isArray(a.pets) ? a.pets : []
+        const petNames = petsArray
+          .map((p) => (p && typeof p.pet_name === 'string' ? p.pet_name : ''))
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+
+        const haystack = `${ownerAndContact} ${petNames}`.trim()
         return haystack.includes(searchLower)
       })
   const waitlistFiltered = !searchLower

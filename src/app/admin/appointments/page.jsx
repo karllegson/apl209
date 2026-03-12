@@ -25,7 +25,6 @@ function AppointmentsPageContent() {
   const [total, setTotal] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
   const [searchInput, setSearchInput] = useState('')
-  const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -65,7 +64,6 @@ function AppointmentsPageContent() {
         limit: '20',
       })
       if (statusFilter !== 'all') params.set('status', statusFilter)
-      if (search.trim()) params.set('search', search.trim())
       if (dateFrom) params.set('dateFrom', dateFrom)
       if (dateTo) params.set('dateTo', dateTo)
 
@@ -81,7 +79,7 @@ function AppointmentsPageContent() {
     } finally {
       setLoading(false)
     }
-  }, [page, statusFilter, search, dateFrom, dateTo])
+  }, [page, statusFilter, dateFrom, dateTo])
 
   useEffect(() => {
     fetchAppointments()
@@ -103,14 +101,7 @@ function AppointmentsPageContent() {
     openAppointment()
   }, [openId, staffName, router])
 
-  // Debounced search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearch(searchInput)
-      setPage(1)
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [searchInput])
+  // Search is client-side only; no refetch on typing.
 
   const handleUpdate = (updatedAppointment) => {
     if (statusFilter !== 'all' && updatedAppointment.status !== statusFilter) {
@@ -135,6 +126,36 @@ function AppointmentsPageContent() {
   if (authChecking || loading) {
     return <AdminPageLoading />
   }
+
+  const searchLower = (searchInput || '').trim().toLowerCase()
+  const filteredAppointments = !searchLower
+    ? appointments
+    : appointments.filter((apt) => {
+        const ownerAndContact = [
+          apt.owner_first_name,
+          apt.owner_last_name,
+          apt.owner_name,
+          apt.owner_email,
+          apt.owner_phone,
+          apt.city,
+          apt.street_address,
+          apt.state,
+          apt.zip_code,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+
+        const petsArray = Array.isArray(apt.pets) ? apt.pets : []
+        const petNames = petsArray
+          .map((p) => (p && typeof p.pet_name === 'string' ? p.pet_name : ''))
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+
+        const haystack = `${ownerAndContact} ${petNames}`.trim()
+        return haystack.includes(searchLower)
+      })
 
   const handleExportCSV = () => {
     if (!appointments.length) return
@@ -289,7 +310,7 @@ function AppointmentsPageContent() {
 
           {/* Table */}
           <AppointmentTable
-            appointments={appointments}
+            appointments={filteredAppointments}
             loading={loading}
             total={total}
             page={page}

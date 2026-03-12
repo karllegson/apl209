@@ -31,7 +31,6 @@ export default function AdminDashboardPage() {
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
-  const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [selected, setSelected] = useState(null)
   const [lastViewedId, setLastViewedId] = useState(null)
@@ -109,7 +108,8 @@ export default function AdminDashboardPage() {
       } else {
         params.set('excludeStatus', 'confirmed,attempted,cancelled,tnr')
       }
-      if (search.trim()) params.set('search', search.trim())
+      // Do NOT send text search to API; Dashboard will filter locally,
+      // including pet names, using the fetched appointments.
 
       const res = await fetch(`/api/appointments?${params}`)
       if (res.ok) {
@@ -135,7 +135,7 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false)
     }
-  }, [statusFilter, search, sortOrder])
+  }, [statusFilter, sortOrder])
 
   useEffect(() => {
     fetchStats()
@@ -149,15 +149,7 @@ export default function AdminDashboardPage() {
     fetchAppointments()
   }, [fetchAppointments])
 
-  // Debounced search
   const [searchInput, setSearchInput] = useState('')
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearch(searchInput)
-      setPage(1)
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [searchInput])
 
   const handleRefresh = () => {
     fetchStats()
@@ -184,11 +176,46 @@ export default function AdminDashboardPage() {
     !searchLower && tnrWaitlist.length > 0
       ? tnrWaitlist
       : tnrWaitlist.filter((t) => {
-          const name = [t.first_name, t.last_name, t.email, t.phone].filter(Boolean).join(' ').toLowerCase()
+          const name = [t.first_name, t.last_name, t.email, t.phone]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase()
           return name.includes(searchLower)
         })
-  const appointmentsFiltered =
-    statusFilter === 'all' ? appointments : appointments.filter((a) => a.status === statusFilter)
+
+  const statusFilteredAppointments =
+    statusFilter === 'all'
+      ? appointments
+      : appointments.filter((a) => a.status === statusFilter)
+
+  const appointmentsFiltered = !searchLower
+    ? statusFilteredAppointments
+    : statusFilteredAppointments.filter((a) => {
+        const ownerAndContact = [
+          a.owner_first_name,
+          a.owner_last_name,
+          a.owner_name,
+          a.owner_email,
+          a.owner_phone,
+          a.city,
+          a.street_address,
+          a.state,
+          a.zip_code,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+
+        const petsArray = Array.isArray(a.pets) ? a.pets : []
+        const petNames = petsArray
+          .map((p) => (p && typeof p.pet_name === 'string' ? p.pet_name : ''))
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+
+        const haystack = `${ownerAndContact} ${petNames}`.trim()
+        return haystack.includes(searchLower)
+      })
   const allEntries = [
     ...appointmentsFiltered.map((a) => ({ type: 'appointment', ...a })),
     ...tnrFiltered.map((t) => ({ type: 'tnr', ...t })),

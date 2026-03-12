@@ -16,7 +16,6 @@ export default function ConfirmedPage() {
   const [total, setTotal] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
   const [searchInput, setSearchInput] = useState('')
-  const [search, setSearch] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [selected, setSelected] = useState(null)
@@ -55,7 +54,6 @@ export default function ConfirmedPage() {
         limit: '20',
         status: 'confirmed',
       })
-      if (search.trim()) params.set('search', search.trim())
       if (dateFrom) params.set('dateFrom', dateFrom)
       if (dateTo) params.set('dateTo', dateTo)
 
@@ -71,19 +69,13 @@ export default function ConfirmedPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, search, dateFrom, dateTo])
+  }, [page, dateFrom, dateTo])
 
   useEffect(() => {
     fetchAppointments()
   }, [fetchAppointments])
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearch(searchInput)
-      setPage(1)
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [searchInput])
+  // Search is client-side only; no refetch on typing.
 
   const handleUpdate = (updatedAppointment) => {
     if (updatedAppointment.status !== 'confirmed') {
@@ -108,6 +100,36 @@ export default function ConfirmedPage() {
   if (authChecking || loading) {
     return <AdminPageLoading />
   }
+
+  const searchLower = (searchInput || '').trim().toLowerCase()
+  const filteredAppointments = !searchLower
+    ? appointments
+    : appointments.filter((apt) => {
+        const ownerAndContact = [
+          apt.owner_first_name,
+          apt.owner_last_name,
+          apt.owner_name,
+          apt.owner_email,
+          apt.owner_phone,
+          apt.city,
+          apt.street_address,
+          apt.state,
+          apt.zip_code,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+
+        const petsArray = Array.isArray(apt.pets) ? apt.pets : []
+        const petNames = petsArray
+          .map((p) => (p && typeof p.pet_name === 'string' ? p.pet_name : ''))
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+
+        const haystack = `${ownerAndContact} ${petNames}`.trim()
+        return haystack.includes(searchLower)
+      })
 
   const handleExportCSV = () => {
     if (!appointments.length) return
@@ -226,7 +248,7 @@ export default function ConfirmedPage() {
           </div>
 
           <AppointmentTable
-            appointments={appointments}
+            appointments={filteredAppointments}
             loading={loading}
             total={total}
             page={page}
