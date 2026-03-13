@@ -11,7 +11,7 @@ const TASK_LABELS = {
   payParagon: { label: 'Pay Paragon', desc: 'Due 5th', color: 'bg-rose-500' },
 }
 
-export default function AdminTasksToday({ date, tasks, completed = {}, onToggleTask }) {
+export default function AdminTasksToday({ date, tasks, completed = {}, onToggleTask, onTaskClick }) {
   const viewDate = date ? new Date(date) : new Date()
   const isTodayDate = isToday(viewDate)
   const list = tasks || []
@@ -44,27 +44,28 @@ export default function AdminTasksToday({ date, tasks, completed = {}, onToggleT
               if (!t) return null
               const done = !!completed[key]
               const dotColor = t.color || 'bg-slate-500'
-              const handleClick = () => {
-                if (onToggleTask) onToggleTask(key)
-              }
               return (
                 <li
                   key={key}
-                  className="flex items-start gap-2 text-sm text-slate-700 cursor-pointer"
-                  onClick={handleClick}
+                  className="flex items-start gap-2 text-sm text-slate-700"
                 >
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleClick()
+                    onClick={() => {
+                      if (onToggleTask) onToggleTask(key)
                     }}
                     className="shrink-0 mt-0.5 p-0.5 rounded text-slate-400 hover:text-apl-primary transition-colors"
                     aria-label={done ? 'Uncheck task' : 'Check task'}
                   >
                     {done ? <Check className="w-4 h-4 text-apl-primary" /> : <Square className="w-4 h-4" />}
                   </button>
-                  <span className="flex-1 min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onTaskClick) onTaskClick(key)
+                    }}
+                    className="flex-1 min-w-0 text-left cursor-pointer hover:opacity-90"
+                  >
                     <span
                       className={`block ${done ? 'text-slate-400 line-through' : 'text-slate-800'}`}
                     >
@@ -73,7 +74,7 @@ export default function AdminTasksToday({ date, tasks, completed = {}, onToggleT
                     <span className="block text-[11px] text-slate-500">
                       {t.desc}
                     </span>
-                  </span>
+                  </button>
                   {!done && (
                     <span className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${dotColor}`} />
                   )}

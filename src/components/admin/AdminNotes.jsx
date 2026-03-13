@@ -147,27 +147,37 @@ export default function AdminNotes() {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+    <div className="rounded-xl border border-amber-300/80 shadow-md overflow-hidden bg-[#fefce8] ring-1 ring-amber-200/60">
+      {/* Yellow pad header */}
+      <div className="px-4 py-3 border-b border-amber-300/70 bg-[#fef08a]/90 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <StickyNote className="w-4 h-4 text-amber-500 shrink-0" />
-          <h3 className="text-sm font-semibold text-slate-800">Notes & reminders</h3>
+          <StickyNote className="w-4 h-4 text-amber-800/70 shrink-0" />
+          <h3 className="text-sm font-semibold text-amber-950">Notes & reminders</h3>
         </div>
         <button
           type="button"
           onClick={() => { setShowNew(true); setDraft(''); setError(null); }}
-          className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium text-apl-primary hover:bg-apl-blue-50 transition-colors"
+          className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium text-amber-900 hover:bg-amber-200/80 transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           Add note
         </button>
       </div>
-      <div className="p-4 space-y-3">
+      {/* Pad body – ruled lines like legal pad */}
+      <div
+        className="p-4 space-y-3"
+        style={{
+          backgroundImage:
+            'linear-gradient(to bottom, rgba(251, 191, 36, 0.12) 1px, transparent 1px)',
+          backgroundSize: '100% 1.5rem',
+          backgroundColor: '#fffbeb',
+        }}
+      >
         {error && (
-          <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
+          <p className="text-sm text-red-700 bg-red-100/90 border border-red-200 px-3 py-2 rounded-lg">{error}</p>
         )}
         {loading ? (
-          <div className="flex items-center justify-center py-8 text-slate-500">
+          <div className="flex items-center justify-center py-8 text-amber-800/50">
             <Loader2 className="w-6 h-6 animate-spin" />
           </div>
         ) : (
@@ -179,7 +189,7 @@ export default function AdminNotes() {
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
                   placeholder="Reminder or note..."
-                  className="flex-1 text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-apl-primary/30 focus:border-apl-primary"
+                  className="flex-1 text-sm border border-amber-300/80 rounded-lg px-3 py-2 bg-white/90 text-slate-800 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-500"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') addNote()
                     if (e.key === 'Escape') { setShowNew(false); setDraft(''); }
@@ -197,7 +207,7 @@ export default function AdminNotes() {
               </div>
             )}
             {notes.length === 0 && !showNew && (
-              <p className="text-sm text-slate-500">No notes yet. Add reminders or notes above.</p>
+              <p className="text-sm text-amber-900/60">No notes yet. Add reminders or notes above.</p>
             )}
             <ul className="space-y-2">
               {notes.map((note) => (
@@ -205,7 +215,7 @@ export default function AdminNotes() {
                   <button
                     type="button"
                     onClick={() => toggleChecked(note.id)}
-                    className="shrink-0 mt-0.5 p-0.5 rounded text-slate-400 hover:text-apl-primary transition-colors"
+                    className="shrink-0 mt-0.5 p-0.5 rounded text-amber-700/50 hover:text-apl-primary transition-colors"
                     aria-label={note.checked ? 'Uncheck' : 'Check'}
                   >
                     {note.checked ? (
@@ -218,7 +228,7 @@ export default function AdminNotes() {
                     <input
                       type="text"
                       defaultValue={note.text}
-                      className="flex-1 text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-apl-primary/30"
+                      className="flex-1 text-sm border border-amber-300/80 rounded-lg px-3 py-2 bg-white/90 focus:outline-none focus:ring-2 focus:ring-amber-400/40"
                       onBlur={(e) => updateNote(note.id, e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') e.target.blur()
@@ -229,7 +239,7 @@ export default function AdminNotes() {
                   ) : (
                     <>
                       <span
-                        className={`flex-1 text-sm cursor-text py-0.5 rounded hover:bg-slate-50 min-w-0 ${note.checked ? 'text-slate-400 line-through' : 'text-slate-700'}`}
+                        className={`flex-1 text-sm cursor-text py-0.5 rounded hover:bg-amber-200/40 min-w-0 ${note.checked ? 'text-amber-800/40 line-through' : 'text-amber-950/90'}`}
                         onClick={() => setEditingId(note.id)}
                       >
                         {note.text}
@@ -237,7 +247,7 @@ export default function AdminNotes() {
                       <button
                         type="button"
                         onClick={() => removeNote(note.id)}
-                        className="shrink-0 p-1 rounded text-slate-300 hover:bg-red-50 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all"
+                        className="shrink-0 p-1 rounded text-amber-700/40 hover:bg-red-100 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all"
                         aria-label="Delete note"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

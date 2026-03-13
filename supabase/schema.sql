@@ -339,3 +339,31 @@ CREATE TRIGGER update_admin_notes_updated_at
   BEFORE UPDATE ON admin_notes
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================
+-- SHAREFILE CHECKLIST ITEMS (Admin Tools — Sharefile workflow)
+-- Stored in DB so checklist is consistent across devices.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS sharefile_checklist_items (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  label TEXT NOT NULL DEFAULT '',
+  checked BOOLEAN NOT NULL DEFAULT FALSE,
+  more_info TEXT DEFAULT '',
+  tool TEXT DEFAULT '',
+  can_edit_more_info BOOLEAN NOT NULL DEFAULT FALSE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_sharefile_items_sort ON sharefile_checklist_items(sort_order);
+
+ALTER TABLE sharefile_checklist_items ENABLE ROW LEVEL SECURITY;
+
+-- No policies: only server-side admin client (service role) can access.
+
+DROP TRIGGER IF EXISTS update_sharefile_checklist_items_updated_at ON sharefile_checklist_items;
+CREATE TRIGGER update_sharefile_checklist_items_updated_at
+  BEFORE UPDATE ON sharefile_checklist_items
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();

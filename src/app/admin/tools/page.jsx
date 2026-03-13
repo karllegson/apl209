@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import AdminPageLoading from '@/components/AdminPageLoading'
 import AdminSimpleCalendar from '@/components/admin/AdminSimpleCalendar'
 import AdminTasksToday from '@/components/admin/AdminTasksToday'
 import AdminNotes from '@/components/admin/AdminNotes'
 import ChecklistSection from '@/components/admin/ChecklistSection'
+import AdminSharefileChecklist from '@/components/admin/AdminSharefileChecklist'
 import { Lock } from 'lucide-react'
 import { getDate, getDaysInMonth } from 'date-fns'
 
@@ -35,21 +36,38 @@ function getThirdTuesdayOfMonth(date) {
   return getFirstTuesdayOfMonth(date) + 14
 }
 
+/** True when every item in stored checklist is checked (same shape as ChecklistSection load). */
+function isChecklistAllComplete(storageKey, defaultItems) {
+  if (typeof window === 'undefined') return false
+  try {
+    const raw = window.localStorage.getItem(storageKey)
+    let items
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        items = parsed
+      }
+    }
+    if (!items) {
+      items = defaultItems.map((x) => ({ ...x, checked: !!x.checked }))
+    }
+    return items.length > 0 && items.every((x) => x.checked)
+  } catch {
+    return false
+  }
+}
+
 function getActiveTasksForToday(date) {
   const day = getDate(date)
   const firstTue = getFirstTuesdayOfMonth(date)
   const thirdTue = getThirdTuesdayOfMonth(date)
   const tasks = []
-  // Sharefile — one due day: first Tuesday
-  if (day === firstTue) tasks.push('sharefile')
-  // Bill SFSPCA Part 1 — vouchers 1–15, do on 16th
-  if (day === 16) tasks.push('billP1')
-  // Bill SFSPCA Part 2 — vouchers 16–end prev month, do on first Tuesday
-  if (day === firstTue) tasks.push('billP2')
-  // Board packet — one due day: 3rd Tuesday
-  if (day === thirdTue) tasks.push('boardPacket')
-  // Pay Paragon — 5th of month
+  // Chronological order by due date: 5th → first Tue → 16th → 3rd Tue
   if (day === 5) tasks.push('payParagon')
+  if (day === firstTue) tasks.push('sharefile')
+  if (day === firstTue) tasks.push('billP2')
+  if (day === 16) tasks.push('billP1')
+  if (day === thirdTue) tasks.push('boardPacket')
   return tasks
 }
 
@@ -62,6 +80,13 @@ export default function AdminToolsPage() {
     return new Date(d.getFullYear(), d.getMonth(), d.getDate())
   })
   const [taskCompletion, setTaskCompletion] = useState({})
+  const [checklistSortKey, setChecklistSortKey] = useState(0)
+
+  useEffect(() => {
+    const handler = () => setChecklistSortKey((k) => k + 1)
+    window.addEventListener('apl-checklist-changed', handler)
+    return () => window.removeEventListener('apl-checklist-changed', handler)
+  }, [])
 
   const monthKeyFor = (date) => {
     const y = date.getFullYear()
@@ -131,6 +156,24 @@ export default function AdminToolsPage() {
   const boardPacketActive = day === thirdTuesday
   const payParagonActive = day === 5
 
+  const handleSharefileCompletionChange = useCallback(
+    (completed) => {
+      setTaskCompletion((prev) => {
+        const mk = monthKeyFor(selectedDate)
+        const monthState = prev[mk] || {}
+        const nextMonthState = {
+          ...monthState,
+          sharefile: completed,
+        }
+        return {
+          ...prev,
+          [mk]: nextMonthState,
+        }
+      })
+    },
+    [selectedDate]
+  )
+
   // If someone other than Karl somehow lands here, send them away.
   useEffect(() => {
     if (!authChecking && staffName && staffName !== 'Karl Legson') {
@@ -174,6 +217,14 @@ export default function AdminToolsPage() {
                   date={selectedDate}
                   tasks={rawTasksForSelected}
                   completed={completedForMonth}
+                  onTaskClick={(key) => {
+                    if (key === 'sharefile') {
+                      const el = document.getElementById('sharefile-section')
+                      if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                      }
+                    }
+                  }}
                   onToggleTask={(key) => {
                     setTaskCompletion((prev) => {
                       const mk = monthKeyFor(selectedDate)
@@ -202,6 +253,7 @@ export default function AdminToolsPage() {
               <h2 className="text-sm font-semibold text-slate-700 mb-3">Monthly checklists</h2>
               <div className="space-y-4">
                 {[
+                  // Chronological order by due date: 5th → first Tue → 16th → 3rd Tue
                   {
                     key: 'paragon',
                     storageKey: 'apl-checklist-pay-paragon',
@@ -210,15 +262,6 @@ export default function AdminToolsPage() {
                     defaults: PAY_PARAGON_DEFAULT,
                     isActive: payParagonActive,
                     visible: !payParagonDone,
-                  },
-                  {
-                    key: 'board',
-                    storageKey: 'apl-checklist-board-packet',
-                    title: 'Board Packet Preparation',
-                    description: 'Board packet prep — do on 3rd Tuesday of month',
-                    defaults: BOARD_PACKET_DEFAULT,
-                    isActive: boardPacketActive,
-                    visible: !boardPacketDone,
                   },
                   {
                     key: 'billP2',
@@ -239,18 +282,22 @@ export default function AdminToolsPage() {
                     visible: !billP1Done,
                   },
                   {
-                    key: 'sharefile',
-                    storageKey: 'apl-checklist-sharefile',
-                    title: 'Sharefile',
-                    description: 'First week of month — send files/documents',
-                    defaults: SHAREFILE_DEFAULT,
-                    isActive: sharefileActive,
-                    visible: !sharefileDone,
+                    key: 'board',
+                    storageKey: 'apl-checklist-board-packet',
+                    title: 'Board Packet Preparation',
+                    description: 'Board packet prep — do on 3rd Tuesday of month',
+                    defaults: BOARD_PACKET_DEFAULT,
+                    isActive: boardPacketActive,
+                    visible: !boardPacketDone,
                   },
                 ]
                   .filter((section) => section.visible)
                   .sort((a, b) => {
-                    // Active sections first; within that, keep the defined importance order above
+                    // Fully completed checklists go to the bottom
+                    const aDone = isChecklistAllComplete(a.storageKey, a.defaults)
+                    const bDone = isChecklistAllComplete(b.storageKey, b.defaults)
+                    if (aDone !== bDone) return aDone ? 1 : -1
+                    // Then active sections first
                     if (a.isActive && !b.isActive) return -1
                     if (!a.isActive && b.isActive) return 1
                     return 0
@@ -267,6 +314,15 @@ export default function AdminToolsPage() {
                     />
                   ))}
               </div>
+            </section>
+
+            {/* Sharefile – detailed checklist */}
+            <section id="sharefile-section" aria-label="Sharefile checklist" className="mt-8">
+              <h2 className="text-sm font-semibold text-slate-700 mb-3">Sharefile</h2>
+              <p className="text-xs text-slate-500 mb-3">
+                First‑week Sharefile workflow with step‑by‑step items and notes.
+              </p>
+              <AdminSharefileChecklist onCompletionChange={handleSharefileCompletionChange} />
             </section>
           </div>
       </div>

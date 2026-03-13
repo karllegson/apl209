@@ -15,6 +15,7 @@ import {
   User,
   PawPrint,
   Wrench,
+  Calculator,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -31,6 +32,7 @@ const baseNavItems = [
 const karlOnlyNavItems = [
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart2 },
   { href: '/admin/tools', label: 'Admin Tools', icon: Wrench },
+  { href: '/admin/tools/covetrus', label: 'Covetrus Tax', icon: Calculator, newTab: true },
 ]
 
 export default function AdminSidebar() {
@@ -77,12 +79,13 @@ export default function AdminSidebar() {
 
       {/* Navigation — scrolls if needed */}
       <nav className="flex-1 min-h-0 overflow-y-auto p-3 space-y-1">
-        {[...baseNavItems, ...(staffName === 'Karl Legson' ? karlOnlyNavItems : [])].map(({ href, label, icon: Icon }) => {
+        {[...baseNavItems, ...(staffName === 'Karl Legson' ? karlOnlyNavItems : [])].map(({ href, label, icon: Icon, newTab }) => {
           const isActive = pathname === href || pathname.startsWith(href + '/')
           return (
             <Link
               key={href}
               href={href}
+              {...(newTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
               onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 isActive
