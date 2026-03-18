@@ -16,6 +16,7 @@ import {
   PawPrint,
   Wrench,
   Calculator,
+  UploadCloud,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -33,6 +34,7 @@ const karlOnlyNavItems = [
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart2 },
   { href: '/admin/tools', label: 'Admin Tools', icon: Wrench },
   { href: '/admin/tools/covetrus', label: 'Covetrus Tax', icon: Calculator, newTab: true },
+  { href: '/admin/tools/uploads', label: 'File Uploads', icon: UploadCloud },
 ]
 
 export default function AdminSidebar() {
