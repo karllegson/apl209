@@ -211,8 +211,8 @@ export default function TnrWaitlist({ onBack, onLogoClick }) {
         </p>
         <p className="leading-relaxed">
           {isSpanish
-            ? 'Suele haber mucha demanda. Tenemos lista de espera; lo llamaremos. Puede dejarnos sus datos y lo ponemos en la lista.'
-            : 'We’re usually fully booked. We have a waitlist; we’ll call you back. Leave your info below and we’ll put you on the list.'}
+            ? 'Puede llamarnos para preguntar sobre la disponibilidad.'
+            : 'You can call us to ask about the availability.'}
         </p>
       </div>
 
@@ -229,8 +229,8 @@ export default function TnrWaitlist({ onBack, onLogoClick }) {
             </div>
             <p className="text-sm text-slate-600 font-medium">
               {isSpanish
-                ? 'La lista de espera TNR está llena y temporalmente cerrada.'
-                : 'The TNR waitlist is maxed out and temporarily closed.'}
+                ? 'Llame a nuestra clínica al 2094204776'
+                : 'Call our clinic at 2094204776'}
             </p>
           </div>
         )}
