@@ -88,6 +88,10 @@ export default function AppointmentIntro({ onRequestAppointment }) {
             <a href="tel:+12094204776" className="hover:text-apl-blue hover:underline">(209) 420-4776</a>
             <span className="text-gray-300">·</span>
             <a href="mailto:aplclinic@apl209.org" className="hover:text-apl-blue hover:underline">aplclinic@apl209.org</a>
+            <span className="text-gray-300">·</span>
+            <Link href="/volunteer" className="text-apl-blue underline underline-offset-2 hover:text-apl-blue-dark cursor-pointer">
+              {isSpanish ? 'Voluntariado' : 'Volunteer'}
+            </Link>
           </div>
         </div>
       </section>
