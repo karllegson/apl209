@@ -123,3 +123,5 @@ CREATE TRIGGER update_volunteer_posts_updated_at
   BEFORE UPDATE ON volunteer_posts
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
+
+-- TODO: Add a table for volunteer hours
