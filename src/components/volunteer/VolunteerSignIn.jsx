@@ -3,9 +3,15 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Clock, Loader2, RotateCcw, Shirt, UserPlus } from 'lucide-react'
+import { format } from 'date-fns'
+import { es as esLocale, enUS } from 'date-fns/locale'
+import { ArrowLeft, Clock, Loader2, RotateCcw, Shirt, UserPlus, X } from 'lucide-react'
 import { LanguageToggle, useLanguage } from '@/components/intake/LanguageContext'
-import { CLINIC } from '@/lib/volunteer/clinic'
+import { CLINIC, LAUNDRY_COORDINATOR } from '@/lib/volunteer/clinic'
+import { parseDateStr } from '@/lib/volunteer/dates'
+import VolunteerWeekPreview from './VolunteerWeekPreview'
+
+const PENDING_DAY_KEY = 'apl_volunteer_pending_day'
 
 const fieldClass =
   'w-full intake-input px-3.5 py-3 rounded-xl border border-gray-200 text-base bg-white focus:outline-none focus:ring-2 focus:ring-apl-primary/25 focus:border-apl-primary transition-shadow'
@@ -25,12 +31,28 @@ export default function VolunteerSignIn({ onSignedIn }) {
   const [retContact, setRetContact] = useState('')
   const [retError, setRetError] = useState('')
   const [retLoading, setRetLoading] = useState(false)
+  const [pendingDay, setPendingDay] = useState(null)
+
+  const locale = isSpanish ? esLocale : enUS
 
   const goBack = () => {
     setMode(null)
     setNewError('')
     setRetError('')
     setNewMethod(null)
+    setPendingDay(null)
+  }
+
+  const chooseDayPath = (which) => {
+    if (pendingDay) {
+      try {
+        sessionStorage.setItem(PENDING_DAY_KEY, pendingDay)
+      } catch {
+        /* ignore */
+      }
+    }
+    setPendingDay(null)
+    setMode(which)
   }
 
   const handleNew = async (e) => {
@@ -103,17 +125,17 @@ export default function VolunteerSignIn({ onSignedIn }) {
   const steps = isSpanish
     ? [
         { n: '1', t: 'Elige un día abierto', d: 'Lunes a viernes, una persona por día.' },
-        { n: '2', t: 'Di a qué hora llegas', d: 'La mañana alrededor de las 10 funciona mejor porque no hace tanto calor.' },
+        { n: '2', t: 'Di a qué hora llegas', d: 'Elige la hora que te funcione.' },
         { n: '3', t: 'Pasa por recepción', d: 'Te llevan a la lavandería, atrás junto a recuperación.' },
       ]
     : [
         { n: '1', t: 'Pick an open weekday', d: 'Monday–Friday. One volunteer per day.' },
-        { n: '2', t: 'Say when you’ll arrive', d: 'Morning around 10 works best since it’s not hot.' },
+        { n: '2', t: 'Say when you’ll arrive', d: 'Pick a time that works for you.' },
         { n: '3', t: 'Check in at the desk', d: 'They’ll walk you back by recovery.' },
       ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
         {mode ? (
           <button
@@ -136,41 +158,35 @@ export default function VolunteerSignIn({ onSignedIn }) {
         <LanguageToggle />
       </div>
 
-      <div className="text-center space-y-3">
-        <Link href="/book" className="inline-flex justify-center">
-          <Image
-            src="/logo.png"
-            alt="Animal Protection League"
-            width={140}
-            height={140}
-            className="h-14 w-auto object-contain"
-          />
-        </Link>
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-apl-primary/80 mb-1.5">
-            {isSpanish ? 'Clínica APL · Stockton' : 'APL Clinic · Stockton'}
-          </p>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            {isSpanish ? 'Ayuda con la lavandería' : 'Laundry volunteers'}
-          </h1>
-          <p className="text-gray-500 text-sm mt-2 leading-relaxed max-w-xs mx-auto">
-            {mode === 'returning'
-              ? isSpanish
-                ? 'Entra con el correo o teléfono que usaste.'
-                : 'Sign in with the email or phone you used.'
-              : mode === 'new'
-                ? isSpanish
-                  ? 'Nombre y cómo contactarte. Sin contraseña.'
-                  : 'Your name and how we can reach you. No password.'
-                : isSpanish
-                  ? 'La clínica necesita a alguien cada día entre semana. Toma un día cuando puedas.'
-                  : 'The clinic needs someone every weekday. Take a day when you can.'}
-          </p>
-        </div>
-      </div>
-
       {!mode && (
         <>
+          <div className="text-center space-y-3">
+            <Link href="/book" className="inline-flex justify-center">
+              <Image
+                src="/logo.png"
+                alt="Animal Protection League"
+                width={140}
+                height={140}
+                className="h-14 w-auto object-contain"
+              />
+            </Link>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-apl-primary/80 mb-1.5">
+                {isSpanish ? 'Clínica APL · Stockton' : 'APL Clinic · Stockton'}
+              </p>
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+                {isSpanish ? 'Ayuda con la lavandería' : 'Laundry volunteers'}
+              </h1>
+              <p className="text-gray-500 text-sm mt-2 leading-relaxed max-w-xs mx-auto">
+                {isSpanish
+                  ? 'Mira la semana abajo. Un día entre semana — luego entra para anotarte.'
+                  : 'See the week below. One weekday at a time — then sign in to take a day.'}
+              </p>
+            </div>
+          </div>
+
+          <VolunteerWeekPreview isSpanish={isSpanish} onTakeOpenDay={setPendingDay} />
+
           <div className="flex flex-col gap-2.5">
             <button
               type="button"
@@ -203,10 +219,10 @@ export default function VolunteerSignIn({ onSignedIn }) {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block font-semibold text-gray-900 text-[15px]">
-                  {isSpanish ? 'Voluntario nuevo' : 'New volunteer'}
+                  {isSpanish ? 'Quiero ayudar' : 'I want to help'}
                 </span>
                 <span className="block text-xs text-gray-500 mt-0.5">
-                  {isSpanish ? 'Crear una cuenta en un minuto' : 'Create an account in a minute'}
+                  {isSpanish ? 'Voluntario nuevo — 1 minuto' : 'New volunteer — takes a minute'}
                 </span>
               </span>
               <span className="text-gray-400 text-sm font-semibold group-hover:translate-x-0.5 transition-transform">
@@ -218,7 +234,7 @@ export default function VolunteerSignIn({ onSignedIn }) {
           <ol className="rounded-2xl border border-gray-100 bg-gray-50/80 p-3.5 space-y-2.5">
             {steps.map((s) => (
               <li key={s.n} className="flex gap-3">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-apl-primary text-[11px] font-bold text-white">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-apl-orange text-[11px] font-bold text-white">
                   {s.n}
                 </span>
                 <span>
@@ -228,6 +244,26 @@ export default function VolunteerSignIn({ onSignedIn }) {
               </li>
             ))}
           </ol>
+
+          <p className="text-[11px] text-gray-400 text-center leading-relaxed">
+            {isSpanish ? (
+              <>
+                Si es tu primera vez,{' '}
+                <a href={`tel:${LAUNDRY_COORDINATOR.tel}`} className="text-apl-primary/80 hover:underline">
+                  llámame o mándame mensaje
+                </a>
+                .
+              </>
+            ) : (
+              <>
+                If it&apos;s your first time,{' '}
+                <a href={`tel:${LAUNDRY_COORDINATOR.tel}`} className="text-apl-primary/80 hover:underline">
+                  call or text me
+                </a>
+                .
+              </>
+            )}
+          </p>
 
           <div className="flex items-start gap-2.5 rounded-xl bg-amber-50/80 border border-apl-orange/20 px-3 py-2.5">
             <Shirt className="w-4 h-4 text-apl-orange-dark shrink-0 mt-0.5" />
@@ -251,6 +287,14 @@ export default function VolunteerSignIn({ onSignedIn }) {
 
       {mode === 'returning' && (
         <form onSubmit={handleReturning} className="space-y-4 animate-fade-in">
+          <div className="text-center pb-1">
+            <h2 className="text-lg font-bold text-gray-900">
+              {isSpanish ? 'Bienvenido de nuevo' : 'Welcome back'}
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              {isSpanish ? 'Correo o teléfono — sin contraseña' : 'Email or phone — no password'}
+            </p>
+          </div>
           <div>
             <label className="form-field-label block mb-2">
               {isSpanish ? 'Correo o teléfono' : 'Email or phone'}
@@ -278,6 +322,14 @@ export default function VolunteerSignIn({ onSignedIn }) {
 
       {mode === 'new' && (
         <form onSubmit={handleNew} className="space-y-4 animate-fade-in">
+          <div className="text-center pb-1">
+            <h2 className="text-lg font-bold text-gray-900">
+              {isSpanish ? 'Crea tu cuenta' : 'Create your account'}
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              {isSpanish ? 'Luego elige un día abierto en el calendario' : 'Then pick an open day on the calendar'}
+            </p>
+          </div>
           <div>
             <label className="form-field-label block mb-2">{isSpanish ? 'Nombre' : 'Name'}</label>
             <input
@@ -321,11 +373,6 @@ export default function VolunteerSignIn({ onSignedIn }) {
                 </button>
               ))}
             </div>
-            <p className="text-[11px] text-gray-400 mt-2">
-              {isSpanish
-                ? 'Lo usamos si hay un cambio de horario o si la clínica cierra ese día.'
-                : 'We use this if the schedule changes or the clinic closes that day.'}
-            </p>
           </div>
 
           {newMethod && (
@@ -359,12 +406,84 @@ export default function VolunteerSignIn({ onSignedIn }) {
             {newLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : isSpanish ? (
-              'Crear cuenta'
+              'Crear cuenta y continuar'
             ) : (
-              'Create account'
+              'Create account & continue'
             )}
           </button>
         </form>
+      )}
+
+      {pendingDay && !mode && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setPendingDay(null)}
+            aria-label="Close"
+          />
+          <div className="relative w-full sm:max-w-sm bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] space-y-4 animate-fade-in">
+            <div className="mx-auto mb-1 h-1 w-10 rounded-full bg-gray-200 sm:hidden" aria-hidden />
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-apl-orange-dark">
+                  {isSpanish ? 'Día abierto' : 'Open day'}
+                </p>
+                <h2 className="text-lg font-bold text-gray-900 mt-0.5">
+                  {format(parseDateStr(pendingDay), 'EEE, MMM d', { locale })}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1 leading-relaxed">
+                  {isSpanish
+                    ? '¿Ya tienes cuenta o eres nuevo?'
+                    : 'Already signed up, or new here?'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPendingDay(null)}
+                className="p-2 -mr-1 text-gray-400 hover:text-gray-700 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => chooseDayPath('returning')}
+                className="flex items-center gap-3 p-3.5 rounded-xl border border-apl-primary/25 bg-apl-blue-50/50 hover:bg-apl-blue-50 text-left cursor-pointer touch-manipulation"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-apl-primary text-white">
+                  <RotateCcw className="w-4 h-4" />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold text-gray-900">
+                    {isSpanish ? 'Ya soy voluntario' : 'Returning volunteer'}
+                  </span>
+                  <span className="block text-xs text-gray-500">
+                    {isSpanish ? 'Entrar y anotar este día' : 'Sign in and take this day'}
+                  </span>
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => chooseDayPath('new')}
+                className="flex items-center gap-3 p-3.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-left cursor-pointer touch-manipulation"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600">
+                  <UserPlus className="w-4 h-4" />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold text-gray-900">
+                    {isSpanish ? 'Voluntario nuevo' : 'New volunteer'}
+                  </span>
+                  <span className="block text-xs text-gray-500">
+                    {isSpanish ? 'Crear cuenta y anotar este día' : 'Create an account, then take this day'}
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

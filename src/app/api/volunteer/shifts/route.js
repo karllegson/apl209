@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getVolunteerSession, isSignedIn } from '@/lib/volunteer/auth'
-import { isPastDate, isWeekday, normalizeTime } from '@/lib/volunteer/dates'
+import { isPastDate, isWeekday, isValidArrivalTime, normalizeTime, toDateStr } from '@/lib/volunteer/dates'
 
 function sanitizeNote(value) {
   if (value == null) return ''
@@ -43,6 +43,9 @@ export async function POST(request) {
   }
   if (!arrival_time) {
     return NextResponse.json({ error: 'Pick an arrival time.' }, { status: 400 })
+  }
+  if (!isValidArrivalTime(arrival_time)) {
+    return NextResponse.json({ error: 'Arrival time must be between 8:00 AM and 4:00 PM.' }, { status: 400 })
   }
   if (!volunteerId) {
     return NextResponse.json({ error: 'Admin: pick a volunteer to assign.' }, { status: 400 })

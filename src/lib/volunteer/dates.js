@@ -46,3 +46,19 @@ export function normalizeTime(value) {
   if (h < 0 || h > 23 || m < 0 || m > 59) return ''
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 }
+
+export const ARRIVAL_TIME_MIN = '08:00'
+export const ARRIVAL_TIME_MAX = '16:00'
+
+export function clampArrivalTime(value) {
+  const t = normalizeTime(value)
+  if (!t) return ARRIVAL_TIME_MIN
+  if (t < ARRIVAL_TIME_MIN) return ARRIVAL_TIME_MIN
+  if (t > ARRIVAL_TIME_MAX) return ARRIVAL_TIME_MAX
+  return t
+}
+
+export function isValidArrivalTime(value) {
+  const t = normalizeTime(value)
+  return !!t && t >= ARRIVAL_TIME_MIN && t <= ARRIVAL_TIME_MAX
+}

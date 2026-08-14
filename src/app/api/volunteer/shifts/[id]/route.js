@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getVolunteerSession, isSignedIn } from '@/lib/volunteer/auth'
-import { isPastDate, normalizeTime } from '@/lib/volunteer/dates'
+import { isPastDate, isValidArrivalTime, normalizeTime } from '@/lib/volunteer/dates'
 
 const SHIFT_COLS = 'id, volunteer_id, shift_date, arrival_time, hours_worked, note'
 const SHIFT_COLS_SAFE = 'id, volunteer_id, shift_date, arrival_time, hours_worked'
@@ -66,6 +66,9 @@ export async function PATCH(request, { params }) {
     const arrival_time = normalizeTime(body.arrival_time)
     if (!arrival_time) {
       return NextResponse.json({ error: 'Pick a valid arrival time.' }, { status: 400 })
+    }
+    if (!isValidArrivalTime(arrival_time)) {
+      return NextResponse.json({ error: 'Arrival time must be between 8:00 AM and 4:00 PM.' }, { status: 400 })
     }
     if (!session.isAdmin && isPastDate(shift.shift_date)) {
       return NextResponse.json({ error: 'Cannot change time on a past day.' }, { status: 400 })

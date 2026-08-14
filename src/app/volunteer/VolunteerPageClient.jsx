@@ -37,7 +37,7 @@ function VolunteerApp() {
     : 'relative bg-white rounded-2xl border border-white/80 shadow-[0_16px_50px_rgba(0,0,0,0.22)] p-5 sm:p-6 md:p-8 overflow-hidden'
 
   return (
-    <div className={session ? 'max-w-4xl mx-auto w-full min-w-0 relative' : 'max-w-md mx-auto w-full relative'}>
+    <div className={session ? 'max-w-4xl mx-auto w-full min-w-0 relative' : 'max-w-lg mx-auto w-full relative'}>
       <div className="pointer-events-none absolute -top-8 -left-10 h-28 w-28 rounded-full bg-apl-orange/50 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-10 -right-8 h-32 w-32 rounded-full bg-apl-primary/45 blur-3xl" />
       <div className={cardClass}>

@@ -2,17 +2,22 @@
 
 import { useState } from 'react'
 import { Check, ChevronDown, Copy, MapPin, Phone, Shirt } from 'lucide-react'
-import { CLINIC } from '@/lib/volunteer/clinic'
+import { CLINIC, LAUNDRY_COORDINATOR } from '@/lib/volunteer/clinic'
 
 const TIPS = {
   en: [
+    {
+      title: 'First time?',
+      body: `Call ${LAUNDRY_COORDINATOR.phoneDisplay} before your first day — I’ll meet you to walk you through everything. I’m available ${LAUNDRY_COORDINATOR.hoursDisplay.en}.`,
+      tel: LAUNDRY_COORDINATOR.tel,
+    },
     {
       title: 'Ask the front desk',
       body: 'Laundry is in the back by recovery. Check in at reception first so someone can walk you back.',
     },
     {
-      title: 'Mornings work best',
-      body: 'Morning around 10 works best since it’s not hot. Come when you can — just say when you’ll arrive.',
+      title: 'When to come',
+      body: 'Pick any time between 8:00 AM and 4:00 PM when you sign up — whatever works for your schedule.',
     },
     {
       title: 'If you can’t make it',
@@ -21,12 +26,17 @@ const TIPS = {
   ],
   es: [
     {
+      title: '¿Primera vez?',
+      body: `Llama al ${LAUNDRY_COORDINATOR.phoneDisplay} antes de tu primer día — te acompaño para mostrarte todo. Disponible ${LAUNDRY_COORDINATOR.hoursDisplay.es}.`,
+      tel: LAUNDRY_COORDINATOR.tel,
+    },
+    {
       title: 'Pregunta en recepción',
       body: 'La lavandería queda atrás, junto a recuperación. Pasa primero por recepción para que te lleven.',
     },
     {
-      title: 'Mejor por la mañana',
-      body: 'La mañana alrededor de las 10 funciona mejor porque no hace tanto calor. Ven cuando puedas — solo indica a qué hora llegas.',
+      title: 'Cuándo venir',
+      body: 'Elige cualquier hora entre 8:00 AM y 4:00 PM al anotarte — la que mejor te funcione.',
     },
     {
       title: 'Si no puedes ir',
@@ -35,8 +45,8 @@ const TIPS = {
   ],
 }
 
-export default function VolunteerKnowHow({ isSpanish, defaultOpen = false }) {
-  const [open, setOpen] = useState(defaultOpen)
+export default function VolunteerKnowHow({ isSpanish }) {
+  const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const tips = isSpanish ? TIPS.es : TIPS.en
 
@@ -79,6 +89,15 @@ export default function VolunteerKnowHow({ isSpanish, defaultOpen = false }) {
               <li key={tip.title} className="rounded-xl bg-white/80 border border-white px-3 py-2.5">
                 <p className="text-xs font-semibold text-gray-900">{tip.title}</p>
                 <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{tip.body}</p>
+                {tip.tel && (
+                  <a
+                    href={`tel:${tip.tel}`}
+                    className="inline-flex items-center gap-1 mt-2 text-[11px] font-semibold text-apl-primary hover:underline"
+                  >
+                    <Phone className="w-3 h-3" />
+                    {LAUNDRY_COORDINATOR.phoneDisplay}
+                  </a>
+                )}
               </li>
             ))}
           </ul>

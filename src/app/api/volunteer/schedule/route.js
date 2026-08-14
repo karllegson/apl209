@@ -124,6 +124,16 @@ export async function GET(request) {
   const myUpcoming = mine.filter((s) => s.date >= today)
   const todayShift = mine.find((s) => s.date === today) || null
 
+  let beforeFirstDay = false
+  if (session.volunteerId && !session.isAdmin) {
+    const { count, error: countError } = await admin
+      .from('volunteer_shifts')
+      .select('id', { count: 'exact', head: true })
+      .eq('volunteer_id', session.volunteerId)
+      .lt('shift_date', today)
+    if (!countError) beforeFirstDay = (count || 0) === 0
+  }
+
   const closures = (closuresRes.data || []).map((c) => ({
     id: c.id,
     date: c.closed_date,
@@ -139,5 +149,6 @@ export async function GET(request) {
     hoursDue,
     myUpcoming,
     todayShift,
+    beforeFirstDay,
   })
 }

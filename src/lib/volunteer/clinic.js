@@ -6,6 +6,16 @@ export const CLINIC = {
   maps: 'https://maps.google.com/?q=1409+West+Oak+St,+Stockton,+CA+95203',
 }
 
+/** Karl — first-day laundry walkthrough */
+export const LAUNDRY_COORDINATOR = {
+  phoneDisplay: '209-420-4776',
+  tel: '+12094204776',
+  hoursDisplay: {
+    en: 'Tue–Fri, 1:30–4:00 PM',
+    es: 'Mar–Vie, 1:30–4:00 PM',
+  },
+}
+
 export const LAST_MINUTE_HOURS = 24
 
 function pad2(n) {

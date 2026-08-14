@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   addDays,
@@ -30,7 +30,7 @@ import {
   X,
 } from 'lucide-react'
 import { LanguageToggle, useLanguage } from '@/components/intake/LanguageContext'
-import { formatTimeDisplay, isPastDate, isWeekday, parseDateStr, toDateStr } from '@/lib/volunteer/dates'
+import { formatTimeDisplay, isPastDate, isWeekday, parseDateStr, toDateStr, clampArrivalTime, ARRIVAL_TIME_MIN, ARRIVAL_TIME_MAX } from '@/lib/volunteer/dates'
 import {
   CLINIC,
   LAST_MINUTE_HOURS,
@@ -40,6 +40,7 @@ import {
 } from '@/lib/volunteer/clinic'
 import VolunteerStats from './VolunteerStats'
 import VolunteerKnowHow from './VolunteerKnowHow'
+import FirstTimeVolunteerPopup from './FirstTimeVolunteerNotice'
 
 function weekdayDates(anchor) {
   const start = startOfWeek(anchor, { weekStartsOn: 1 })
@@ -86,13 +87,14 @@ export default function VolunteerSchedule({ session, onSignOut }) {
   const [hoursDue, setHoursDue] = useState([])
   const [myUpcoming, setMyUpcoming] = useState([])
   const [todayShift, setTodayShift] = useState(null)
+  const [beforeFirstDay, setBeforeFirstDay] = useState(false)
   const [openDays, setOpenDays] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [selectedDate, setSelectedDate] = useState(null)
   const [saving, setSaving] = useState(false)
   const [modalError, setModalError] = useState('')
-  const [arrivalTime, setArrivalTime] = useState('08:00')
+  const [arrivalTime, setArrivalTime] = useState(ARRIVAL_TIME_MIN)
   const [hours, setHours] = useState('')
   const [shiftNote, setShiftNote] = useState('')
   const [closeReason, setCloseReason] = useState('')
@@ -102,6 +104,8 @@ export default function VolunteerSchedule({ session, onSignOut }) {
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [cancelAck, setCancelAck] = useState(false)
   const [toast, setToast] = useState('')
+  const [showFirstDayIntro, setShowFirstDayIntro] = useState(false)
+  const pendingDayHandled = useRef(false)
 
   const range = useMemo(() => {
     const thisWeek = weekdayDates(new Date())
@@ -141,6 +145,7 @@ export default function VolunteerSchedule({ session, onSignOut }) {
       setHoursDue(data.hoursDue || [])
       setMyUpcoming(data.myUpcoming || [])
       setTodayShift(data.todayShift || null)
+      setBeforeFirstDay(!!data.beforeFirstDay)
       if (gapsRes.ok) {
         const gaps = await gapsRes.json()
         setOpenDays(gaps.open || [])
@@ -227,7 +232,10 @@ export default function VolunteerSchedule({ session, onSignOut }) {
     setConfirmCancel(false)
     setCancelAck(false)
     const existing = shiftByDate[key]
-    setArrivalTime(existing?.arrival_time || '08:00')
+    const bookable =
+      isWeekday(key) && !closureByDate[key] && !existing && (isAdmin || !isPastDate(key))
+    setShowFirstDayIntro(!isAdmin && beforeFirstDay && bookable)
+    setArrivalTime(clampArrivalTime(existing?.arrival_time || ARRIVAL_TIME_MIN))
     setHours(existing?.hours_worked != null ? String(existing.hours_worked) : '')
     setShiftNote(existing?.note || '')
     setAssignVolunteerId(existing?.volunteer_id || '')
@@ -237,6 +245,7 @@ export default function VolunteerSchedule({ session, onSignOut }) {
     setSelectedDate(null)
     setConfirmCancel(false)
     setCancelAck(false)
+    setShowFirstDayIntro(false)
   }
 
   const showToast = (message) => setToast(message)
@@ -263,6 +272,20 @@ export default function VolunteerSchedule({ session, onSignOut }) {
     setView('week')
     openDay(d)
   }
+
+  useEffect(() => {
+    if (loading || pendingDayHandled.current) return
+    let pending = null
+    try {
+      pending = sessionStorage.getItem('apl_volunteer_pending_day')
+    } catch {
+      return
+    }
+    if (!pending || !/^\d{4}-\d{2}-\d{2}$/.test(pending)) return
+    pendingDayHandled.current = true
+    sessionStorage.removeItem('apl_volunteer_pending_day')
+    jumpToDay(pending)
+  }, [loading])
 
   const signUp = () =>
     run(async () => {
@@ -542,7 +565,6 @@ export default function VolunteerSchedule({ session, onSignOut }) {
     a.date.localeCompare(b.date)
   )
   const nextOpen = openDays[0]
-  const knowHowDefault = myUpcoming.length === 0 && !todayShift
 
   return (
     <div className="space-y-5 md:space-y-6 min-w-0">
@@ -794,7 +816,7 @@ export default function VolunteerSchedule({ session, onSignOut }) {
         </form>
       )}
 
-      <VolunteerKnowHow isSpanish={isSpanish} defaultOpen={knowHowDefault} />
+      <VolunteerKnowHow isSpanish={isSpanish} />
 
       <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-3 sm:p-3.5 space-y-3">
         <div className="flex items-center justify-between gap-3">
@@ -1054,6 +1076,13 @@ export default function VolunteerSchedule({ session, onSignOut }) {
 
             {modalError && <p className="text-sm text-red-500">{modalError}</p>}
 
+            {showFirstDayIntro && canBook && !confirmCancel ? (
+              <FirstTimeVolunteerPopup
+                isSpanish={isSpanish}
+                onContinue={() => setShowFirstDayIntro(false)}
+              />
+            ) : (
+              <>
             {confirmCancel && selectedShift && (
               <div className="rounded-2xl border border-red-200 bg-red-50 px-3.5 py-3 space-y-3">
                 <p className="text-sm font-semibold text-red-800">
@@ -1161,8 +1190,8 @@ export default function VolunteerSchedule({ session, onSignOut }) {
                   <li>
                     ·{' '}
                     {isSpanish
-                      ? 'La mañana alrededor de las 10 funciona mejor porque no hace tanto calor.'
-                      : 'Morning around 10 works best since it’s not hot.'}
+                      ? 'Elige una hora entre 8:00 AM y 4:00 PM.'
+                      : 'Pick a time between 8:00 AM and 4:00 PM.'}
                   </li>
                   <li>· {isSpanish ? 'Si cancelas con poco aviso, llama a la clínica.' : 'If you cancel last-minute, call the clinic.'}</li>
                 </ul>
@@ -1281,6 +1310,8 @@ export default function VolunteerSchedule({ session, onSignOut }) {
                 {isSpanish ? 'Reabrir este día' : 'Reopen this day'}
               </button>
             )}
+              </>
+            )}
           </div>
         </div>
       )}
@@ -1302,15 +1333,15 @@ function TimePicker({ value, onChange, isSpanish }) {
       </label>
       <input
         type="time"
-        value={value || '08:00'}
+        value={clampArrivalTime(value || ARRIVAL_TIME_MIN)}
+        min={ARRIVAL_TIME_MIN}
+        max={ARRIVAL_TIME_MAX}
         step="1800"
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange(clampArrivalTime(e.target.value))}
         className="w-full min-h-[48px] intake-input px-3.5 py-3 rounded-xl border border-gray-200 text-base bg-white focus:outline-none focus:ring-2 focus:ring-apl-primary/25 focus:border-apl-primary"
       />
       <p className="text-[11px] text-gray-400 mt-1.5">
-        {isSpanish
-          ? 'La mañana alrededor de las 10 funciona mejor porque no hace tanto calor. Elige la hora que te funcione.'
-          : 'Morning around 10 works best since it’s not hot. Pick whatever time works for you.'}
+        {isSpanish ? 'Entre 8:00 AM y 4:00 PM' : 'Between 8:00 AM and 4:00 PM'}
       </p>
     </div>
   )
