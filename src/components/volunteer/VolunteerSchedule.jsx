@@ -577,6 +577,14 @@ export default function VolunteerSchedule({ session, onSignOut }) {
           {isSpanish ? 'Inicio' : 'Home'}
         </Link>
         <div className="flex items-center gap-1 flex-wrap justify-end">
+          {isAdmin && (
+            <Link
+              href="/volunteer/signups"
+              className="text-xs font-medium text-apl-primary hover:text-apl-blue-dark px-2.5 py-1.5 rounded-lg hover:bg-apl-blue-50 transition-colors"
+            >
+              {isSpanish ? 'Usuarios' : 'Sign-ups'}
+            </Link>
+          )}
           <Link
             href="/volunteer/board"
             className="text-xs font-medium text-apl-primary hover:text-apl-blue-dark px-2.5 py-1.5 rounded-lg hover:bg-apl-blue-50 transition-colors"

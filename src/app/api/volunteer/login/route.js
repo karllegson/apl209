@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getAdminPassword } from '@/lib/auth/admin'
 import { getClientIp } from '@/lib/getClientIp'
 import { rateLimit } from '@/lib/rateLimit'
 import { isValidEmail, isValidPhone, normalizePhone, parseContact } from '@/lib/volunteer/phone'
@@ -37,6 +38,10 @@ export async function POST(request) {
   ).slice(0, 40)
 
   if (email && isVolunteerAdminEmail(email)) {
+    const password = typeof body.password === 'string' ? body.password : ''
+    if (password !== getAdminPassword()) {
+      return NextResponse.json({ error: 'Invalid password' }, { status: 401 })
+    }
     const response = NextResponse.json({
       isAdmin: true,
       volunteer: { id: null, name: 'Admin', email },

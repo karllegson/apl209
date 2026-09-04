@@ -9,6 +9,7 @@ import { ArrowLeft, Clock, Loader2, RotateCcw, Shirt, UserPlus, X } from 'lucide
 import { LanguageToggle, useLanguage } from '@/components/intake/LanguageContext'
 import { CLINIC, LAUNDRY_COORDINATOR } from '@/lib/volunteer/clinic'
 import { parseDateStr } from '@/lib/volunteer/dates'
+import { isVolunteerAdminEmail } from '@/lib/volunteer/auth'
 import VolunteerWeekPreview from './VolunteerWeekPreview'
 
 const PENDING_DAY_KEY = 'apl_volunteer_pending_day'
@@ -29,9 +30,11 @@ export default function VolunteerSignIn({ onSignedIn }) {
   const [newError, setNewError] = useState('')
   const [newLoading, setNewLoading] = useState(false)
   const [retContact, setRetContact] = useState('')
+  const [retPassword, setRetPassword] = useState('')
   const [retError, setRetError] = useState('')
   const [retLoading, setRetLoading] = useState(false)
   const [pendingDay, setPendingDay] = useState(null)
+  const retIsAdmin = isVolunteerAdminEmail(retContact.trim())
 
   const locale = isSpanish ? esLocale : enUS
 
@@ -39,6 +42,7 @@ export default function VolunteerSignIn({ onSignedIn }) {
     setMode(null)
     setNewError('')
     setRetError('')
+    setRetPassword('')
     setNewMethod(null)
     setPendingDay(null)
   }
@@ -105,12 +109,18 @@ export default function VolunteerSignIn({ onSignedIn }) {
       setRetError(isSpanish ? 'Ingresa tu correo o teléfono' : 'Enter your email or phone')
       return
     }
+    if (retIsAdmin && !retPassword) {
+      setRetError(isSpanish ? 'Ingresa la contraseña de admin' : 'Enter the admin password')
+      return
+    }
     setRetLoading(true)
     try {
+      const body = { contact: retContact.trim() }
+      if (retIsAdmin) body.password = retPassword
       const res = await fetch('/api/volunteer/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contact: retContact.trim() }),
+        body: JSON.stringify(body),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Could not sign in')
@@ -292,7 +302,13 @@ export default function VolunteerSignIn({ onSignedIn }) {
               {isSpanish ? 'Bienvenido de nuevo' : 'Welcome back'}
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              {isSpanish ? 'Correo o teléfono — sin contraseña' : 'Email or phone — no password'}
+              {retIsAdmin
+                ? isSpanish
+                  ? 'Cuenta de admin — ingresa la contraseña'
+                  : 'Admin account — enter the password'
+                : isSpanish
+                  ? 'Correo o teléfono — sin contraseña'
+                  : 'Email or phone — no password'}
             </p>
           </div>
           <div>
@@ -312,8 +328,26 @@ export default function VolunteerSignIn({ onSignedIn }) {
               }}
               className={fieldClass}
             />
-            {retError && <p className="text-red-500 text-sm mt-2">{retError}</p>}
           </div>
+          {retIsAdmin && (
+            <div className="animate-fade-in">
+              <label className="form-field-label block mb-2">
+                {isSpanish ? 'Contraseña de admin' : 'Admin password'}
+              </label>
+              <input
+                type="password"
+                autoComplete="current-password"
+                placeholder="••••"
+                value={retPassword}
+                onChange={(e) => {
+                  setRetPassword(e.target.value)
+                  setRetError('')
+                }}
+                className={fieldClass}
+              />
+            </div>
+          )}
+          {retError && <p className="text-red-500 text-sm">{retError}</p>}
           <button type="submit" disabled={retLoading} className={primaryBtn}>
             {retLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : isSpanish ? 'Entrar' : 'Sign in'}
           </button>
