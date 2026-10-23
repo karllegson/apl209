@@ -7,6 +7,19 @@ import { useLanguage } from './LanguageContext'
 
 const MAX_PHOTO_PX = 800
 const MAX_PHOTO_QUALITY = 0.82
+const MIN_SURGERY_WEIGHT_LBS = 3
+
+// Weight is free text ("2.5 lbs", "30 oz", "1 kg"); returns true only when we can tell it's under the minimum
+function isUnderMinWeight(weight) {
+  if (!weight || weight === 'unsure') return false
+  const text = String(weight).toLowerCase()
+  const num = parseFloat(text.replace(/[^0-9.]/g, ' ').trim().split(/\s+/)[0])
+  if (!Number.isFinite(num) || num <= 0) return false
+  let lbs = num
+  if (/oz|ounce/.test(text)) lbs = num / 16
+  else if (/kg|kilo/.test(text)) lbs = num * 2.20462
+  return lbs < MIN_SURGERY_WEIGHT_LBS
+}
 
 function resizeImageToDataUrl(file, maxPx = MAX_PHOTO_PX, quality = MAX_PHOTO_QUALITY) {
   return new Promise((resolve, reject) => {
@@ -140,6 +153,8 @@ const T = {
     tnrSafety: 'Outdoor cats behave differently than house pets. For everyone\'s safety (yours, our staff, and others at the clinic) and to meet legal requirements, cats must arrive in a humane trap with weight noted. Traps can be rented from us (if you don\'t have a trap). You\'ll need to come in person to book and sign a waiver.',
     enterWeight: 'Enter weight',
     unsureWeighAtClinic: "Unsure — we'll weigh at clinic",
+    minWeightNote: 'Pets must weigh at least 3 lbs for surgery (anesthesia safety).',
+    underMinWeight: 'Under 3 lbs: your pet is too small for surgery right now. We may not be able to operate until they reach 3 lbs.',
     priceReference: 'Price reference',
     referenceOnlyNotQuote: 'Reference only; not a quote.',
     petPhoto: 'Pet photo',
@@ -191,6 +206,8 @@ const T = {
     tnrSafety: 'Los gatos callejeros se comportan distinto a las mascotas de casa. Para la seguridad de todos (usted, el personal y los demás en la clínica) y por requisito legal, los gatos tienen que llegar en jaula trampa con el peso anotado. Con nosotros puede rentar una trampa (si no tiene una). Tiene que venir en persona para hacer la cita y firmar un formato.',
     enterWeight: 'Ingresar peso',
     unsureWeighAtClinic: 'No estoy seguro — lo pesamos en la clínica',
+    minWeightNote: 'Las mascotas deben pesar al menos 3 lb para la cirugía (seguridad de la anestesia).',
+    underMinWeight: 'Menos de 3 lb: su mascota es muy pequeña para la cirugía por ahora. Es posible que no podamos operar hasta que pese 3 lb.',
     priceReference: 'Referencia de precios',
     referenceOnlyNotQuote: 'Solo referencia; no es una cotización.',
     petPhoto: 'Foto de la mascota',
@@ -387,6 +404,11 @@ export default function StepPets({
                 </div>
                 {errors[`pet_${i}_weight`] && (
                   <p className="text-red-500 text-xs mt-1">{errors[`pet_${i}_weight`]}</p>
+                )}
+                {isUnderMinWeight(pet.weight) ? (
+                  <p className="text-xs text-amber-800 bg-amber-50/70 border border-amber-100 rounded-lg px-2.5 py-2 mt-2">{t.underMinWeight}</p>
+                ) : (
+                  <p className="text-xs text-gray-500 mt-1.5">{t.minWeightNote}</p>
                 )}
               </div>
               <InputField

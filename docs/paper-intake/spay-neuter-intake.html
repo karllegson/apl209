@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spay &amp; Neuter Intake Form</title>
+<style>
+  @page { size: Letter; margin: 0.45in 0.5in; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; color: #1a1a1a; font-size: 10pt; line-height: 1.3; margin: 0; }
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+
+  header { display: flex; align-items: center; gap: 12px; border-bottom: 2.5px solid #2a78ab; padding-bottom: 8px; margin-bottom: 10px; }
+  header img { width: 58px; height: 58px; }
+  header .t { flex: 1; }
+  header h1 { margin: 0; font-size: 17pt; color: #1e4f8a; letter-spacing: -0.2px; }
+  header .sub { font-size: 9pt; color: #555; margin-top: 2px; }
+  header .date { font-size: 9pt; text-align: right; white-space: nowrap; }
+  header .date span { display: inline-block; width: 1.3in; border-bottom: 1px solid #333; }
+
+  h2 { font-size: 10.5pt; text-transform: uppercase; letter-spacing: 0.6px; color: #fff; background: #2a78ab; padding: 3px 8px; margin: 12px 0 7px; border-radius: 2px; }
+  h3 { font-size: 10pt; margin: 9px 0 4px; color: #1e4f8a; }
+
+  .notice { border: 1px solid #2a78ab; background: #eef5fa; padding: 6px 9px; font-size: 8.8pt; border-radius: 3px; margin-bottom: 6px; }
+  .small { font-size: 8.3pt; color: #444; }
+
+  .row { display: flex; gap: 14px; margin: 9px 0; align-items: flex-end; }
+  .f { flex: 1; display: flex; align-items: flex-end; gap: 6px; min-width: 0; }
+  .f label { white-space: nowrap; font-weight: 600; font-size: 9.2pt; }
+  .f .line { flex: 1; border-bottom: 1px solid #333; height: 17px; }
+  .w1 { flex: 0 0 auto; } .w2 { flex: 2; } .w3 { flex: 3; }
+
+  .q { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 7px 0; }
+  .q .ql { font-weight: 600; font-size: 9.2pt; margin-right: 4px; }
+  .box { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .box::before { content: ""; width: 11px; height: 11px; border: 1.3px solid #333; border-radius: 2px; display: inline-block; flex: none; }
+  .q .then { flex: 1; display: flex; gap: 6px; align-items: flex-end; min-width: 2.2in; }
+  .q .then .line { flex: 1; border-bottom: 1px solid #333; height: 15px; }
+
+  .sub-block { border-left: 3px solid #c9dcea; padding: 1px 0 1px 9px; margin: 4px 0 6px; }
+  .sub-block .tag { font-size: 8.3pt; font-weight: 700; color: #2a78ab; text-transform: uppercase; letter-spacing: 0.4px; }
+
+  .lines .line { border-bottom: 1px solid #333; height: 20px; }
+
+  .ref { border: 1px solid #ccc; border-radius: 3px; padding: 6px 9px; font-size: 8.3pt; background: #fafafa; }
+  .ref table { border-collapse: collapse; width: 100%; }
+  .ref td, .ref th { padding: 1px 6px 1px 0; text-align: left; vertical-align: top; }
+  .ref th { font-size: 8.3pt; color: #1e4f8a; }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 18px; }
+  .svc { display: flex; justify-content: space-between; gap: 8px; font-size: 9pt; padding: 1.5px 0; border-bottom: 1px dotted #ccc; }
+  .svc .p { color: #444; white-space: nowrap; }
+
+  .office { border: 1.5px dashed #888; padding: 7px 10px; margin-top: 12px; border-radius: 3px; }
+  .office .tag { font-weight: 700; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.5px; color: #666; }
+
+  .pethead { display: flex; justify-content: space-between; align-items: baseline; }
+  h2, h3 { break-after: avoid; }
+  .row, .q, .sub-block, .office, .lines { break-inside: avoid; }
+  .foot { font-size: 7.8pt; color: #777; text-align: center; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<!-- ================= PAGE 1: OWNER + PET INFO ================= -->
+<section class="page">
+  <header>
+    <img src="logo.png" alt="">
+    <div class="t">
+      <h1>Spay &amp; Neuter Intake Form</h1>
+      <div class="sub">Animal Protection League &nbsp;·&nbsp; Please print clearly. One form per pet.</div>
+    </div>
+    <div class="date">Date: <span></span></div>
+  </header>
+
+  <div class="notice"><strong>Rabies requirement.</strong> Your pet must have a current rabies vaccine (within 1 year). Bring proof or a certificate of vaccination on the day of the appointment. If not current or no proof, your pet can be vaccinated at the clinic.</div>
+  <div class="notice"><strong>Minimum weight.</strong> Dogs and cats must weigh at least 3 lbs for surgery (anesthesia safety).</div>
+
+  <h2>1 · Owner Information</h2>
+  <div class="row"><div class="f"><label>First name</label><div class="line"></div></div><div class="f"><label>Last name</label><div class="line"></div></div></div>
+  <div class="row"><div class="f"><label>Phone</label><div class="line"></div></div><div class="f w2"><label>Email</label><div class="line"></div></div></div>
+  <div class="row"><div class="f"><label>Street address</label><div class="line"></div></div></div>
+  <div class="row"><div class="f w2"><label>City</label><div class="line"></div></div><div class="f"><label>State</label><div class="line"></div></div><div class="f"><label>ZIP code</label><div class="line"></div></div></div>
+  <div class="row"><div class="f"><label>How did you hear about us? <span class="small">(optional)</span></label><div class="line"></div></div></div>
+
+  <h2>2 · Pet Information</h2>
+  <div class="row"><div class="f"><label>Pet name</label><div class="line"></div></div>
+    <div class="q" style="margin:0"><span class="ql">Species:</span><span class="box">Dog</span><span class="box">Cat</span></div></div>
+  <div class="row"><div class="f w2"><label>Breed</label><div class="line"></div></div><div class="f"><label>Color</label><div class="line"></div></div></div>
+  <div class="row"><div class="f"><label>Age</label><div class="line"></div></div><div class="f"><label>Weight (lbs)</label><div class="line"></div></div></div>
+  <div class="row"><div class="f"><label>How long have you had this pet?</label><div class="line"></div></div></div>
+  <div class="q"><span class="ql">Sex:</span><span class="box">Male</span><span class="box">Female</span></div>
+
+  <div class="sub-block">
+    <div class="tag">Males only</div>
+    <div class="q"><span class="ql">Are both testicles descended?</span><span class="box">Yes</span><span class="box">No</span><span class="box">Unsure</span></div>
+  </div>
+  <div class="sub-block">
+    <div class="tag">Females only</div>
+    <div class="q"><span class="ql">Is your pet currently in heat?</span><span class="box">Yes</span><span class="box">No</span><span class="box">Unsure</span></div>
+    <div class="q"><span class="ql">Is your pet pregnant?</span><span class="box">Yes</span><span class="box">No</span><span class="box">Unsure</span></div>
+    <div class="q"><span class="ql">Has your pet given birth or been nursing in the last 90 days?</span><span class="box">Yes</span><span class="box">No</span></div>
+    <div class="row"><div class="f"><label>Last heat cycle date (if known)</label><div class="line"></div></div><div class="f"><label>Pregnancy date (if known)</label><div class="line"></div></div></div>
+  </div>
+
+  <h2>3 · Medical History</h2>
+
+  <div class="q"><span class="ql">Is your pet currently sick or injured?</span><span class="box">Yes</span><span class="box">No</span><span class="then"><span class="small">If yes, please explain:</span><span class="line"></span></span></div>
+  <div class="q"><span class="ql">In the last week, has your pet had any of these?</span><span class="box">Vomiting</span><span class="box">Diarrhea</span><span class="box">Sneezing</span><span class="box">Coughing</span><span class="box">None</span></div>
+  <div class="q"><span class="ql">Any known medical conditions?</span><span class="box">None</span><span class="box">Heart</span><span class="box">Respiratory</span><span class="box">Seizures</span><span class="box">Diabetes</span><span class="box">Other</span></div>
+  <div class="q"><span class="then"><span class="small">If other, describe:</span><span class="line"></span></span></div>
+  <div class="q"><span class="ql">Any previous surgeries?</span><span class="box">Yes</span><span class="box">No</span><span class="then"><span class="small">If yes, describe:</span><span class="line"></span></span></div>
+  <div class="q"><span class="ql">Any known drug or vaccine reactions?</span><span class="box">Yes</span><span class="box">No</span><span class="then"><span class="small">If yes, describe:</span><span class="line"></span></span></div>
+  <div class="q"><span class="ql">Is your pet currently taking medications or supplements?</span><span class="box">Yes</span><span class="box">No</span></div>
+  <div class="q"><span class="then"><span class="small">If yes, list:</span><span class="line"></span></span></div>
+
+  <h2>4 · Vaccination &amp; Behavior</h2>
+  <div style="break-inside: avoid">
+  <div class="q"><span class="ql">Is your pet current on their rabies vaccine?</span><span class="box">Yes</span><span class="box">No</span><span class="box">Unknown</span></div>
+  <div class="sub-block">
+    <div class="tag">If yes — required</div>
+    <div class="row" style="margin-top:4px"><div class="f"><label>Date of last rabies vaccine</label><div class="line"></div></div></div>
+    <div class="q"><span class="ql">Proof of vaccination:</span><span class="box">Copy attached to this form</span><span class="box">Will bring certificate to appointment</span></div>
+    <div class="small">Proof (rabies certificate or vet record showing the date) is required. Without it, your pet will need to be vaccinated at the clinic.</div>
+  </div>
+  <div class="small" style="margin:2px 0 4px">A current rabies vaccine is required for spay/neuter surgery. If not current or no proof, your pet can be vaccinated at the clinic on the day of the appointment.</div>
+  </div>
+  <div class="q"><span class="ql">Has your pet been exposed to parvo, distemper, or panleukopenia in the last 30 days?</span><span class="box">Yes</span><span class="box">No</span></div>
+  <div class="q"><span class="ql">Does your pet currently have fleas or ticks?</span><span class="box">Yes</span><span class="box">No</span></div>
+  <div class="q"><span class="ql">What's your pet's temperament?</span><span class="box">Friendly</span><span class="box">Nervous</span><span class="box">Aggressive</span><span class="box">Fearful / may bite</span></div>
+
+  <h3>Note for our vet team <span class="small" style="font-weight:400">(optional) — e.g. nervous at the vet, takes medication with food, prefers mornings</span></h3>
+  <div class="lines"><div class="line"></div><div class="line"></div><div class="line"></div></div>
+
+  <p class="small" style="margin-top:8px">This form does not schedule an appointment. We'll contact you to confirm.</p>
+
+
+  <div class="foot">Animal Protection League · Spay &amp; Neuter Intake</div>
+</section>
+
+</body>
+</html>
