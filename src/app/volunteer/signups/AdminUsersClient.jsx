@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { format, parseISO } from 'date-fns'
 import {
   ArrowLeft,
+  Check,
   ChevronDown,
   ChevronUp,
   Loader2,
@@ -63,6 +64,17 @@ export default function AdminUsersClient() {
       cancelled = true
     }
   }, [])
+
+  const updateShiftHours = (userId, shiftId, hoursWorked) => {
+    setUsers((prev) =>
+      prev.map((u) => {
+        if (u.id !== userId) return u
+        const shifts = u.shifts.map((s) => (s.id === shiftId ? { ...s, hours_worked: hoursWorked } : s))
+        const total = shifts.reduce((sum, s) => sum + (Number(s.hours_worked) || 0), 0)
+        return { ...u, shifts, total_hours: Math.round(total * 10) / 10 }
+      })
+    )
+  }
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -257,12 +269,13 @@ export default function AdminUsersClient() {
                             <p className="font-semibold text-gray-900">
                               {formatShiftDate(s.shift_date)}
                             </p>
-                            <p className="mt-0.5 text-gray-500">
-                              Arrive {formatTimeDisplay(s.arrival_time)}
-                              {s.hours_worked != null && s.hours_worked !== ''
-                                ? ` · ${s.hours_worked} hrs`
-                                : ''}
-                            </p>
+                            <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+                              <p className="text-gray-500">Arrive {formatTimeDisplay(s.arrival_time)}</p>
+                              <ShiftHoursInput
+                                shift={s}
+                                onSaved={(hoursWorked) => updateShiftHours(u.id, s.id, hoursWorked)}
+                              />
+                            </div>
                             {s.note ? (
                               <p className="mt-1 text-gray-600 leading-relaxed">Note: {s.note}</p>
                             ) : null}
@@ -277,6 +290,68 @@ export default function AdminUsersClient() {
           )
         })}
       </ul>
+    </div>
+  )
+}
+
+function ShiftHoursInput({ shift, onSaved }) {
+  const initial = shift.hours_worked == null || shift.hours_worked === '' ? '' : String(shift.hours_worked)
+  const [value, setValue] = useState(initial)
+  const [status, setStatus] = useState('idle') // idle | saving | saved | error
+  const [message, setMessage] = useState('')
+
+  const save = async () => {
+    const next = value.trim()
+    if (next === initial) return
+    setStatus('saving')
+    setMessage('')
+    try {
+      const res = await fetch(`/api/volunteer/shifts/${shift.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hours_worked: next === '' ? null : next }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Could not save hours')
+      const saved = data.shift?.hours_worked ?? null
+      setValue(saved == null ? '' : String(saved))
+      onSaved(saved)
+      setStatus('saved')
+    } catch (err) {
+      setStatus('error')
+      setMessage(err.message)
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-0.5">
+      <label className="inline-flex items-center gap-1.5 text-gray-500">
+        Hours
+        <input
+          type="number"
+          inputMode="decimal"
+          min="0"
+          max="16"
+          step="0.5"
+          value={value}
+          placeholder="—"
+          onChange={(e) => {
+            setValue(e.target.value)
+            if (status !== 'saving') setStatus('idle')
+          }}
+          onBlur={save}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur()
+          }}
+          disabled={status === 'saving'}
+          className="w-16 intake-input px-2 py-1 rounded-lg border border-gray-300 text-sm text-gray-900 text-right"
+        />
+        <span className="w-4 inline-flex justify-center">
+          {status === 'saving' && <Loader2 className="w-3.5 h-3.5 animate-spin text-apl-primary" />}
+          {status === 'saved' && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+        </span>
+      </label>
+      {status === 'error' && <span className="text-[11px] text-red-500">{message}</span>}
     </div>
   )
 }
